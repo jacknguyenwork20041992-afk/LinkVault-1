@@ -9,7 +9,7 @@ export default function FloatingSupportButton() {
   return (
     <Button
       onClick={handleSupportClick}
-      className="fixed bottom-6 right-6 h-16 px-4 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-purple-600 hover:to-blue-500 text-white shadow-lg hover:shadow-xl transition-all duration-300 z-50 flex items-center justify-center gap-2 animate-pulse hover:animate-bounce"
+      className="fixed bottom-6 right-6 h-16 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-300 z-50 flex items-center justify-center gap-2"
       data-testid="button-floating-support"
       aria-label="Hỗ trợ"
     >
