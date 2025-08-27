@@ -31,17 +31,17 @@ export default function Home() {
     }
   }, [isAuthenticated, isLoading, toast]);
 
-  const { data: notifications = [] } = useQuery({
+  const { data: notifications = [] } = useQuery<any[]>({
     queryKey: ["/api/notifications/unread"],
     retry: false,
   });
 
-  const { data: programs = [] } = useQuery({
+  const { data: programs = [] } = useQuery<any[]>({
     queryKey: ["/api/programs"],
     retry: false,
   });
 
-  const { data: recentDocuments = [] } = useQuery({
+  const { data: recentDocuments = [] } = useQuery<any[]>({
     queryKey: ["/api/documents/recent"],
     retry: false,
   });

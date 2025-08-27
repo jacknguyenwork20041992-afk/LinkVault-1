@@ -16,7 +16,7 @@ export default function ProgramsManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: programs = [], isLoading } = useQuery({
+  const { data: programs = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/programs"],
     retry: false,
   });

@@ -14,7 +14,7 @@ export default function DocumentsManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: documents = [], isLoading } = useQuery({
+  const { data: documents = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/documents"],
     retry: false,
   });

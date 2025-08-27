@@ -16,7 +16,7 @@ export default function CategoriesManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: categories = [], isLoading } = useQuery({
+  const { data: categories = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/categories"],
     retry: false,
   });

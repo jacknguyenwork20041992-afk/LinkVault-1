@@ -14,7 +14,7 @@ export default function UsersManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery({
+  const { data: users = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/users"],
     retry: false,
   });
