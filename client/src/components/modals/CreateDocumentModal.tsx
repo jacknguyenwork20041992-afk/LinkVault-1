@@ -72,7 +72,7 @@ export default function CreateDocumentModal({
   const selectedProgramId = form.watch("programId");
 
   // Filter categories based on selected program
-  const filteredCategories = categories.filter((category: Category & { program: Program }) => 
+  const filteredCategories = categories.filter((category: Category) => 
     !selectedProgramId || category.programId === selectedProgramId
   );
 
@@ -200,6 +200,7 @@ export default function CreateDocumentModal({
                       rows={3}
                       data-testid="input-document-description"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -231,7 +232,7 @@ export default function CreateDocumentModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Loại file</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-type">
                         <SelectValue placeholder="Chọn loại file" />
@@ -258,14 +259,14 @@ export default function CreateDocumentModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chương trình</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-program">
                         <SelectValue placeholder="Chọn chương trình" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {programs.map((program: Program) => (
+                      {(programs as Program[]).map((program: Program) => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.name}
                         </SelectItem>
@@ -283,7 +284,7 @@ export default function CreateDocumentModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Danh mục</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-category">
                         <SelectValue placeholder="Chọn danh mục" />

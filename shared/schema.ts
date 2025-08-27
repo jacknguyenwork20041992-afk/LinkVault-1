@@ -33,6 +33,7 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
+  password: varchar("password"), // Optional password for manual creation
   role: varchar("role").notNull().default("user"), // "admin" or "user"
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -162,12 +163,18 @@ export const createUserSchema = createInsertSchema(users).pick({
   email: true,
   firstName: true,
   lastName: true,
+  password: true,
   role: true,
 }).extend({
   email: z.string().email(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   role: z.enum(["admin", "user"]).default("user"),
+});
+
+export const bulkCreateDocumentsSchema = z.object({
+  documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
 
 // Types
@@ -184,3 +191,4 @@ export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
 export type CreateUser = z.infer<typeof createUserSchema>;
+export type BulkCreateDocuments = z.infer<typeof bulkCreateDocumentsSchema>;

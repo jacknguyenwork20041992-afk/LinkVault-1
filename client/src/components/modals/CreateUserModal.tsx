@@ -48,6 +48,7 @@ export default function CreateUserModal({
       email: "",
       firstName: "",
       lastName: "",
+      password: "",
       role: "user",
     },
   });
@@ -160,6 +161,25 @@ export default function CreateUserModal({
                     <Input
                       placeholder="Văn A"
                       data-testid="input-user-lastname"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mật khẩu</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="password"
+                      placeholder="Nhập mật khẩu (tối thiểu 6 ký tự)"
+                      data-testid="input-user-password"
                       {...field}
                     />
                   </FormControl>

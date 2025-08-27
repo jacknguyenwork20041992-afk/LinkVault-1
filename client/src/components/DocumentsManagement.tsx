@@ -5,11 +5,13 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { Plus, Edit, Trash2, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CreateDocumentModal from "@/components/modals/CreateDocumentModal";
+import BulkCreateDocumentModal from "@/components/modals/BulkCreateDocumentModal";
 import { apiRequest } from "@/lib/queryClient";
 import type { Document, Category, Program } from "@shared/schema";
 
 export default function DocumentsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<(Document & { category: Category | null, program: Program | null }) | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -116,14 +118,24 @@ export default function DocumentsManagement() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold text-foreground">Quản lý tài liệu</h3>
-        <Button 
-          onClick={() => setIsCreateModalOpen(true)}
-          className="bg-primary text-primary-foreground"
-          data-testid="button-create-document"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Thêm tài liệu
-        </Button>
+        <div className="flex space-x-3">
+          <Button 
+            onClick={() => setIsCreateModalOpen(true)}
+            className="bg-primary text-primary-foreground"
+            data-testid="button-create-document"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Thêm tài liệu
+          </Button>
+          <Button 
+            onClick={() => setIsBulkCreateModalOpen(true)}
+            variant="outline"
+            data-testid="button-bulk-create-documents"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Thêm nhiều tài liệu
+          </Button>
+        </div>
       </div>
 
       {documents.length === 0 ? (
@@ -212,6 +224,11 @@ export default function DocumentsManagement() {
         isOpen={isCreateModalOpen}
         onClose={handleModalClose}
         editingDocument={editingDocument}
+      />
+      
+      <BulkCreateDocumentModal
+        isOpen={isBulkCreateModalOpen}
+        onClose={() => setIsBulkCreateModalOpen(false)}
       />
     </div>
   );

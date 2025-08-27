@@ -212,6 +212,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post("/api/documents/bulk", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { documents } = req.body;
+      if (!Array.isArray(documents) || documents.length === 0) {
+        return res.status(400).json({ message: "Documents array is required" });
+      }
+      
+      const validatedDocuments = documents.map(doc => insertDocumentSchema.parse(doc));
+      const createdDocuments = await storage.createDocuments(validatedDocuments);
+      res.json(createdDocuments);
+    } catch (error) {
+      console.error("Error creating bulk documents:", error);
+      res.status(400).json({ message: "Failed to create documents" });
+    }
+  });
+
   app.put("/api/documents/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
