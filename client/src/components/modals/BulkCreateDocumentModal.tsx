@@ -71,7 +71,6 @@ export default function BulkCreateDocumentModal({
           title: "",
           description: "",
           links: [{ url: "", description: "" }],
-          fileType: "",
           categoryId: "",
           programId: "",
         },
@@ -132,7 +131,6 @@ export default function BulkCreateDocumentModal({
       title: "",
       description: "",
       links: [{ url: "", description: "" }],
-      fileType: "",
       categoryId: "",
       programId: "",
     });
@@ -235,33 +233,6 @@ export default function BulkCreateDocumentModal({
                             )}
                           />
                         </div>
-
-                        <FormField
-                          control={form.control}
-                          name={`documents.${index}.fileType`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Loại file</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
-                                <FormControl>
-                                  <SelectTrigger data-testid={`select-document-type-${index}`}>
-                                    <SelectValue placeholder="Chọn loại file" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent>
-                                  <SelectItem value="pdf">PDF</SelectItem>
-                                  <SelectItem value="doc">DOC</SelectItem>
-                                  <SelectItem value="docx">DOCX</SelectItem>
-                                  <SelectItem value="xls">XLS</SelectItem>
-                                  <SelectItem value="xlsx">XLSX</SelectItem>
-                                  <SelectItem value="ppt">PPT</SelectItem>
-                                  <SelectItem value="pptx">PPTX</SelectItem>
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
 
                         <FormField
                           control={form.control}

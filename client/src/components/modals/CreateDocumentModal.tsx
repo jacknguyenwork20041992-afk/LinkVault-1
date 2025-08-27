@@ -72,7 +72,6 @@ export default function CreateDocumentModal({
       title: "",
       description: "",
       links: [{ url: "", description: "" }],
-      fileType: "",
       categoryId: "",
       programId: "",
     },
@@ -142,7 +141,6 @@ export default function CreateDocumentModal({
         title: editingDocument.title,
         description: editingDocument.description || "",
         links: (editingDocument as any).links || [{ url: "", description: "" }],
-        fileType: editingDocument.fileType || "",
         categoryId: editingDocument.categoryId || "",
         programId: editingDocument.programId || "",
       });
@@ -151,7 +149,6 @@ export default function CreateDocumentModal({
         title: "",
         description: "",
         links: [{ url: "", description: "" }],
-        fileType: "",
         categoryId: "",
         programId: "",
       });
@@ -302,33 +299,6 @@ export default function CreateDocumentModal({
                 ))}
               </div>
             </div>
-
-            <FormField
-              control={form.control}
-              name="fileType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Loại file</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-document-type">
-                        <SelectValue placeholder="Chọn loại file" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="pdf">PDF</SelectItem>
-                      <SelectItem value="doc">Word Document</SelectItem>
-                      <SelectItem value="docx">Word Document (docx)</SelectItem>
-                      <SelectItem value="xls">Excel Spreadsheet</SelectItem>
-                      <SelectItem value="xlsx">Excel Spreadsheet (xlsx)</SelectItem>
-                      <SelectItem value="ppt">PowerPoint</SelectItem>
-                      <SelectItem value="pptx">PowerPoint (pptx)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
