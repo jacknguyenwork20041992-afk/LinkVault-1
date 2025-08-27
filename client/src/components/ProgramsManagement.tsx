@@ -95,10 +95,10 @@ export default function ProgramsManagement() {
         <h3 className="text-lg font-semibold text-foreground">Quản lý chương trình</h3>
         <Button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-primary text-primary-foreground"
+          className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
           data-testid="button-create-program"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-5 w-5 mr-2" />
           Thêm chương trình
         </Button>
       </div>

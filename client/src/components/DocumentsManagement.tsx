@@ -149,10 +149,10 @@ export default function DocumentsManagement() {
         <h3 className="text-lg font-semibold text-foreground">Quản lý tài liệu</h3>
         <Button 
           onClick={() => setIsBulkCreateModalOpen(true)}
-          className="bg-primary text-primary-foreground"
+          className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
           data-testid="button-bulk-create-documents"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-5 w-5 mr-2" />
           Thêm tài liệu
         </Button>
       </div>

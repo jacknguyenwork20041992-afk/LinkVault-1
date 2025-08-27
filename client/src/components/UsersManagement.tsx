@@ -93,10 +93,10 @@ export default function UsersManagement() {
         <h3 className="text-lg font-semibold text-foreground">Quản lý người dùng</h3>
         <Button 
           onClick={() => setIsCreateModalOpen(true)}
-          className="bg-primary text-primary-foreground"
+          className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
           data-testid="button-create-user"
         >
-          <Plus className="h-4 w-4 mr-2" />
+          <Plus className="h-5 w-5 mr-2" />
           Thêm người dùng
         </Button>
       </div>
