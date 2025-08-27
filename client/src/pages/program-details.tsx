@@ -222,14 +222,14 @@ export default function ProgramDetails() {
                 
                 <div className="flex gap-3">
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[200px] border-2 focus:border-green-400" data-testid="select-category-filter">
+                    <SelectTrigger className="w-[200px] border-2 focus:border-green-400 text-foreground" data-testid="select-category-filter">
                       <Filter className="h-4 w-4 mr-2 text-green-600" />
-                      <SelectValue placeholder="Lọc theo danh mục" />
+                      <SelectValue placeholder="Lọc theo danh mục" className="text-foreground" />
                     </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả danh mục</SelectItem>
+                    <SelectContent className="bg-background border border-border">
+                      <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả danh mục</SelectItem>
                       {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
+                        <SelectItem key={category} value={category} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
                           {category}
                         </SelectItem>
                       ))}
