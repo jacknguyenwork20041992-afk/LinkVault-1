@@ -8,6 +8,7 @@ import NotFound from "@/pages/not-found";
 import Landing from "@/pages/landing";
 import Home from "@/pages/home";
 import Admin from "@/pages/admin";
+import ProgramDetails from "@/pages/program-details";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -27,6 +28,7 @@ function Router() {
       ) : (
         <>
           <Route path="/" component={Home} />
+          <Route path="/program/:id" component={ProgramDetails} />
           {user?.role === "admin" && <Route path="/admin" component={Admin} />}
         </>
       )}
