@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { insertDocumentSchema, type InsertDocument, type Document, type Category, type Program } from "@shared/schema";
+import { z } from "zod";
 import { X } from "lucide-react";
 import {
   Dialog,
@@ -58,8 +59,15 @@ export default function CreateDocumentModal({
     retry: false,
   });
 
+  const documentValidationSchema = insertDocumentSchema.extend({
+    title: z.string().min(1, "Tiêu đề là bắt buộc"),
+    googleDriveLink: z.string().min(1, "Link Google Drive là bắt buộc"),
+    programId: z.string().min(1, "Chương trình là bắt buộc"),
+    categoryId: z.string().min(1, "Danh mục là bắt buộc"),
+  });
+
   const form = useForm<InsertDocument>({
-    resolver: zodResolver(insertDocumentSchema),
+    resolver: zodResolver(documentValidationSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -179,7 +187,7 @@ export default function CreateDocumentModal({
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tiêu đề tài liệu</FormLabel>
+                  <FormLabel>Tiêu đề tài liệu *</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ví dụ: Bài 1: Chào hỏi cơ bản"
@@ -217,7 +225,7 @@ export default function CreateDocumentModal({
               name="googleDriveLink"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Link Google Drive</FormLabel>
+                  <FormLabel>Link Google Drive *</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="https://drive.google.com/..."
@@ -262,7 +270,7 @@ export default function CreateDocumentModal({
               name="programId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chương trình</FormLabel>
+                  <FormLabel>Chương trình *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-program">
@@ -287,7 +295,7 @@ export default function CreateDocumentModal({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Danh mục</FormLabel>
+                  <FormLabel>Danh mục *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-category">

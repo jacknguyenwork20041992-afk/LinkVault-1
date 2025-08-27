@@ -159,6 +159,7 @@ export default function CreateProgramModal({
                       rows={3}
                       data-testid="input-program-description"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
