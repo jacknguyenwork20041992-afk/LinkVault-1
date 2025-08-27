@@ -9,11 +9,12 @@ export default function FloatingSupportButton() {
   return (
     <Button
       onClick={handleSupportClick}
-      className="fixed bottom-6 right-6 h-14 w-14 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center justify-center"
+      className="fixed bottom-6 right-6 h-16 px-4 rounded-full bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200 z-50 flex items-center justify-center gap-2 animate-shake hover:animate-bounce"
       data-testid="button-floating-support"
       aria-label="Hỗ trợ"
     >
-      <HelpCircle className="h-6 w-6" />
+      <HelpCircle className="h-5 w-5" />
+      <span className="text-sm font-medium whitespace-nowrap">HỖ TRỢ</span>
     </Button>
   );
 }
