@@ -137,7 +137,9 @@ export default function NotificationsManagement() {
         </div>
       ) : (
         <div className="space-y-4">
-          {notifications.map((notification: Notification) => (
+          {notifications.map((item: any) => {
+            const notification = item.notification || item;
+            return (
             <div 
               key={notification.id} 
               className="bg-card border border-border rounded-lg p-6"
@@ -148,7 +150,7 @@ export default function NotificationsManagement() {
                   <h4 className="font-semibold text-foreground mb-2">{notification.title}</h4>
                   <p className="text-muted-foreground mb-2">{notification.message}</p>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>📅 {formatDateTime((notification as any).created_at || notification.createdAt)}</span>
+                    <span>📅 {formatDateTime(notification.createdAt)}</span>
                     <span className={notification.isGlobal ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"}>
                       👥 {notification.isGlobal ? "Toàn bộ người dùng" : "Người dùng cụ thể"}
                     </span>
@@ -165,7 +167,8 @@ export default function NotificationsManagement() {
                 </Button>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
