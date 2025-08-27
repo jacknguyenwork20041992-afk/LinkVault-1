@@ -9,6 +9,7 @@ import CategoriesManagement from "@/components/CategoriesManagement";
 import DocumentsManagement from "@/components/DocumentsManagement";
 import UsersManagement from "@/components/UsersManagement";
 import NotificationsManagement from "@/components/NotificationsManagement";
+import ActivityDashboard from "@/components/ActivityDashboard";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 
@@ -58,6 +59,8 @@ export default function Admin() {
         return <UsersManagement />;
       case "notifications":
         return <NotificationsManagement />;
+      case "activities":
+        return <ActivityDashboard />;
       default:
         return <AdminDashboard />;
     }
@@ -77,6 +80,8 @@ export default function Admin() {
         return "Quản lý người dùng";
       case "notifications":
         return "Quản lý thông báo";
+      case "activities":
+        return "Hoạt động người dùng";
       default:
         return "Dashboard";
     }

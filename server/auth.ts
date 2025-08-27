@@ -3,13 +3,23 @@ import { Strategy as LocalStrategy } from "passport-local";
 import { Express } from "express";
 import session from "express-session";
 import bcrypt from "bcrypt";
-import { storage } from "./storage";
 import type { User } from "@shared/schema";
 import connectPg from "connect-pg-simple";
+import { storage } from "./storage";
 
 declare global {
   namespace Express {
-    interface User extends import("@shared/schema").User {}
+    interface User {
+      id: string;
+      email: string | null;
+      firstName: string | null;
+      lastName: string | null;
+      profileImageUrl: string | null;
+      password: string | null;
+      role: string;
+      createdAt: Date | null;
+      updatedAt: Date | null;
+    }
   }
 }
 
@@ -78,17 +88,20 @@ export function setupAuth(app: Express) {
 
   // Login route
   app.post("/api/login", (req, res, next) => {
-    passport.authenticate("local", (err: any, user: User, info: any) => {
+    passport.authenticate("local", async (err: any, user: User, info: any) => {
       if (err) {
         return res.status(500).json({ message: "Lỗi server" });
       }
       if (!user) {
         return res.status(401).json({ message: info?.message || "Đăng nhập thất bại" });
       }
-      req.logIn(user, (err) => {
+      req.logIn(user, async (err) => {
         if (err) {
           return res.status(500).json({ message: "Lỗi đăng nhập" });
         }
+
+        // Note: Login activity will be logged by the route handler
+
         return res.json(user);
       });
     })(req, res, next);

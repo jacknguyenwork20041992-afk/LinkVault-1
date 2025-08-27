@@ -5,6 +5,7 @@ import {
   documents,
   notifications,
   userNotifications,
+  activities,
   type User,
   type UpsertUser,
   type Program,
@@ -12,11 +13,13 @@ import {
   type Document,
   type Notification,
   type UserNotification,
+  type Activity,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
   type InsertNotification,
   type InsertUserNotification,
+  type InsertActivity,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -68,6 +71,12 @@ export interface IStorage {
   createNotification(notificationData: InsertNotification): Promise<Notification>;
   markNotificationAsRead(userId: string, notificationId: string): Promise<void>;
   deleteNotification(id: string): Promise<void>;
+  
+  // Activity operations
+  createActivity(activityData: InsertActivity): Promise<Activity>;
+  getActivitiesByUser(userId: string, limit?: number): Promise<Activity[]>;
+  getAllActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
+  getRecentActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
   
   // Stats
   getStats(): Promise<{
@@ -358,6 +367,67 @@ export class DatabaseStorage implements IStorage {
 
   async deleteNotification(id: string): Promise<void> {
     await db.delete(notifications).where(eq(notifications.id, id));
+  }
+
+  // Activity operations
+  async createActivity(activityData: InsertActivity): Promise<Activity> {
+    const [activity] = await db
+      .insert(activities)
+      .values(activityData)
+      .returning();
+    return activity;
+  }
+
+  async getActivitiesByUser(userId: string, limit: number = 50): Promise<Activity[]> {
+    return await db
+      .select()
+      .from(activities)
+      .where(eq(activities.userId, userId))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+  }
+
+  async getAllActivities(limit: number = 100): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
+    const result = await db
+      .select({
+        id: activities.id,
+        userId: activities.userId,
+        type: activities.type,
+        description: activities.description,
+        metadata: activities.metadata,
+        ipAddress: activities.ipAddress,
+        userAgent: activities.userAgent,
+        createdAt: activities.createdAt,
+        userEmail: users.email,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userIdJoined: users.id,
+      })
+      .from(activities)
+      .leftJoin(users, eq(activities.userId, users.id))
+      .orderBy(desc(activities.createdAt))
+      .limit(limit);
+
+    return result.map(row => ({
+      id: row.id,
+      userId: row.userId,
+      type: row.type,
+      description: row.description,
+      metadata: row.metadata,
+      ipAddress: row.ipAddress,
+      userAgent: row.userAgent,
+      createdAt: row.createdAt,
+      user: row.userIdJoined ? {
+        id: row.userIdJoined,
+        email: row.userEmail,
+        firstName: row.userFirstName,
+        lastName: row.userLastName,
+      } : null
+    }));
+  }
+
+  async getRecentActivities(limit: number = 20): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
+    return await this.getAllActivities(limit);
   }
 
   // Stats

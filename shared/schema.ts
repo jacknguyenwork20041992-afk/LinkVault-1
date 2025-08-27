@@ -90,9 +90,22 @@ export const userNotifications = pgTable("user_notifications", {
   readAt: timestamp("read_at"),
 });
 
+// Activities table for tracking user actions
+export const activities = pgTable("activities", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  type: varchar("type").notNull(), // "login", "document_click", "logout"
+  description: text("description").notNull(),
+  metadata: jsonb("metadata"), // Additional data like document info, IP address, etc.
+  ipAddress: varchar("ip_address"),
+  userAgent: text("user_agent"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
+  activities: many(activities),
 }));
 
 export const programsRelations = relations(programs, ({ many }) => ({
@@ -131,6 +144,13 @@ export const userNotificationsRelations = relations(userNotifications, ({ one })
   notification: one(notifications, {
     fields: [userNotifications.notificationId],
     references: [notifications.id],
+  }),
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id],
   }),
 }));
 
@@ -173,6 +193,11 @@ export const createUserSchema = createInsertSchema(users).pick({
   role: z.enum(["admin", "user"]).default("user"),
 });
 
+export const insertActivitySchema = createInsertSchema(activities).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -190,5 +215,7 @@ export type InsertCategory = z.infer<typeof insertCategorySchema>;
 export type InsertDocument = z.infer<typeof insertDocumentSchema>;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type InsertUserNotification = z.infer<typeof insertUserNotificationSchema>;
+export type Activity = typeof activities.$inferSelect;
+export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type BulkCreateDocuments = z.infer<typeof bulkCreateDocumentsSchema>;

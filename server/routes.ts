@@ -7,6 +7,7 @@ import {
   insertCategorySchema,
   insertDocumentSchema,
   insertNotificationSchema,
+  insertActivitySchema,
   createUserSchema,
 } from "@shared/schema";
 import { z } from "zod";
@@ -291,7 +292,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification routes
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const notifications = await storage.getNotificationsForUser(userId);
       res.json(notifications);
     } catch (error) {
@@ -302,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/notifications/unread", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const notifications = await storage.getUnreadNotificationsForUser(userId);
       res.json(notifications);
     } catch (error) {
@@ -325,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/notifications/:id/read", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       await storage.markNotificationAsRead(userId, id);
       res.json({ message: "Notification marked as read" });
     } catch (error) {
@@ -342,6 +343,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting notification:", error);
       res.status(500).json({ message: "Failed to delete notification" });
+    }
+  });
+
+  // Activity routes
+  app.get("/api/activities", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
+      const activities = await storage.getAllActivities(limit);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching activities:", error);
+      res.status(500).json({ message: "Failed to fetch activities" });
+    }
+  });
+
+  app.get("/api/activities/recent", isAuthenticated, async (req, res) => {
+    try {
+      const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
+      const activities = await storage.getRecentActivities(limit);
+      res.json(activities);
+    } catch (error) {
+      console.error("Error fetching recent activities:", error);
+      res.status(500).json({ message: "Failed to fetch recent activities" });
+    }
+  });
+
+  app.post("/api/activities/track", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const activityData = {
+        ...req.body,
+        userId,
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent'),
+      };
+      const validatedData = insertActivitySchema.parse(activityData);
+      const activity = await storage.createActivity(validatedData);
+      res.json(activity);
+    } catch (error) {
+      console.error("Error tracking activity:", error);
+      res.status(400).json({ message: "Failed to track activity" });
+    }
+  });
+
+  app.post("/api/activities/login", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const user = req.user;
+      await storage.createActivity({
+        userId,
+        type: "login",
+        description: `Người dùng ${user.firstName} ${user.lastName} đã đăng nhập`,
+        metadata: {
+          email: user.email,
+          role: user.role,
+        },
+        ipAddress: req.ip || req.connection.remoteAddress,
+        userAgent: req.get('User-Agent'),
+      });
+      res.json({ message: "Login activity logged" });
+    } catch (error) {
+      console.error("Error logging login activity:", error);
+      res.status(500).json({ message: "Failed to log login activity" });
     }
   });
 

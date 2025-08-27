@@ -7,7 +7,8 @@ import {
   Users, 
   Bell, 
   LogOut,
-  Shield
+  Shield,
+  Activity
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { User } from "@shared/schema";
@@ -30,6 +31,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
     { id: "documents", label: "Tài liệu", icon: FileText },
     { id: "users", label: "Người dùng", icon: Users },
     { id: "notifications", label: "Thông báo", icon: Bell },
+    { id: "activities", label: "Hoạt động", icon: Activity },
   ];
 
   return (
