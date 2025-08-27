@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -110,6 +111,9 @@ export default function CreateUserModal({
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          <DialogDescription>
+            Tạo tài khoản người dùng mới với email và mật khẩu.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

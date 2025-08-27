@@ -14,6 +14,8 @@ import { z } from "zod";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -134,6 +136,9 @@ export default function BulkCreateCategoryModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Thêm nhiều danh mục</DialogTitle>
+          <DialogDescription>
+            Tạo nhiều danh mục cùng lúc bằng cách điền thông tin cho từng danh mục.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -228,35 +233,37 @@ export default function BulkCreateCategoryModal({
               ))}
             </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex justify-center pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={addCategory}
                 data-testid="button-add-category"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Thêm danh mục
               </Button>
-
-              <div className="flex space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleClose}
-                  data-testid="button-cancel"
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  data-testid="button-submit"
-                >
-                  {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} danh mục`}
-                </Button>
-              </div>
             </div>
+
+            <DialogFooter className="flex justify-end space-x-3 pt-6 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                data-testid="button-cancel"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                data-testid="button-submit"
+                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+              >
+                {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} danh mục`}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>

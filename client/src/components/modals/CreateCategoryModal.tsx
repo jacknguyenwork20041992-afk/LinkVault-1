@@ -10,6 +10,7 @@ import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -137,6 +138,9 @@ export default function CreateCategoryModal({
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          <DialogDescription>
+            {isEditing ? "Cập nhật thông tin danh mục" : "Điền thông tin để tạo danh mục mới"}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -171,6 +175,7 @@ export default function CreateCategoryModal({
                       rows={3}
                       data-testid="input-category-description"
                       {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
                   <FormMessage />
@@ -184,14 +189,14 @@ export default function CreateCategoryModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Chương trình</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-category-program">
                         <SelectValue placeholder="Chọn chương trình" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {programs.map((program: Program) => (
+                      {(programs as Program[]).map((program: Program) => (
                         <SelectItem key={program.id} value={program.id}>
                           {program.name}
                         </SelectItem>

@@ -9,6 +9,7 @@ import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -105,6 +106,9 @@ export default function CreateNotificationModal({
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          <DialogDescription>
+            Tạo thông báo mới để gửi đến người dùng trong hệ thống.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
@@ -153,7 +157,7 @@ export default function CreateNotificationModal({
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                   <FormControl>
                     <Checkbox
-                      checked={field.value}
+                      checked={field.value || false}
                       onCheckedChange={field.onChange}
                       data-testid="checkbox-notification-global"
                     />

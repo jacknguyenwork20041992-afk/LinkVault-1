@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
@@ -93,6 +93,9 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa dự án</DialogTitle>
+          <DialogDescription>
+            Cập nhật thông tin chi tiết của dự án.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
