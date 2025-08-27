@@ -122,6 +122,24 @@
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
 }
 
+/* Modal specific styles to ensure proper background */
+[data-radix-popper-content-wrapper] {
+  z-index: 50;
+}
+
+[role="dialog"] {
+  background: hsl(var(--card)) !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid hsl(var(--border));
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Dark mode modal */
+.dark [role="dialog"] {
+  background: hsl(var(--card)) !important;
+  border: 1px solid hsl(var(--border));
+}
+
 .dark .glass-card {
   background: rgba(0, 0, 0, 0.8);
   border: 1px solid rgba(255, 255, 255, 0.1);
