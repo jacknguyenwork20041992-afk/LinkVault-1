@@ -67,9 +67,6 @@ export default function AuthPage() {
     },
   });
 
-  const handleReplitLogin = () => {
-    window.location.href = "/api/login/replit";
-  };
 
   const onSubmit = (data: LoginForm) => {
     loginMutation.mutate(data);
@@ -146,28 +143,9 @@ export default function AuthPage() {
             </form>
           </Form>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Hoặc</span>
-            </div>
-          </div>
-
-          {/* Replit Login for Admin */}
-          <Button
-            onClick={handleReplitLogin}
-            variant="outline"
-            className="w-full border-2 hover:bg-muted/50 transition-all duration-200"
-            data-testid="button-replit-login"
-          >
-            🚀 Đăng nhập với Replit (Admin)
-          </Button>
-
           <div className="text-center">
             <p className="text-xs text-muted-foreground">
-              Người dùng: Dùng email/password được cấp • Admin: Dùng Replit account
+              Sử dụng email và mật khẩu được cấp để đăng nhập
             </p>
           </div>
         </CardContent>

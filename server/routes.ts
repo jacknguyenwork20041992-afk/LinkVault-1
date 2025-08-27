@@ -1,8 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
-import { isAdmin } from "./auth";
 import {
   insertProgramSchema,
   insertCategorySchema,
@@ -15,63 +13,22 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup both auth systems
-  await setupAuth(app); // Replit Auth
-  
-  const { setupAuth: setupLocalAuth, isAuthenticated: isLocalAuth } = await import("./auth");
-  setupLocalAuth(app); // Email/Password Auth
+  // Setup email/password authentication only
+  const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
+  setupLocalAuth(app);
 
-  // Hybrid auth routes
-  app.get('/api/auth/user', async (req: any, res) => {
+  // Standard auth route (compatible with frontend)
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      let user;
-      // Check if user is authenticated via Replit Auth
-      if (req.user?.claims?.sub) {
-        const userId = req.user.claims.sub;
-        user = await storage.getUser(userId);
-      } 
-      // Check if user is authenticated via local auth
-      else if (req.user?.id) {
-        user = await storage.getUser(req.user.id);
-      } else {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
-      if (!user) {
-        return res.status(401).json({ message: "User not found" });
-      }
-      
-      res.json(user);
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Separate Replit login endpoint
-  app.get("/api/login/replit", (req, res, next) => {
-    const passport = require("passport");
-    passport.authenticate(`replitauth:${req.hostname}`, {
-      prompt: "login consent",
-      scope: ["openid", "email", "profile", "offline_access"],
-    })(req, res, next);
-  });
-
-  // Hybrid authentication middleware
-  const hybridAuth = (req: any, res: any, next: any) => {
-    // Check Replit auth first
-    if (req.user?.claims?.sub) {
-      return next();
-    }
-    // Check local auth
-    if (req.user?.id && req.isAuthenticated()) {
-      return next(); 
-    }
-    return res.status(401).json({ message: "Unauthorized" });
-  };
-
   // Program routes
-  app.get("/api/programs", hybridAuth, async (req, res) => {
+  app.get("/api/programs", isAuthenticated, async (req, res) => {
     try {
       const programs = await storage.getAllPrograms();
       res.json(programs);
@@ -81,7 +38,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/programs/:id", hybridAuth, async (req, res) => {
+  app.get("/api/programs/:id", isAuthenticated, async (req, res) => {
     try {
       const { id } = req.params;
       const program = await storage.getProgram(id);
@@ -95,7 +52,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/programs", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/programs", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertProgramSchema.parse(req.body);
       const program = await storage.createProgram(validatedData);
@@ -106,7 +63,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/programs/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.put("/api/programs/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const validatedData = insertProgramSchema.partial().parse(req.body);
@@ -118,7 +75,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/programs/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/programs/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteProgram(id);
@@ -130,7 +87,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Category routes
-  app.get("/api/categories", hybridAuth, async (req, res) => {
+  app.get("/api/categories", isAuthenticated, async (req, res) => {
     try {
       const categories = await storage.getAllCategories();
       res.json(categories);
@@ -140,7 +97,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/programs/:programId/categories", hybridAuth, async (req, res) => {
+  app.get("/api/programs/:programId/categories", isAuthenticated, async (req, res) => {
     try {
       const { programId } = req.params;
       const categories = await storage.getCategoriesByProgram(programId);
@@ -151,7 +108,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/categories", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/categories", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertCategorySchema.parse(req.body);
       const category = await storage.createCategory(validatedData);
@@ -162,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/categories/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.put("/api/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const validatedData = insertCategorySchema.partial().parse(req.body);
@@ -174,7 +131,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/categories/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteCategory(id);
@@ -186,7 +143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Document routes
-  app.get("/api/documents", hybridAuth, async (req, res) => {
+  app.get("/api/documents", isAuthenticated, async (req, res) => {
     try {
       const documents = await storage.getAllDocuments();
       res.json(documents);
@@ -196,7 +153,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/documents/recent", hybridAuth, async (req, res) => {
+  app.get("/api/documents/recent", isAuthenticated, async (req, res) => {
     try {
       const limit = parseInt(req.query.limit as string) || 10;
       const documents = await storage.getRecentDocuments(limit);
@@ -207,7 +164,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/categories/:categoryId/documents", hybridAuth, async (req, res) => {
+  app.get("/api/categories/:categoryId/documents", isAuthenticated, async (req, res) => {
     try {
       const { categoryId } = req.params;
       const documents = await storage.getDocumentsByCategory(categoryId);
@@ -218,7 +175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/programs/:programId/documents", hybridAuth, async (req, res) => {
+  app.get("/api/programs/:programId/documents", isAuthenticated, async (req, res) => {
     try {
       const { programId } = req.params;
       const documents = await storage.getDocumentsByProgram(programId);
@@ -229,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/documents", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/documents", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertDocumentSchema.parse(req.body);
       const document = await storage.createDocument(validatedData);
@@ -240,7 +197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/documents/bulk", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/documents/bulk", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { documents } = req.body;
       if (!Array.isArray(documents) || documents.length === 0) {
@@ -257,7 +214,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Bulk create categories
-  app.post("/api/categories/bulk", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/categories/bulk", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { categories } = req.body;
       if (!Array.isArray(categories) || categories.length === 0) {
@@ -273,7 +230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/documents/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.put("/api/documents/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const validatedData = insertDocumentSchema.partial().parse(req.body);
@@ -285,7 +242,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/documents/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/documents/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteDocument(id);
@@ -297,7 +254,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // User management routes (admin only)
-  app.get("/api/users", hybridAuth, isAdmin, async (req, res) => {
+  app.get("/api/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
       res.json(users);
@@ -307,7 +264,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/users", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = createUserSchema.parse(req.body);
       const user = await storage.createUser(validatedData);
@@ -318,7 +275,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/users/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.put("/api/users/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const updateData = req.body;
@@ -330,7 +287,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/users/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/users/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteUser(id);
@@ -342,7 +299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Notification routes
-  app.get("/api/notifications", hybridAuth, async (req: any, res) => {
+  app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const notifications = await storage.getNotificationsForUser(userId);
@@ -353,7 +310,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notifications/unread", hybridAuth, async (req: any, res) => {
+  app.get("/api/notifications/unread", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const notifications = await storage.getUnreadNotificationsForUser(userId);
@@ -364,7 +321,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/notifications", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/notifications", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertNotificationSchema.parse(req.body);
       const notification = await storage.createNotification(validatedData);
@@ -375,7 +332,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/notifications/:id/read", hybridAuth, async (req: any, res) => {
+  app.put("/api/notifications/:id/read", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
       const userId = req.user.id;
@@ -387,7 +344,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/notifications/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/notifications/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteNotification(id);
@@ -399,7 +356,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Activity routes
-  app.get("/api/activities", hybridAuth, isAdmin, async (req, res) => {
+  app.get("/api/activities", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
       const activities = await storage.getAllActivities(limit);
@@ -410,7 +367,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/activities/recent", hybridAuth, async (req, res) => {
+  app.get("/api/activities/recent", isAuthenticated, async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
       const activities = await storage.getRecentActivities(limit);
@@ -421,7 +378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/activities/track", hybridAuth, async (req: any, res) => {
+  app.post("/api/activities/track", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const activityData = {
@@ -439,7 +396,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/activities/login", hybridAuth, async (req: any, res) => {
+  app.post("/api/activities/login", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
       const user = req.user;
@@ -462,7 +419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project routes
-  app.get("/api/projects", hybridAuth, isAdmin, async (req, res) => {
+  app.get("/api/projects", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const projects = await storage.getAllProjects();
       res.json(projects);
@@ -472,7 +429,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/projects/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const project = await storage.getProject(id);
@@ -486,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/projects", hybridAuth, isAdmin, async (req, res) => {
+  app.post("/api/projects", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertProjectSchema.parse(req.body);
       const project = await storage.createProject(validatedData);
@@ -497,7 +454,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/projects/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.put("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const validatedData = insertProjectSchema.partial().parse(req.body);
@@ -509,7 +466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/projects/:id", hybridAuth, isAdmin, async (req, res) => {
+  app.delete("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteProject(id);
@@ -521,7 +478,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Admin stats
-  app.get("/api/admin/stats", hybridAuth, isAdmin, async (req, res) => {
+  app.get("/api/admin/stats", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const stats = await storage.getStats();
       res.json(stats);

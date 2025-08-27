@@ -8,8 +8,10 @@ import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
+// Set default domain if not provided
 if (!process.env.REPLIT_DOMAINS) {
-  throw new Error("Environment variable REPLIT_DOMAINS not provided");
+  // Try to detect from hostname or use wildcard
+  process.env.REPLIT_DOMAINS = "*.replit.dev";
 }
 
 const getOidcConfig = memoize(
