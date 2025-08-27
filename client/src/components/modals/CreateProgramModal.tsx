@@ -179,7 +179,7 @@ export default function CreateProgramModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cấp độ</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-program-level">
                         <SelectValue placeholder="Chọn cấp độ" />

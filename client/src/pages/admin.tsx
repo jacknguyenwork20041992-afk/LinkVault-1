@@ -47,7 +47,7 @@ export default function Admin() {
   const renderContent = () => {
     switch (activeView) {
       case "dashboard":
-        return <AdminDashboard />;
+        return <AdminDashboard onNavigateToView={setActiveView} />;
       case "programs":
         return <ProgramsManagement />;
       case "categories":

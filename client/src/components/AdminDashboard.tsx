@@ -3,7 +3,11 @@ import { Book, FileText, Users, Bell, Plus, UserPlus, Upload } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 
-export default function AdminDashboard() {
+interface AdminDashboardProps {
+  onNavigateToView?: (view: string) => void;
+}
+
+export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps) {
   const { data: stats } = useQuery<any>({
     queryKey: ["/api/admin/stats"],
     retry: false,
@@ -15,21 +19,24 @@ export default function AdminDashboard() {
       description: "Tạo chương trình học mới",
       icon: Plus,
       color: "text-primary",
-      testId: "button-create-program"
+      testId: "button-create-program",
+      action: () => onNavigateToView?.("programs")
     },
     {
       title: "Thêm người dùng", 
       description: "Tạo tài khoản mới",
       icon: UserPlus,
       color: "text-accent",
-      testId: "button-create-user"
+      testId: "button-create-user",
+      action: () => onNavigateToView?.("users")
     },
     {
       title: "Upload tài liệu",
       description: "Thêm link Google Drive",
       icon: Upload,
       color: "text-secondary-foreground",
-      testId: "button-upload-document"
+      testId: "button-upload-document",
+      action: () => onNavigateToView?.("documents")
     }
   ];
 
@@ -109,7 +116,12 @@ export default function AdminDashboard() {
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
-              <Card key={action.title} className="hover:shadow-md transition-shadow cursor-pointer">
+              <Card 
+                key={action.title} 
+                className="hover:shadow-md transition-shadow cursor-pointer" 
+                onClick={action.action}
+                data-testid={action.testId}
+              >
                 <CardContent className="p-4">
                   <div className="flex items-center mb-2">
                     <Icon className={`${action.color} mr-2`} />
