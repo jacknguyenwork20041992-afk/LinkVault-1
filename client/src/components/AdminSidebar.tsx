@@ -38,79 +38,131 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
     }
   };
 
-  const menuItems = [
-    { id: "dashboard", label: "Dashboard", icon: Gauge },
-    { id: "programs", label: "Chương trình", icon: Book },
-    { id: "categories", label: "Khóa học", icon: Tags },
-    { id: "documents", label: "Tài liệu", icon: FileText },
-    { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
-    { id: "users", label: "Người dùng", icon: Users },
-    { id: "notifications", label: "Thông báo", icon: Bell },
-    { id: "activities", label: "Hoạt động", icon: Activity },
+  const menuSections = [
+    {
+      title: "Tổng quan",
+      items: [
+        { id: "dashboard", label: "Dashboard", icon: Gauge },
+        { id: "activities", label: "Hoạt động", icon: Activity },
+      ]
+    },
+    {
+      title: "Quản lý nội dung", 
+      items: [
+        { id: "programs", label: "Chương trình", icon: Book },
+        { id: "categories", label: "Khóa học", icon: Tags },
+        { id: "documents", label: "Tài liệu", icon: FileText },
+        { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
+      ]
+    },
+    {
+      title: "Hệ thống",
+      items: [
+        { id: "users", label: "Người dùng", icon: Users },
+        { id: "notifications", label: "Thông báo", icon: Bell },
+      ]
+    }
   ];
 
   return (
-    <div className="bg-card w-64 border-r border-border shadow-sm">
-      <div className="p-6 border-b border-border">
-        <div className="flex items-center">
-          <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
-            <GraduationCap className="text-primary-foreground" />
+    <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 w-72 border-r border-border/30 shadow-lg relative h-full">
+      {/* Header với gradient background */}
+      <div className="relative p-6 border-b border-border/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5 dark:from-blue-400/5 dark:to-indigo-400/5"></div>
+        <div className="relative flex items-center">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
+            <GraduationCap className="text-white text-xl" />
           </div>
           <div>
-            <h1 className="font-bold text-foreground">Admin Panel</h1>
-            <p className="text-xs text-muted-foreground">Quản lý hệ thống</p>
+            <h1 className="font-bold text-foreground text-lg">Admin Panel</h1>
+            <p className="text-sm text-blue-600 dark:text-blue-400 font-medium">Quản lý hệ thống</p>
           </div>
         </div>
       </div>
 
-      <nav className="p-4">
-        <ul className="space-y-2">
-          {menuItems.map((item) => {
-            const Icon = item.icon;
-            const isActive = activeView === item.id;
-            return (
-              <li key={item.id}>
-                <Button
-                  variant={isActive ? "default" : "ghost"}
-                  className={`w-full justify-start text-sm ${
-                    isActive 
-                      ? "bg-primary/10 text-primary font-medium" 
-                      : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                  onClick={() => onViewChange(item.id)}
-                  data-testid={`button-nav-${item.id}`}
-                >
-                  <Icon className="h-4 w-4 mr-3" />
-                  {item.label}
-                </Button>
-              </li>
-            );
-          })}
-        </ul>
+      <nav className="p-6 space-y-8 overflow-y-auto flex-1">
+        {menuSections.map((section, sectionIndex) => (
+          <div key={section.title}>
+            {/* Section Header */}
+            <div className="mb-4">
+              <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider px-2">
+                {section.title}
+              </h3>
+            </div>
+            
+            {/* Section Items */}
+            <ul className="space-y-2">
+              {section.items.map((item) => {
+                const Icon = item.icon;
+                const isActive = activeView === item.id;
+                return (
+                  <li key={item.id}>
+                    <Button
+                      variant="ghost"
+                      className={`w-full justify-start text-sm group transition-all duration-200 h-11 ${
+                        isActive 
+                          ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 text-blue-700 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50 shadow-sm font-medium" 
+                          : "text-muted-foreground hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 dark:hover:from-slate-800/50 dark:hover:to-slate-700/50 hover:text-foreground"
+                      }`}
+                      onClick={() => onViewChange(item.id)}
+                      data-testid={`button-nav-${item.id}`}
+                    >
+                      <div className={`p-2 rounded-lg mr-3 transition-all duration-200 ${
+                        isActive
+                          ? "bg-gradient-to-br from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30"
+                          : "bg-transparent group-hover:bg-slate-100 dark:group-hover:bg-slate-800/50"
+                      }`}>
+                        <Icon className={`h-4 w-4 ${
+                          isActive 
+                            ? "text-blue-600 dark:text-blue-400" 
+                            : "text-muted-foreground group-hover:text-foreground"
+                        }`} />
+                      </div>
+                      <span className="font-medium">{item.label}</span>
+                      {isActive && (
+                        <div className="ml-auto w-1 h-6 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                      )}
+                    </Button>
+                  </li>
+                );
+              })}
+            </ul>
+            
+            {/* Divider after each section except the last */}
+            {sectionIndex < menuSections.length - 1 && (
+              <div className="mt-6 border-t border-border/30"></div>
+            )}
+          </div>
+        ))}
       </nav>
 
-      <div className="absolute bottom-0 w-64 p-4 border-t border-border">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center mr-2">
-              <Shield className="text-accent-foreground text-sm" />
+      <div className="absolute bottom-0 w-72 p-6 border-t border-border/30 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-950/80 dark:to-slate-900/80 backdrop-blur-sm">
+        <div className="bg-white/70 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/30 backdrop-blur-sm shadow-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <div className="w-10 h-10 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-xl flex items-center justify-center mr-3 shadow-md">
+                <Shield className="text-white text-sm" />
+              </div>
+              <div>
+                <span className="text-sm font-semibold text-foreground block" data-testid="text-admin-name">
+                  {user.firstName && user.lastName 
+                    ? `${user.firstName} ${user.lastName}` 
+                    : user.email || "Admin"
+                  }
+                </span>
+                <span className="text-xs text-emerald-600 dark:text-emerald-400 font-medium">Administrator</span>
+              </div>
             </div>
-            <span className="text-sm font-medium text-foreground" data-testid="text-admin-name">
-              {user.firstName && user.lastName 
-                ? `${user.firstName} ${user.lastName}` 
-                : user.email || "Admin"
-              }
-            </span>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={handleLogout}
+              className="text-muted-foreground hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 rounded-xl p-2"
+              data-testid="button-admin-logout"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm"
-            onClick={handleLogout}
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            data-testid="button-admin-logout"
-          >
-            <LogOut className="h-4 w-4" />
-          </Button>
         </div>
       </div>
     </div>
