@@ -170,26 +170,26 @@ export default function DocumentsManagement() {
           />
         </div>
         <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-          <SelectTrigger className="w-[200px]" data-testid="select-program-filter">
-            <SelectValue placeholder="Lọc theo chương trình" />
+          <SelectTrigger className="w-[200px] text-foreground" data-testid="select-program-filter">
+            <SelectValue placeholder="Lọc theo chương trình" className="text-foreground" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả chương trình</SelectItem>
+          <SelectContent className="bg-background border border-border">
+            <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả chương trình</SelectItem>
             {programs.map((program) => (
-              <SelectItem key={program.id} value={program.id}>
+              <SelectItem key={program.id} value={program.id} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
                 {program.name}
               </SelectItem>
             ))}
           </SelectContent>
         </Select>
         <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-          <SelectTrigger className="w-[200px]" data-testid="select-category-filter">
-            <SelectValue placeholder="Lọc theo khóa học" />
+          <SelectTrigger className="w-[200px] text-foreground" data-testid="select-category-filter">
+            <SelectValue placeholder="Lọc theo khóa học" className="text-foreground" />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả khóa học</SelectItem>
+          <SelectContent className="bg-background border border-border">
+            <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả khóa học</SelectItem>
             {categories.map((category) => (
-              <SelectItem key={category.id} value={category.id}>
+              <SelectItem key={category.id} value={category.id} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
                 {category.name}
               </SelectItem>
             ))}

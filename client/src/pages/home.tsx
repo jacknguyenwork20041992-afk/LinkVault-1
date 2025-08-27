@@ -263,13 +263,13 @@ export default function Home() {
                 />
               </div>
               <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                <SelectTrigger className="w-[200px]" data-testid="select-program-filter-home">
-                  <SelectValue placeholder="Lọc chương trình" />
+                <SelectTrigger className="w-[200px] text-foreground" data-testid="select-program-filter-home">
+                  <SelectValue placeholder="Lọc chương trình" className="text-foreground" />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tất cả chương trình</SelectItem>
+                <SelectContent className="bg-background border border-border">
+                  <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả chương trình</SelectItem>
                   {programs.map((program: any) => (
-                    <SelectItem key={program.id} value={program.id}>
+                    <SelectItem key={program.id} value={program.id} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
                       {program.name}
                     </SelectItem>
                   ))}

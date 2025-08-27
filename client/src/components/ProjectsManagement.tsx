@@ -123,16 +123,16 @@ export default function ProjectsManagement() {
           
           <div className="flex gap-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px] border-2 focus:border-blue-400" data-testid="select-status-filter">
+              <SelectTrigger className="w-[180px] border-2 focus:border-blue-400 text-foreground" data-testid="select-status-filter">
                 <Filter className="h-4 w-4 mr-2 text-blue-600" />
-                <SelectValue placeholder="Lọc trạng thái" />
+                <SelectValue placeholder="Lọc trạng thái" className="text-foreground" />
               </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="todo">Chờ làm</SelectItem>
-                <SelectItem value="in_progress">Đang làm</SelectItem>
-                <SelectItem value="completed">Hoàn thành</SelectItem>
-                <SelectItem value="cancelled">Đã hủy</SelectItem>
+              <SelectContent className="bg-background border border-border">
+                <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả trạng thái</SelectItem>
+                <SelectItem value="todo" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Chờ làm</SelectItem>
+                <SelectItem value="in_progress" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Đang làm</SelectItem>
+                <SelectItem value="completed" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Hoàn thành</SelectItem>
+                <SelectItem value="cancelled" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Đã hủy</SelectItem>
               </SelectContent>
             </Select>
             
