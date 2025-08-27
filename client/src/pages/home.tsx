@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import NotificationCard from "@/components/NotificationCard";
 import ProgramCard from "@/components/ProgramCard";
 import DocumentTable from "@/components/DocumentTable";
+import FloatingSupportButton from "@/components/FloatingSupportButton";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
@@ -172,7 +173,7 @@ export default function Home() {
               <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
                 <GraduationCap className="text-primary-foreground" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">Trung Tâm Ngoại Ngữ</h1>
+              <h1 className="text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
             </div>
 
             <div className="flex items-center space-x-4">
@@ -380,6 +381,9 @@ export default function Home() {
           )}
         </div>
       </main>
+
+      {/* Floating Support Button */}
+      <FloatingSupportButton />
     </div>
   );
 }

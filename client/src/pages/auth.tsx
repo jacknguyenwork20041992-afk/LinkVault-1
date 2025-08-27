@@ -77,7 +77,7 @@ export default function AuthPage() {
           <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
             <GraduationCap className="text-primary-foreground text-2xl" />
           </div>
-          <CardTitle className="text-2xl">Trung Tâm Ngoại Ngữ</CardTitle>
+          <CardTitle className="text-2xl">VIA ENGLISH ACADEMY</CardTitle>
           <CardDescription>Đăng nhập vào hệ thống quản lý tài liệu</CardDescription>
         </CardHeader>
         <CardContent>

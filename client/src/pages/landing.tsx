@@ -1,6 +1,7 @@
 import { GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import FloatingSupportButton from "@/components/FloatingSupportButton";
 
 export default function Landing() {
   const handleLogin = () => {
@@ -15,7 +16,7 @@ export default function Landing() {
             <div className="w-16 h-16 bg-primary rounded-full flex items-center justify-center mx-auto mb-4">
               <GraduationCap className="text-primary-foreground text-2xl" />
             </div>
-            <h1 className="text-2xl font-bold text-foreground">Trung Tâm Ngoại Ngữ</h1>
+            <h1 className="text-2xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
             <p className="text-muted-foreground mt-2">Hệ thống quản lý tài liệu</p>
           </div>
 
@@ -34,6 +35,9 @@ export default function Landing() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Floating Support Button */}
+      <FloatingSupportButton />
     </div>
   );
 }
