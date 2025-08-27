@@ -181,7 +181,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={(day) => day && setDate(day)}
                       initialFocus
                     />
                   </PopoverContent>

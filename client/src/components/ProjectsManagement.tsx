@@ -60,14 +60,14 @@ export default function ProjectsManagement() {
 
   const getStatusBadge = (status: string) => {
     const statusConfig = {
-      todo: { label: "Chờ làm", className: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300" },
-      in_progress: { label: "Đang làm", className: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300" },
-      completed: { label: "Hoàn thành", className: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" },
-      cancelled: { label: "Đã hủy", className: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" },
+      todo: { label: "Chờ làm", className: "status-badge status-todo" },
+      in_progress: { label: "Đang làm", className: "status-badge status-in-progress" },
+      completed: { label: "Hoàn thành", className: "status-badge status-completed" },
+      cancelled: { label: "Đã hủy", className: "status-badge status-cancelled" },
     };
     
     const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.todo;
-    return <Badge className={config.className}>{config.label}</Badge>;
+    return <span className={config.className}>{config.label}</span>;
   };
 
   const clearFilters = () => {
@@ -86,15 +86,20 @@ export default function ProjectsManagement() {
   return (
     <div className="p-6">
       {/* Header with Search and Filter */}
-      <div className="flex justify-between items-center mb-6">
+      <div className="flex justify-between items-center mb-8">
         <div className="flex items-center space-x-4">
-          <FolderOpen className="h-6 w-6 text-primary" />
-          <h1 className="text-2xl font-bold text-foreground">Quản lý dự án</h1>
+          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+            <FolderOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          </div>
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Quản lý dự án</h1>
+            <p className="text-muted-foreground mt-1">Theo dõi và quản lý các dự án của trung tâm</p>
+          </div>
         </div>
         
         <Button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center space-x-2"
+          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
           data-testid="button-create-project"
         >
           <Plus className="h-4 w-4" />
@@ -103,7 +108,7 @@ export default function ProjectsManagement() {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="bg-card rounded-lg border border-border p-4 mb-6">
+      <div className="modern-card p-6 mb-8">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -111,15 +116,15 @@ export default function ProjectsManagement() {
               placeholder="Tìm kiếm theo tên, mô tả hoặc người thực hiện..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 border-2 focus:border-blue-400 transition-colors duration-200"
               data-testid="input-search-projects"
             />
           </div>
           
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-              <SelectTrigger className="w-[180px]" data-testid="select-status-filter">
-                <Filter className="h-4 w-4 mr-2" />
+              <SelectTrigger className="w-[180px] border-2 focus:border-blue-400" data-testid="select-status-filter">
+                <Filter className="h-4 w-4 mr-2 text-blue-600" />
                 <SelectValue placeholder="Lọc trạng thái" />
               </SelectTrigger>
               <SelectContent>
@@ -131,7 +136,11 @@ export default function ProjectsManagement() {
               </SelectContent>
             </Select>
             
-            <Button variant="outline" onClick={clearFilters}>
+            <Button 
+              variant="outline" 
+              onClick={clearFilters}
+              className="hover:bg-blue-50 hover:border-blue-300 hover:text-blue-700 transition-all duration-200"
+            >
               Xóa bộ lọc
             </Button>
           </div>
@@ -159,59 +168,78 @@ export default function ProjectsManagement() {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map((project) => (
-            <div key={project.id} className="bg-card rounded-lg border border-border p-6 hover:shadow-md transition-shadow" data-testid={`card-project-${project.id}`}>
-              <div className="flex justify-between items-start mb-4">
-                <h3 className="text-lg font-semibold text-foreground line-clamp-2">{project.name}</h3>
-                <div className="flex space-x-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setEditingProject(project)}
-                    data-testid={`button-edit-project-${project.id}`}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setProjectToDelete(project)}
-                    className="text-destructive hover:text-destructive"
-                    data-testid={`button-delete-project-${project.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </div>
-              
-              {project.description && (
-                <p className="text-muted-foreground text-sm mb-4 line-clamp-3">{project.description}</p>
-              )}
-              
-              <div className="space-y-3">
-                <div className="flex items-center text-sm">
-                  <User className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-foreground">{project.assignee}</span>
-                </div>
-                
-                <div className="flex items-center text-sm">
-                  <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
-                  <span className="text-foreground">
-                    {new Date(project.deadline).toLocaleDateString("vi-VN")}
-                  </span>
-                </div>
-                
-                <div className="flex items-center justify-between">
-                  {getStatusBadge(project.status)}
-                  {project.link && (
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-primary hover:text-primary/80 transition-colors"
-                      data-testid={`link-project-${project.id}`}
+            <div key={project.id} className="modern-card hover-lift group" data-testid={`card-project-${project.id}`}>
+              <div className="p-6">
+                <div className="flex justify-between items-start mb-4">
+                  <div className="flex items-start space-x-3 flex-1">
+                    <div className="p-2 rounded-lg bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
+                      <FolderOpen className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-semibold text-foreground line-clamp-2 group-hover:text-blue-600 transition-colors duration-200">{project.name}</h3>
+                      <div className="mt-2">
+                        {getStatusBadge(project.status)}
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setEditingProject(project)}
+                      className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700"
+                      data-testid={`button-edit-project-${project.id}`}
                     >
-                      <ExternalLink className="h-4 w-4" />
-                    </a>
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setProjectToDelete(project)}
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
+                      data-testid={`button-delete-project-${project.id}`}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                {project.description && (
+                  <p className="text-muted-foreground text-sm mb-4 line-clamp-3 leading-relaxed bg-muted/20 p-3 rounded-lg">{project.description}</p>
+                )}
+                
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3 p-2 bg-muted/10 rounded-lg">
+                    <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <div>
+                      <span className="text-xs text-muted-foreground block">Người thực hiện</span>
+                      <span className="text-sm font-medium text-foreground">{project.assignee}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-2 bg-muted/10 rounded-lg">
+                    <Calendar className="h-4 w-4 text-orange-600 dark:text-orange-400" />
+                    <div>
+                      <span className="text-xs text-muted-foreground block">Deadline</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {new Date(project.deadline).toLocaleDateString("vi-VN")}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  {project.link && (
+                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 transition-colors text-sm"
+                        data-testid={`link-project-${project.id}`}
+                      >
+                        <ExternalLink className="h-4 w-4 mr-2" />
+                        <span>Xem link dự án</span>
+                      </a>
+                    </div>
                   )}
                 </div>
               </div>

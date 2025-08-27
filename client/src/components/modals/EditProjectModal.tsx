@@ -192,7 +192,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
                     <Calendar
                       mode="single"
                       selected={date}
-                      onSelect={setDate}
+                      onSelect={(day) => day && setDate(day)}
                       initialFocus
                     />
                   </PopoverContent>
