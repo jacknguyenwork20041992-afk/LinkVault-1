@@ -164,7 +164,7 @@ export default function CreateDocumentModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-lg" data-testid="modal-create-document">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto" data-testid="modal-create-document">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             {isEditing ? "Chỉnh sửa tài liệu" : "Thêm tài liệu mới"}

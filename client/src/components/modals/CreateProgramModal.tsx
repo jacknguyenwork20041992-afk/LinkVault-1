@@ -112,7 +112,7 @@ export default function CreateProgramModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md" data-testid="modal-create-program">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" data-testid="modal-create-program">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             {isEditing ? "Chỉnh sửa chương trình" : "Thêm chương trình mới"}

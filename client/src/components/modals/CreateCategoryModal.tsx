@@ -125,7 +125,7 @@ export default function CreateCategoryModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-md" data-testid="modal-create-category">
+      <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto" data-testid="modal-create-category">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
             {isEditing ? "Chỉnh sửa khóa học" : "Thêm khóa học mới"}
