@@ -141,72 +141,95 @@ export default function DocumentsManagement() {
           </Button>
         </div>
       ) : (
-        <div className="bg-card rounded-lg shadow-sm border border-border">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-muted/50">
-                <tr>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Chương trình</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Danh mục</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
-                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
-                </tr>
-              </thead>
-              <tbody>
-                {documents.map((document: Document & { category: Category | null, program: Program | null }) => (
-                  <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
-                    <td className="py-3 px-6">
-                      <div className="flex items-center">
-                        <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)} mr-3`}></i>
-                        <div>
-                          <span className="font-medium text-foreground">{document.title}</span>
-                          {document.description && (
-                            <p className="text-xs text-muted-foreground">{document.description}</p>
-                          )}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="py-3 px-6 text-muted-foreground">{document.program?.name || "N/A"}</td>
-                    <td className="py-3 px-6 text-muted-foreground">{document.category?.name || "N/A"}</td>
-                    <td className="py-3 px-6 text-muted-foreground">
-                      {new Date(document.updatedAt!).toLocaleDateString("vi-VN")}
-                    </td>
-                    <td className="py-3 px-6">
-                      <div className="flex items-center space-x-2">
-                        <a
-                          href={document.googleDriveLink}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="text-primary hover:text-primary/80 transition-colors"
-                          data-testid={`link-document-${document.id}`}
-                        >
-                          <ExternalLink className="h-4 w-4" />
-                        </a>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleEdit(document)}
-                          data-testid={`button-edit-${document.id}`}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => handleDelete(document.id)}
-                          disabled={deleteMutation.isPending}
-                          data-testid={`button-delete-${document.id}`}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div className="space-y-8">
+          {Object.entries(
+            documents.reduce((acc: Record<string, (Document & { category: Category | null, program: Program | null })[]>, document) => {
+              const categoryName = document.category?.name || "Chưa phân loại";
+              if (!acc[categoryName]) acc[categoryName] = [];
+              acc[categoryName].push(document);
+              return acc;
+            }, {})
+          ).map(([categoryName, categoryDocuments]) => (
+            <div key={categoryName} className="space-y-4">
+              <div className="flex items-center border-b border-border pb-2">
+                <FileText className="text-primary mr-2 h-5 w-5" />
+                <h4 className="text-lg font-semibold text-foreground">{categoryName}</h4>
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {categoryDocuments.length} tài liệu
+                </Badge>
+                {categoryDocuments[0]?.program && (
+                  <Badge variant="outline" className="ml-2 text-xs">
+                    {categoryDocuments[0].program.name}
+                  </Badge>
+                )}
+              </div>
+              <div className="bg-card rounded-lg shadow-sm border border-border">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-muted/30">
+                      <tr>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-foreground">Tài liệu</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-foreground">Cập nhật</th>
+                        <th className="text-left py-2 px-4 text-xs font-medium text-foreground">Thao tác</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {categoryDocuments.map((document) => (
+                        <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
+                          <td className="py-2 px-4">
+                            <div className="flex items-center">
+                              <i className={`fas ${getFileIcon(document.fileType || undefined)} ${getFileIconColor(document.fileType || undefined)} mr-3 text-sm`}></i>
+                              <div>
+                                <span className="font-medium text-foreground text-sm">{document.title}</span>
+                                {document.description && (
+                                  <p className="text-xs text-muted-foreground">{document.description}</p>
+                                )}
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-2 px-4 text-muted-foreground text-xs">
+                            {new Date(document.updatedAt!).toLocaleDateString("vi-VN")}
+                          </td>
+                          <td className="py-2 px-4">
+                            <div className="flex items-center space-x-1">
+                              <a
+                                href={document.googleDriveLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-primary hover:text-primary/80 transition-colors p-1"
+                                data-testid={`link-document-${document.id}`}
+                              >
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleEdit(document)}
+                                data-testid={`button-edit-${document.id}`}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleDelete(document.id)}
+                                disabled={deleteMutation.isPending}
+                                data-testid={`button-delete-${document.id}`}
+                                className="h-6 w-6 p-0"
+                              >
+                                <Trash2 className="h-3 w-3 text-destructive" />
+                              </Button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
 

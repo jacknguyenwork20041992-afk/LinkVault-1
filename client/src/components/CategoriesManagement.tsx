@@ -105,48 +105,64 @@ export default function CategoriesManagement() {
           </Button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {categories.map((category: Category & { program: Program }) => (
-            <Card key={category.id} data-testid={`card-category-${category.id}`}>
-              <CardContent className="p-6">
-                <div className="flex items-center mb-4">
-                  <div className="w-12 h-12 bg-accent/10 rounded-lg flex items-center justify-center mr-4">
-                    <Tags className="text-accent text-xl" />
-                  </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-foreground">{category.name}</h3>
-                    <Badge variant="outline" className="text-xs">
-                      <Book className="h-3 w-3 mr-1" />
-                      {category.program.name}
-                    </Badge>
-                  </div>
-                </div>
+        <div className="space-y-8">
+          {Object.entries(
+            categories.reduce((acc: Record<string, (Category & { program: Program })[]>, category) => {
+              const programName = category.program.name;
+              if (!acc[programName]) acc[programName] = [];
+              acc[programName].push(category);
+              return acc;
+            }, {})
+          ).map(([programName, programCategories]) => (
+            <div key={programName} className="space-y-4">
+              <div className="flex items-center border-b border-border pb-2">
+                <Book className="text-primary mr-2 h-5 w-5" />
+                <h4 className="text-lg font-semibold text-foreground">{programName}</h4>
+                <Badge variant="secondary" className="ml-2 text-xs">
+                  {programCategories.length} danh mục
+                </Badge>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
+                {programCategories.map((category) => (
+                  <Card key={category.id} data-testid={`card-category-${category.id}`}>
+                    <CardContent className="p-4">
+                      <div className="flex items-center mb-3">
+                        <div className="w-10 h-10 bg-accent/10 rounded-lg flex items-center justify-center mr-3">
+                          <Tags className="text-accent text-lg" />
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="font-semibold text-foreground text-sm">{category.name}</h3>
+                        </div>
+                      </div>
 
-                {category.description && (
-                  <p className="text-sm text-muted-foreground mb-4">{category.description}</p>
-                )}
+                      {category.description && (
+                        <p className="text-xs text-muted-foreground mb-3">{category.description}</p>
+                      )}
 
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleEdit(category)}
-                    data-testid={`button-edit-${category.id}`}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button 
-                    variant="destructive" 
-                    size="sm"
-                    onClick={() => handleDelete(category.id)}
-                    disabled={deleteMutation.isPending}
-                    data-testid={`button-delete-${category.id}`}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                      <div className="flex justify-end space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => handleEdit(category)}
+                          data-testid={`button-edit-${category.id}`}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                        <Button 
+                          variant="destructive" 
+                          size="sm"
+                          onClick={() => handleDelete(category.id)}
+                          disabled={deleteMutation.isPending}
+                          data-testid={`button-delete-${category.id}`}
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
           ))}
         </div>
       )}
