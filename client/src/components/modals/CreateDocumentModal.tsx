@@ -10,6 +10,7 @@ import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -72,7 +73,7 @@ export default function CreateDocumentModal({
   const selectedProgramId = form.watch("programId");
 
   // Filter categories based on selected program
-  const filteredCategories = categories.filter((category: Category) => 
+  const filteredCategories = (categories as Category[]).filter((category: Category) => 
     !selectedProgramId || category.programId === selectedProgramId
   );
 
@@ -166,6 +167,9 @@ export default function CreateDocumentModal({
               <X className="h-4 w-4" />
             </Button>
           </DialogTitle>
+          <DialogDescription>
+            {isEditing ? "Cập nhật thông tin tài liệu" : "Điền thông tin để tạo tài liệu mới"}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>

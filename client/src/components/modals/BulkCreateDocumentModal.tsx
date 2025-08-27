@@ -14,6 +14,8 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -146,13 +148,16 @@ export default function BulkCreateDocumentModal({
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Thêm nhiều tài liệu</DialogTitle>
+          <DialogDescription>
+            Tạo nhiều tài liệu cùng lúc bằng cách điền thông tin cho từng tài liệu.
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="space-y-4">
               {fields.map((field, index) => {
-                const selectedProgramId = form.watch(`documents.${index}.programId`);
+                const selectedProgramId = form.watch(`documents.${index}.programId`) || "";
                 const filteredCategories = getFilteredCategories(selectedProgramId);
 
                 return (
@@ -216,7 +221,7 @@ export default function BulkCreateDocumentModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Loại file</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-type-${index}`}>
                                     <SelectValue placeholder="Chọn loại file" />
@@ -247,14 +252,14 @@ export default function BulkCreateDocumentModal({
                                 field.onChange(value);
                                 // Reset category when program changes
                                 form.setValue(`documents.${index}.categoryId`, "");
-                              }} defaultValue={field.value}>
+                              }} defaultValue={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-program-${index}`}>
                                     <SelectValue placeholder="Chọn chương trình" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {programs.map((program: Program) => (
+                                  {(programs as Program[]).map((program: Program) => (
                                     <SelectItem key={program.id} value={program.id}>
                                       {program.name}
                                     </SelectItem>
@@ -272,7 +277,7 @@ export default function BulkCreateDocumentModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Danh mục</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value}>
+                              <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-category-${index}`}>
                                     <SelectValue placeholder="Chọn danh mục" />
@@ -304,6 +309,7 @@ export default function BulkCreateDocumentModal({
                                     rows={3}
                                     data-testid={`input-document-description-${index}`}
                                     {...field}
+                                    value={field.value || ""}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -318,35 +324,37 @@ export default function BulkCreateDocumentModal({
               })}
             </div>
 
-            <div className="flex justify-between items-center pt-4">
+            <div className="flex justify-center pt-4">
               <Button
                 type="button"
                 variant="outline"
                 onClick={addDocument}
                 data-testid="button-add-document"
+                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
               >
-                <Plus className="h-4 w-4 mr-2" />
+                <Plus className="h-5 w-5 mr-2" />
                 Thêm tài liệu
               </Button>
-
-              <div className="flex space-x-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleClose}
-                  data-testid="button-cancel"
-                >
-                  Hủy
-                </Button>
-                <Button
-                  type="submit"
-                  disabled={createMutation.isPending}
-                  data-testid="button-submit"
-                >
-                  {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} tài liệu`}
-                </Button>
-              </div>
             </div>
+
+            <DialogFooter className="flex justify-end space-x-3 pt-6 border-t">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                data-testid="button-cancel"
+              >
+                Hủy
+              </Button>
+              <Button
+                type="submit"
+                disabled={createMutation.isPending}
+                data-testid="button-submit"
+                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+              >
+                {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} tài liệu`}
+              </Button>
+            </DialogFooter>
           </form>
         </Form>
       </DialogContent>
