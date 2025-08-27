@@ -62,19 +62,34 @@ export default function NotificationsManagement() {
     }
   };
 
-  const getTimeAgo = (date: string | Date) => {
-    const now = new Date();
+  const formatDateTime = (date: string | Date) => {
     const notificationDate = new Date(date);
-    const diffInHours = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60));
     
-    if (diffInHours < 1) {
-      return "Vừa xong";
-    } else if (diffInHours < 24) {
-      return `${diffInHours} giờ trước`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays} ngày trước`;
+    // Format ngày/tháng/năm và giờ:phút
+    const day = notificationDate.getDate().toString().padStart(2, '0');
+    const month = (notificationDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = notificationDate.getFullYear();
+    const hours = notificationDate.getHours().toString().padStart(2, '0');
+    const minutes = notificationDate.getMinutes().toString().padStart(2, '0');
+    
+    const dateStr = `${day}/${month}/${year}`;
+    const timeStr = `${hours}:${minutes}`;
+    
+    // Nếu là cùng ngày, chỉ hiển thị giờ
+    const today = new Date();
+    if (notificationDate.toDateString() === today.toDateString()) {
+      return `Hôm nay lúc ${timeStr}`;
     }
+    
+    // Nếu là hôm qua
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (notificationDate.toDateString() === yesterday.toDateString()) {
+      return `Hôm qua lúc ${timeStr}`;
+    }
+    
+    // Ngày khác hiển thị đầy đủ
+    return `${dateStr} lúc ${timeStr}`;
   };
 
   if (isLoading) {
@@ -124,7 +139,7 @@ export default function NotificationsManagement() {
                   <h4 className="font-semibold text-foreground mb-2">{notification.title}</h4>
                   <p className="text-muted-foreground mb-2">{notification.message}</p>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>{getTimeAgo(notification.createdAt!)}</span>
+                    <span>{formatDateTime(notification.createdAt!)}</span>
                     <span className={notification.isGlobal ? "text-accent" : "text-primary"}>
                       {notification.isGlobal ? "Toàn bộ người dùng" : "Người dùng cụ thể"}
                     </span>

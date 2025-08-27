@@ -8,19 +8,35 @@ interface NotificationCardProps {
 }
 
 export default function NotificationCard({ notification, onMarkAsRead }: NotificationCardProps) {
-  const getTimeAgo = (date: string | Date) => {
-    const now = new Date();
+  const formatDateTime = (date: string | Date) => {
     const notificationDate = new Date(date);
-    const diffInHours = Math.floor((now.getTime() - notificationDate.getTime()) / (1000 * 60 * 60));
+    const now = new Date();
     
-    if (diffInHours < 1) {
-      return "Vừa xong";
-    } else if (diffInHours < 24) {
-      return `${diffInHours} giờ trước`;
-    } else {
-      const diffInDays = Math.floor(diffInHours / 24);
-      return `${diffInDays} ngày trước`;
+    // Format ngày/tháng/năm và giờ:phút
+    const day = notificationDate.getDate().toString().padStart(2, '0');
+    const month = (notificationDate.getMonth() + 1).toString().padStart(2, '0');
+    const year = notificationDate.getFullYear();
+    const hours = notificationDate.getHours().toString().padStart(2, '0');
+    const minutes = notificationDate.getMinutes().toString().padStart(2, '0');
+    
+    const dateStr = `${day}/${month}/${year}`;
+    const timeStr = `${hours}:${minutes}`;
+    
+    // Nếu là cùng ngày, chỉ hiển thị giờ
+    const today = new Date();
+    if (notificationDate.toDateString() === today.toDateString()) {
+      return `Hôm nay lúc ${timeStr}`;
     }
+    
+    // Nếu là hôm qua
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    if (notificationDate.toDateString() === yesterday.toDateString()) {
+      return `Hôm qua lúc ${timeStr}`;
+    }
+    
+    // Ngày khác hiển thị đầy đủ
+    return `${dateStr} lúc ${timeStr}`;
   };
 
   return (
@@ -29,7 +45,7 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
         <div className="flex-1">
           <h3 className="font-medium text-foreground">{notification.title}</h3>
           <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
-          <span className="text-xs text-muted-foreground">{getTimeAgo(notification.createdAt!)}</span>
+          <span className="text-xs text-muted-foreground">{formatDateTime(notification.createdAt!)}</span>
         </div>
         <Button 
           variant="ghost" 
