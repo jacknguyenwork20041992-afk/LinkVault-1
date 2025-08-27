@@ -40,7 +40,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
   const menuItems = [
     { id: "dashboard", label: "Dashboard", icon: Gauge },
     { id: "programs", label: "Chương trình", icon: Book },
-    { id: "categories", label: "Danh mục", icon: Tags },
+    { id: "categories", label: "Khóa học", icon: Tags },
     { id: "documents", label: "Tài liệu", icon: FileText },
     { id: "users", label: "Người dùng", icon: Users },
     { id: "notifications", label: "Thông báo", icon: Bell },

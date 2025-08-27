@@ -73,7 +73,7 @@ export default function Admin() {
       case "programs":
         return "Quản lý chương trình";
       case "categories":
-        return "Quản lý danh mục";
+        return "Quản lý khóa học";
       case "documents":
         return "Quản lý tài liệu";
       case "users":

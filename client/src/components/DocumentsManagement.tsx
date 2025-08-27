@@ -2,9 +2,11 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Edit, Trash2, FileText, ExternalLink } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, ExternalLink, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateDocumentModal from "@/components/modals/CreateDocumentModal";
 import BulkCreateDocumentModal from "@/components/modals/BulkCreateDocumentModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -14,12 +16,38 @@ export default function DocumentsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
   const [editingDocument, setEditingDocument] = useState<(Document & { category: Category | null, program: Program | null }) | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: documents = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/documents"],
     retry: false,
+  });
+
+  const { data: categories = [] } = useQuery<Category[]>({
+    queryKey: ["/api/categories"],
+    retry: false,
+  });
+
+  const { data: programs = [] } = useQuery<Program[]>({
+    queryKey: ["/api/programs"],
+    retry: false,
+  });
+
+  // Filter và search logic
+  const filteredDocuments = documents.filter((document: Document & { category: Category | null, program: Program | null }) => {
+    const matchesSearch = document.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         document.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         document.category?.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         document.program?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesCategory = selectedCategory === "all" || document.category?.id === selectedCategory;
+    const matchesProgram = selectedProgram === "all" || document.program?.id === selectedProgram;
+    
+    return matchesSearch && matchesCategory && matchesProgram;
   });
 
   const deleteMutation = useMutation({
@@ -129,6 +157,46 @@ export default function DocumentsManagement() {
         </Button>
       </div>
 
+      {/* Search và Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Tìm kiếm tài liệu..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-documents"
+          />
+        </div>
+        <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+          <SelectTrigger className="w-[200px]" data-testid="select-program-filter">
+            <SelectValue placeholder="Lọc theo chương trình" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả chương trình</SelectItem>
+            {programs.map((program) => (
+              <SelectItem key={program.id} value={program.id}>
+                {program.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[200px]" data-testid="select-category-filter">
+            <SelectValue placeholder="Lọc theo khóa học" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả khóa học</SelectItem>
+            {categories.map((category) => (
+              <SelectItem key={category.id} value={category.id}>
+                {category.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {documents.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
@@ -141,10 +209,26 @@ export default function DocumentsManagement() {
             Thêm tài liệu đầu tiên
           </Button>
         </div>
+      ) : filteredDocuments.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+          <p>Không tìm thấy tài liệu nào</p>
+          <Button 
+            onClick={() => {
+              setSearchTerm("");
+              setSelectedCategory("all");
+              setSelectedProgram("all");
+            }}
+            className="mt-4"
+            variant="outline"
+          >
+            Xóa bộ lọc
+          </Button>
+        </div>
       ) : (
         <div className="space-y-8">
           {Object.entries(
-            documents.reduce((acc: Record<string, (Document & { category: Category | null, program: Program | null })[]>, document) => {
+            filteredDocuments.reduce((acc: Record<string, (Document & { category: Category | null, program: Program | null })[]>, document) => {
               const categoryName = document.category?.name || "Chưa phân loại";
               if (!acc[categoryName]) acc[categoryName] = [];
               acc[categoryName].push(document);

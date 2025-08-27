@@ -1,11 +1,13 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { GraduationCap, Bell, LogOut, Clock, Book, ExternalLink } from "lucide-react";
+import { GraduationCap, Bell, LogOut, Clock, Book, ExternalLink, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import NotificationCard from "@/components/NotificationCard";
 import ProgramCard from "@/components/ProgramCard";
 import DocumentTable from "@/components/DocumentTable";
@@ -15,6 +17,8 @@ export default function Home() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
 
   // Redirect to home if not authenticated
   useEffect(() => {
@@ -44,6 +48,24 @@ export default function Home() {
   const { data: recentDocuments = [] } = useQuery<any[]>({
     queryKey: ["/api/documents/recent"],
     retry: false,
+  });
+
+  // Filter logic cho programs
+  const filteredPrograms = programs.filter((program: any) => {
+    const matchesSearch = program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         program.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    return matchesSearch;
+  });
+
+  // Filter logic cho recent documents
+  const filteredDocuments = recentDocuments.filter((document: any) => {
+    const matchesSearch = document.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         document.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         document.category?.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesProgram = selectedProgram === "all" || document.program?.id === selectedProgram;
+    
+    return matchesSearch && matchesProgram;
   });
 
   const markAsReadMutation = useMutation({
@@ -223,19 +245,61 @@ export default function Home() {
 
         {/* Programs Grid */}
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
-            <Book className="text-primary mr-2" />
-            Chương trình học
-          </h2>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-foreground flex items-center">
+              <Book className="text-primary mr-2" />
+              Chương trình học
+            </h2>
+            <div className="flex gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Tìm kiếm..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                  data-testid="input-search-home"
+                />
+              </div>
+              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                <SelectTrigger className="w-[200px]" data-testid="select-program-filter-home">
+                  <SelectValue placeholder="Lọc chương trình" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tất cả chương trình</SelectItem>
+                  {programs.map((program: any) => (
+                    <SelectItem key={program.id} value={program.id}>
+                      {program.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
           {programs.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Book className="mx-auto h-12 w-12 mb-4 opacity-50" />
               <p>Chưa có chương trình học nào</p>
             </div>
+          ) : filteredPrograms.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <p>Không tìm thấy chương trình nào</p>
+              <Button 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedProgram("all");
+                }}
+                className="mt-4"
+                variant="outline"
+              >
+                Xóa bộ lọc
+              </Button>
+            </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {programs.map((program: any) => (
+              {filteredPrograms.map((program: any) => (
                 <ProgramCard key={program.id} program={program} />
               ))}
             </div>
@@ -254,6 +318,21 @@ export default function Home() {
               <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
               <p>Chưa có tài liệu nào</p>
             </div>
+          ) : filteredDocuments.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+              <p>Không tìm thấy tài liệu nào</p>
+              <Button 
+                onClick={() => {
+                  setSearchTerm("");
+                  setSelectedProgram("all");
+                }}
+                className="mt-4"
+                variant="outline"
+              >
+                Xóa bộ lọc
+              </Button>
+            </div>
           ) : (
             <div className="bg-card rounded-lg shadow-sm border border-border">
               <div className="overflow-x-auto">
@@ -262,13 +341,13 @@ export default function Home() {
                     <tr>
                       <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
                       <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Chương trình</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Danh mục</th>
+                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Khóa học</th>
                       <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
                       <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {recentDocuments.map((document: any) => (
+                    {filteredDocuments.map((document: any) => (
                       <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
                         <td className="py-3 px-6">
                           <div className="flex items-center">

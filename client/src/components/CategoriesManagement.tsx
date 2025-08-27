@@ -2,10 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Edit, Trash2, Tags, Book } from "lucide-react";
+import { Plus, Edit, Trash2, Tags, Book, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CreateCategoryModal from "@/components/modals/CreateCategoryModal";
 import BulkCreateCategoryModal from "@/components/modals/BulkCreateCategoryModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -15,12 +17,30 @@ export default function CategoriesManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<(Category & { program: Program }) | null>(null);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedProgram, setSelectedProgram] = useState<string>("all");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const { data: categories = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/categories"],
     retry: false,
+  });
+
+  const { data: programs = [] } = useQuery<Program[]>({
+    queryKey: ["/api/programs"],
+    retry: false,
+  });
+
+  // Filter và search logic
+  const filteredCategories = categories.filter((category: Category & { program: Program }) => {
+    const matchesSearch = category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         category.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         category.program.name.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesProgram = selectedProgram === "all" || category.program.id === selectedProgram;
+    
+    return matchesSearch && matchesProgram;
   });
 
   const deleteMutation = useMutation({
@@ -30,7 +50,7 @@ export default function CategoriesManagement() {
     onSuccess: () => {
       toast({
         title: "Thành công",
-        description: "Đã xóa danh mục",
+        description: "Đã xóa khóa học",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
     },
@@ -48,7 +68,7 @@ export default function CategoriesManagement() {
       }
       toast({
         title: "Lỗi",
-        description: "Không thể xóa danh mục",
+        description: "Không thể xóa khóa học",
         variant: "destructive",
       });
     },
@@ -60,7 +80,7 @@ export default function CategoriesManagement() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Bạn có chắc chắn muốn xóa danh mục này?")) {
+    if (confirm("Bạn có chắc chắn muốn xóa khóa học này?")) {
       deleteMutation.mutate(id);
     }
   };
@@ -81,33 +101,75 @@ export default function CategoriesManagement() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-foreground">Quản lý danh mục</h3>
+        <h3 className="text-lg font-semibold text-foreground">Quản lý khóa học</h3>
         <Button 
           onClick={() => setIsBulkCreateModalOpen(true)}
           className="bg-primary text-primary-foreground"
           data-testid="button-bulk-create-categories"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Thêm danh mục
+          Thêm khóa học
         </Button>
+      </div>
+
+      {/* Search và Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Tìm kiếm khóa học..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-categories"
+          />
+        </div>
+        <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+          <SelectTrigger className="w-[200px]" data-testid="select-program-filter">
+            <SelectValue placeholder="Lọc theo chương trình" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả chương trình</SelectItem>
+            {programs.map((program) => (
+              <SelectItem key={program.id} value={program.id}>
+                {program.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
 
       {categories.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Tags className="mx-auto h-12 w-12 mb-4 opacity-50" />
-          <p>Chưa có danh mục nào</p>
+          <p>Chưa có khóa học nào</p>
           <Button 
             onClick={() => setIsBulkCreateModalOpen(true)}
             className="mt-4"
             variant="outline"
           >
-            Thêm danh mục đầu tiên
+            Thêm khóa học đầu tiên
+          </Button>
+        </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="text-center py-12 text-muted-foreground">
+          <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+          <p>Không tìm thấy khóa học nào</p>
+          <Button 
+            onClick={() => {
+              setSearchTerm("");
+              setSelectedProgram("all");
+            }}
+            className="mt-4"
+            variant="outline"
+          >
+            Xóa bộ lọc
           </Button>
         </div>
       ) : (
         <div className="space-y-8">
           {Object.entries(
-            categories.reduce((acc: Record<string, (Category & { program: Program })[]>, category) => {
+            filteredCategories.reduce((acc: Record<string, (Category & { program: Program })[]>, category) => {
               const programName = category.program.name;
               if (!acc[programName]) acc[programName] = [];
               acc[programName].push(category);
@@ -119,7 +181,7 @@ export default function CategoriesManagement() {
                 <Book className="text-primary mr-2 h-5 w-5" />
                 <h4 className="text-lg font-semibold text-foreground">{programName}</h4>
                 <Badge variant="secondary" className="ml-2 text-xs">
-                  {programCategories.length} danh mục
+                  {programCategories.length} khóa học
                 </Badge>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pl-6">
