@@ -65,9 +65,9 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
   ];
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 w-72 border-r border-border/30 shadow-lg relative h-full">
+    <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 w-72 border-r border-border/30 shadow-lg flex flex-col h-full">
       {/* Header với gradient background */}
-      <div className="relative p-6 border-b border-border/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20">
+      <div className="relative p-6 border-b border-border/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5 dark:from-blue-400/5 dark:to-indigo-400/5"></div>
         <div className="relative flex items-center">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center mr-4 shadow-lg">
@@ -80,7 +80,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
         </div>
       </div>
 
-      <nav className="p-6 space-y-8 overflow-y-auto flex-1">
+      <nav className="p-6 space-y-8 overflow-y-auto flex-1 pb-32">
         {menuSections.map((section, sectionIndex) => (
           <div key={section.title}>
             {/* Section Header */}
@@ -136,7 +136,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
         ))}
       </nav>
 
-      <div className="absolute bottom-0 w-72 p-6 border-t border-border/30 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-950/80 dark:to-slate-900/80 backdrop-blur-sm">
+      <div className="flex-shrink-0 p-6 border-t border-border/30 bg-gradient-to-r from-slate-50/80 to-white/80 dark:from-slate-950/80 dark:to-slate-900/80 backdrop-blur-sm">
         <div className="bg-white/70 dark:bg-slate-800/50 rounded-2xl p-4 border border-border/30 backdrop-blur-sm shadow-lg">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
