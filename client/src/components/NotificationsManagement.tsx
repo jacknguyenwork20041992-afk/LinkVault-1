@@ -148,7 +148,7 @@ export default function NotificationsManagement() {
                   <h4 className="font-semibold text-foreground mb-2">{notification.title}</h4>
                   <p className="text-muted-foreground mb-2">{notification.message}</p>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>📅 {formatDateTime(notification.createdAt)}</span>
+                    <span>📅 {formatDateTime((notification as any).created_at || notification.createdAt)}</span>
                     <span className={notification.isGlobal ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"}>
                       👥 {notification.isGlobal ? "Toàn bộ người dùng" : "Người dùng cụ thể"}
                     </span>
