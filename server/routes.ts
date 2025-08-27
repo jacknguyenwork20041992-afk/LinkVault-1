@@ -53,6 +53,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get("/api/programs/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const program = await storage.getProgram(id);
+      if (!program) {
+        return res.status(404).json({ message: "Program not found" });
+      }
+      res.json(program);
+    } catch (error) {
+      console.error("Error fetching program:", error);
+      res.status(500).json({ message: "Failed to fetch program" });
+    }
+  });
+
   app.post("/api/programs", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = insertProgramSchema.parse(req.body);
