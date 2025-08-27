@@ -236,10 +236,9 @@ export default function BulkCreateCategoryModal({
             <div className="flex justify-center pt-4">
               <Button
                 type="button"
-                variant="outline"
                 onClick={addCategory}
                 data-testid="button-add-category"
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Thêm danh mục
@@ -259,7 +258,7 @@ export default function BulkCreateCategoryModal({
                 type="submit"
                 disabled={createMutation.isPending}
                 data-testid="button-submit"
-                className="bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+                className="bg-green-600 hover:bg-green-700 text-white border border-green-600 hover:border-green-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} danh mục`}
               </Button>

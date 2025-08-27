@@ -220,6 +220,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                 type="submit" 
                 disabled={createProjectMutation.isPending}
                 data-testid="button-submit-create-project"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createProjectMutation.isPending ? "Đang tạo..." : "Tạo dự án"}
               </Button>

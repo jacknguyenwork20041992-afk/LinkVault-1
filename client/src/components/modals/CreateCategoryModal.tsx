@@ -221,6 +221,7 @@ export default function CreateCategoryModal({
                 type="submit"
                 disabled={createMutation.isPending}
                 data-testid="button-submit"
+                className="bg-green-600 hover:bg-green-700 text-white border border-green-600 hover:border-green-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createMutation.isPending
                   ? "Đang xử lý..."

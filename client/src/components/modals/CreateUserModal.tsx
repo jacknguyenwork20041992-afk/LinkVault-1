@@ -227,6 +227,7 @@ export default function CreateUserModal({
                 type="submit"
                 disabled={createMutation.isPending}
                 data-testid="button-submit"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createMutation.isPending ? "Đang tạo..." : "Tạo người dùng"}
               </Button>

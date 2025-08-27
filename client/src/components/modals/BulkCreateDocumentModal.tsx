@@ -327,10 +327,9 @@ export default function BulkCreateDocumentModal({
             <div className="flex justify-center pt-4">
               <Button
                 type="button"
-                variant="outline"
                 onClick={addDocument}
                 data-testid="button-add-document"
-                className="bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Thêm tài liệu
@@ -350,7 +349,7 @@ export default function BulkCreateDocumentModal({
                 type="submit"
                 disabled={createMutation.isPending}
                 data-testid="button-submit"
-                className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800 text-white shadow-lg hover:shadow-xl transition-all duration-200 px-6 py-2 rounded-xl font-medium"
+                className="bg-purple-600 hover:bg-purple-700 text-white border border-purple-600 hover:border-purple-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} tài liệu`}
               </Button>
