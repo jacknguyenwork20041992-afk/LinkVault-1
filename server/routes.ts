@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./auth";
 import {
   insertProgramSchema,
   insertCategorySchema,
@@ -13,34 +13,9 @@ import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
-  await setupAuth(app);
+  setupAuth(app);
 
-  // Helper function to check admin role
-  const isAdmin = async (req: any, res: any, next: any) => {
-    const userId = req.user?.claims?.sub;
-    if (!userId) {
-      return res.status(401).json({ message: "Unauthorized" });
-    }
-    
-    const user = await storage.getUser(userId);
-    if (!user || user.role !== "admin") {
-      return res.status(403).json({ message: "Admin access required" });
-    }
-    
-    next();
-  };
 
-  // Auth routes
-  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
-    try {
-      const userId = req.user.claims.sub;
-      const user = await storage.getUser(userId);
-      res.json(user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
 
   // Program routes
   app.get("/api/programs", isAuthenticated, async (req, res) => {
