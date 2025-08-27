@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { Plus, Edit, Trash2, FileText, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import CreateDocumentModal from "@/components/modals/CreateDocumentModal";
 import BulkCreateDocumentModal from "@/components/modals/BulkCreateDocumentModal";
 import { apiRequest } from "@/lib/queryClient";
