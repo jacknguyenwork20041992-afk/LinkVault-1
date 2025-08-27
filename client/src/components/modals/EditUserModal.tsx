@@ -122,7 +122,7 @@ export default function EditUserModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Chỉnh sửa người dùng</DialogTitle>
         </DialogHeader>
@@ -237,6 +237,7 @@ export default function EditUserModal({
               <Button
                 type="submit"
                 disabled={updateMutation.isPending}
+                className="bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800 text-white font-semibold shadow-lg hover:shadow-xl transition-all duration-200 border-0"
                 data-testid="button-submit"
               >
                 {updateMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
