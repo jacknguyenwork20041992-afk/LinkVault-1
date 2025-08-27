@@ -86,15 +86,22 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
                   {new Date(document.updatedAt!).toLocaleDateString("vi-VN")}
                 </td>
                 <td className="py-3 px-6">
-                  <a
-                    href={document.googleDriveLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-primary hover:text-primary/80 transition-colors"
-                    data-testid={`link-document-${document.id}`}
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
+                  <div className="flex flex-wrap gap-2">
+                    {((document as any).links || []).map((link: any, index: number) => (
+                      <a
+                        key={index}
+                        href={link.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-md text-xs font-medium transition-all duration-200"
+                        data-testid={`link-document-${document.id}-${index}`}
+                        title={link.description}
+                      >
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        {link.description}
+                      </a>
+                    ))}
+                  </div>
                 </td>
               </tr>
             ))}

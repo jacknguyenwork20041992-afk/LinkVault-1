@@ -1,13 +1,13 @@
 import { useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useFieldArray } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { insertDocumentSchema, type InsertDocument, type Document, type Category, type Program } from "@shared/schema";
+import { insertDocumentSchema, documentLinkSchema, type InsertDocument, type Document, type Category, type Program } from "@shared/schema";
 import { z } from "zod";
-import { X } from "lucide-react";
+import { X, Plus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -33,6 +33,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface CreateDocumentModalProps {
   isOpen: boolean;
@@ -61,7 +62,6 @@ export default function CreateDocumentModal({
 
   const documentValidationSchema = insertDocumentSchema.extend({
     title: z.string().min(1, "Tiêu đề là bắt buộc"),
-    googleDriveLink: z.string().min(1, "Link Google Drive là bắt buộc"),
     programId: z.string().min(1, "Chương trình là bắt buộc"),
     categoryId: z.string().min(1, "Khóa học là bắt buộc"),
   });
@@ -71,7 +71,7 @@ export default function CreateDocumentModal({
     defaultValues: {
       title: "",
       description: "",
-      googleDriveLink: "",
+      links: [{ url: "", description: "" }],
       fileType: "",
       categoryId: "",
       programId: "",
@@ -79,6 +79,11 @@ export default function CreateDocumentModal({
   });
 
   const selectedProgramId = form.watch("programId");
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "links",
+  });
 
   // Filter categories based on selected program
   const filteredCategories = (categories as Category[]).filter((category: Category) => 
@@ -136,7 +141,7 @@ export default function CreateDocumentModal({
       form.reset({
         title: editingDocument.title,
         description: editingDocument.description || "",
-        googleDriveLink: editingDocument.googleDriveLink,
+        links: (editingDocument as any).links || [{ url: "", description: "" }],
         fileType: editingDocument.fileType || "",
         categoryId: editingDocument.categoryId || "",
         programId: editingDocument.programId || "",
@@ -145,7 +150,7 @@ export default function CreateDocumentModal({
       form.reset({
         title: "",
         description: "",
-        googleDriveLink: "",
+        links: [{ url: "", description: "" }],
         fileType: "",
         categoryId: "",
         programId: "",
@@ -220,23 +225,83 @@ export default function CreateDocumentModal({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="googleDriveLink"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Link Google Drive *</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="https://drive.google.com/..."
-                      data-testid="input-document-link"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Links Section */}
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <FormLabel>Links tài liệu *</FormLabel>
+                <Button
+                  type="button"
+                  onClick={() => append({ url: "", description: "" })}
+                  size="sm"
+                  className="bg-blue-600 hover:bg-blue-700 text-white"
+                  data-testid="button-add-link"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Thêm link
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <Card key={field.id}>
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h4 className="font-medium text-sm">Link #{index + 1}</h4>
+                        {fields.length > 1 && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => remove(index)}
+                            data-testid={`button-remove-link-${index}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
+                      
+                      <div className="space-y-3">
+                        <FormField
+                          control={form.control}
+                          name={`links.${index}.url`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>URL</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="https://drive.google.com/..."
+                                  data-testid={`input-link-url-${index}`}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name={`links.${index}.description`}
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Mô tả link</FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Ví dụ: Tài liệu chính, Bài tập, Video hướng dẫn..."
+                                  data-testid={`input-link-description-${index}`}
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
 
             <FormField
               control={form.control}

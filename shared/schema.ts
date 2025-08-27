@@ -64,7 +64,8 @@ export const documents = pgTable("documents", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
   description: text("description"),
-  googleDriveLink: varchar("google_drive_link").notNull(),
+  // Changed from single link to array of links with descriptions
+  links: jsonb("links").notNull(), // Array of {url: string, description: string}
   fileType: varchar("file_type"), // "pdf", "doc", "xls", etc.
   categoryId: varchar("category_id").references(() => categories.id, { onDelete: "cascade" }),
   programId: varchar("program_id").references(() => programs.id, { onDelete: "cascade" }),
@@ -179,10 +180,18 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
   createdAt: true,
   updatedAt: true,
 });
+// Document link schema
+export const documentLinkSchema = z.object({
+  url: z.string().url("Link phải là URL hợp lệ"),
+  description: z.string().min(1, "Mô tả link là bắt buộc"),
+});
+
 export const insertDocumentSchema = createInsertSchema(documents).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  links: z.array(documentLinkSchema).min(1, "Phải có ít nhất 1 link"),
 });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,

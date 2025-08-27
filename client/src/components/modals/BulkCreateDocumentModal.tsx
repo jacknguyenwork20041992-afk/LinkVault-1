@@ -7,6 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import {
   bulkCreateDocumentsSchema,
+  documentLinkSchema,
   type BulkCreateDocuments,
   type Program,
   type Category,
@@ -69,7 +70,7 @@ export default function BulkCreateDocumentModal({
         {
           title: "",
           description: "",
-          googleDriveLink: "",
+          links: [{ url: "", description: "" }],
           fileType: "",
           categoryId: "",
           programId: "",
@@ -130,7 +131,7 @@ export default function BulkCreateDocumentModal({
     append({
       title: "",
       description: "",
-      googleDriveLink: "",
+      links: [{ url: "", description: "" }],
       fileType: "",
       categoryId: "",
       programId: "",
@@ -197,23 +198,43 @@ export default function BulkCreateDocumentModal({
                           )}
                         />
 
-                        <FormField
-                          control={form.control}
-                          name={`documents.${index}.googleDriveLink`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Link Google Drive</FormLabel>
-                              <FormControl>
-                                <Input
-                                  placeholder="https://drive.google.com/..."
-                                  data-testid={`input-document-link-${index}`}
-                                  {...field}
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                        <div>
+                          <FormLabel>Links tài liệu</FormLabel>
+                          <FormField
+                            control={form.control}
+                            name={`documents.${index}.links.0.url`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel className="text-sm">URL</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="https://drive.google.com/..."
+                                    data-testid={`input-document-link-${index}`}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name={`documents.${index}.links.0.description`}
+                            render={({ field }) => (
+                              <FormItem className="mt-2">
+                                <FormLabel className="text-sm">Mô tả link</FormLabel>
+                                <FormControl>
+                                  <Input
+                                    placeholder="Ví dụ: Tài liệu chính, Bài tập..."
+                                    data-testid={`input-document-link-desc-${index}`}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
 
                         <FormField
                           control={form.control}
