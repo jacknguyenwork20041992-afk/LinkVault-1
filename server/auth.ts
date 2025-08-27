@@ -133,12 +133,29 @@ export function isAuthenticated(req: any, res: any, next: any) {
 }
 
 // Admin middleware
-export function isAdmin(req: any, res: any, next: any) {
-  if (!req.isAuthenticated()) {
-    return res.status(401).json({ message: "Unauthorized" });
+export async function isAdmin(req: any, res: any, next: any) {
+  try {
+    let userId;
+    let user;
+    
+    // Get user ID from either auth system
+    if (req.user?.claims?.sub) {
+      userId = req.user.claims.sub;
+      user = await storage.getUser(userId);
+    } else if (req.user?.id) {
+      userId = req.user.id;
+      user = req.user; // Local auth already has full user data
+    } else {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+    
+    if (!user || user.role !== "admin") {
+      return res.status(403).json({ message: "Admin access required" });
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Error checking admin status:", error);
+    res.status(500).json({ message: "Error checking admin status" });
   }
-  if (req.user?.role !== "admin") {
-    return res.status(403).json({ message: "Access denied" });
-  }
-  next();
 }
