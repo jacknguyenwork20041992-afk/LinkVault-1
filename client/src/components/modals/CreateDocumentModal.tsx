@@ -63,7 +63,7 @@ export default function CreateDocumentModal({
     title: z.string().min(1, "Tiêu đề là bắt buộc"),
     googleDriveLink: z.string().min(1, "Link Google Drive là bắt buộc"),
     programId: z.string().min(1, "Chương trình là bắt buộc"),
-    categoryId: z.string().min(1, "Danh mục là bắt buộc"),
+    categoryId: z.string().min(1, "Khóa học là bắt buộc"),
   });
 
   const form = useForm<InsertDocument>({
@@ -295,11 +295,11 @@ export default function CreateDocumentModal({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Danh mục *</FormLabel>
+                  <FormLabel>Khóa học *</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-category">
-                        <SelectValue placeholder="Chọn danh mục" />
+                        <SelectValue placeholder="Chọn khóa học" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>

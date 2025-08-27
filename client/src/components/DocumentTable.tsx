@@ -61,7 +61,7 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
             <tr>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Chương trình</th>
-              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Danh mục</th>
+              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Khóa học</th>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
             </tr>
@@ -71,7 +71,7 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
               <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
                 <td className="py-3 px-6">
                   <div className="flex items-center">
-                    <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)} mr-3`}></i>
+                    <i className={`fas ${getFileIcon(document.fileType || undefined)} ${getFileIconColor(document.fileType || undefined)} mr-3`}></i>
                     <div>
                       <span className="font-medium text-foreground">{document.title}</span>
                       {document.description && (

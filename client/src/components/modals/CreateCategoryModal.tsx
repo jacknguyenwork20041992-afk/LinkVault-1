@@ -73,7 +73,7 @@ export default function CreateCategoryModal({
     onSuccess: () => {
       toast({
         title: "Thành công",
-        description: isEditing ? "Đã cập nhật danh mục" : "Đã tạo danh mục mới",
+        description: isEditing ? "Đã cập nhật khóa học" : "Đã tạo khóa học mới",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       handleClose();
@@ -92,7 +92,7 @@ export default function CreateCategoryModal({
       }
       toast({
         title: "Lỗi",
-        description: isEditing ? "Không thể cập nhật danh mục" : "Không thể tạo danh mục",
+        description: isEditing ? "Không thể cập nhật khóa học" : "Không thể tạo khóa học",
         variant: "destructive",
       });
     },
@@ -128,7 +128,7 @@ export default function CreateCategoryModal({
       <DialogContent className="max-w-md" data-testid="modal-create-category">
         <DialogHeader>
           <DialogTitle className="flex justify-between items-center">
-            {isEditing ? "Chỉnh sửa danh mục" : "Thêm danh mục mới"}
+            {isEditing ? "Chỉnh sửa khóa học" : "Thêm khóa học mới"}
             <Button
               variant="ghost"
               size="sm"
@@ -139,7 +139,7 @@ export default function CreateCategoryModal({
             </Button>
           </DialogTitle>
           <DialogDescription>
-            {isEditing ? "Cập nhật thông tin danh mục" : "Điền thông tin để tạo danh mục mới"}
+            {isEditing ? "Cập nhật thông tin khóa học" : "Điền thông tin để tạo khóa học mới"}
           </DialogDescription>
         </DialogHeader>
 
@@ -150,7 +150,7 @@ export default function CreateCategoryModal({
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Tên danh mục</FormLabel>
+                  <FormLabel>Tên khóa học</FormLabel>
                   <FormControl>
                     <Input
                       placeholder="Ví dụ: Bài học, Bài tập, Từ vựng"
@@ -171,7 +171,7 @@ export default function CreateCategoryModal({
                   <FormLabel>Mô tả</FormLabel>
                   <FormControl>
                     <Textarea
-                      placeholder="Mô tả về danh mục..."
+                      placeholder="Mô tả về khóa học..."
                       rows={3}
                       data-testid="input-category-description"
                       {...field}
@@ -227,7 +227,7 @@ export default function CreateCategoryModal({
                   ? "Đang xử lý..."
                   : isEditing
                   ? "Cập nhật"
-                  : "Thêm danh mục"}
+                  : "Thêm khóa học"}
               </Button>
             </div>
           </form>

@@ -41,7 +41,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 
 const bulkCreateCategoriesSchema = z.object({
-  categories: z.array(insertCategorySchema).min(1, "Phải có ít nhất 1 danh mục"),
+  categories: z.array(insertCategorySchema).min(1, "Phải có ít nhất 1 khóa học"),
 });
 
 type BulkCreateCategories = z.infer<typeof bulkCreateCategoriesSchema>;
@@ -88,7 +88,7 @@ export default function BulkCreateCategoryModal({
     onSuccess: () => {
       toast({
         title: "Thành công",
-        description: "Đã tạo tất cả danh mục mới",
+        description: "Đã tạo tất cả khóa học mới",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/categories"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
@@ -108,7 +108,7 @@ export default function BulkCreateCategoryModal({
       }
       toast({
         title: "Lỗi",
-        description: "Không thể tạo danh mục",
+        description: "Không thể tạo khóa học",
         variant: "destructive",
       });
     },
@@ -135,9 +135,9 @@ export default function BulkCreateCategoryModal({
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Thêm nhiều danh mục</DialogTitle>
+          <DialogTitle>Thêm nhiều khóa học</DialogTitle>
           <DialogDescription>
-            Tạo nhiều danh mục cùng lúc bằng cách điền thông tin cho từng danh mục.
+            Tạo nhiều khóa học cùng lúc bằng cách điền thông tin cho từng khóa học.
           </DialogDescription>
         </DialogHeader>
 
@@ -148,7 +148,7 @@ export default function BulkCreateCategoryModal({
                 <Card key={field.id}>
                   <CardContent className="p-4">
                     <div className="flex justify-between items-center mb-4">
-                      <h4 className="font-semibold">Danh mục #{index + 1}</h4>
+                      <h4 className="font-semibold">Khóa học #{index + 1}</h4>
                       {fields.length > 1 && (
                         <Button
                           type="button"
@@ -168,7 +168,7 @@ export default function BulkCreateCategoryModal({
                         name={`categories.${index}.name`}
                         render={({ field }) => (
                           <FormItem>
-                            <FormLabel>Tên danh mục</FormLabel>
+                            <FormLabel>Tên khóa học</FormLabel>
                             <FormControl>
                               <Input
                                 placeholder="Ví dụ: Bài học, Bài tập, Từ vựng"
@@ -215,7 +215,7 @@ export default function BulkCreateCategoryModal({
                               <FormLabel>Mô tả</FormLabel>
                               <FormControl>
                                 <Textarea
-                                  placeholder="Mô tả về danh mục..."
+                                  placeholder="Mô tả về khóa học..."
                                   rows={3}
                                   data-testid={`input-category-description-${index}`}
                                   {...field}
@@ -241,7 +241,7 @@ export default function BulkCreateCategoryModal({
                 className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 <Plus className="h-5 w-5 mr-2" />
-                Thêm danh mục
+                Thêm khóa học
               </Button>
             </div>
 
@@ -260,7 +260,7 @@ export default function BulkCreateCategoryModal({
                 data-testid="button-submit"
                 className="bg-green-600 hover:bg-green-700 text-white border border-green-600 hover:border-green-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
-                {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} danh mục`}
+                {createMutation.isPending ? "Đang tạo..." : `Tạo ${fields.length} khóa học`}
               </Button>
             </DialogFooter>
           </form>

@@ -64,7 +64,7 @@ export default function ProgramDetails() {
 
   // Get unique categories for filter dropdown
   const availableCategories = Array.from(
-    new Set(documents.map((doc: any) => doc.category?.name || "Không có danh mục"))
+    new Set(documents.map((doc: any) => doc.category?.name || "Không có khóa học"))
   ).sort();
 
   const clearFilters = () => {
@@ -224,10 +224,10 @@ export default function ProgramDetails() {
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                     <SelectTrigger className="w-[200px] border-2 focus:border-green-400 text-foreground" data-testid="select-category-filter">
                       <Filter className="h-4 w-4 mr-2 text-green-600" />
-                      <SelectValue placeholder="Lọc theo danh mục" className="text-foreground" />
+                      <SelectValue placeholder="Lọc theo khóa học" className="text-foreground" />
                     </SelectTrigger>
                     <SelectContent className="bg-background border border-border">
-                      <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả danh mục</SelectItem>
+                      <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả khóa học</SelectItem>
                       {availableCategories.map((category) => (
                         <SelectItem key={category} value={category} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
                           {category}
@@ -280,7 +280,7 @@ export default function ProgramDetails() {
               {(() => {
                 // Group filtered documents by category
                 const groupedDocuments = filteredDocuments.reduce((groups: any, document: any) => {
-                  const categoryName = document.category?.name || "Không có danh mục";
+                  const categoryName = document.category?.name || "Không có khóa học";
                   if (!groups[categoryName]) {
                     groups[categoryName] = [];
                   }
