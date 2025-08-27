@@ -6,6 +6,7 @@ import {
   notifications,
   userNotifications,
   activities,
+  projects,
   type User,
   type UpsertUser,
   type Program,
@@ -14,12 +15,14 @@ import {
   type Notification,
   type UserNotification,
   type Activity,
+  type Project,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
   type InsertNotification,
   type InsertUserNotification,
   type InsertActivity,
+  type InsertProject,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -77,6 +80,13 @@ export interface IStorage {
   getActivitiesByUser(userId: string, limit?: number): Promise<Activity[]>;
   getAllActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
   getRecentActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
+  
+  // Project operations
+  getAllProjects(): Promise<Project[]>;
+  getProject(id: string): Promise<Project | undefined>;
+  createProject(projectData: InsertProject): Promise<Project>;
+  updateProject(id: string, projectData: Partial<InsertProject>): Promise<Project>;
+  deleteProject(id: string): Promise<void>;
   
   // Stats
   getStats(): Promise<{
@@ -428,6 +438,37 @@ export class DatabaseStorage implements IStorage {
 
   async getRecentActivities(limit: number = 20): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
     return await this.getAllActivities(limit);
+  }
+
+  // Project operations
+  async getAllProjects(): Promise<Project[]> {
+    return await db.select().from(projects).orderBy(desc(projects.createdAt));
+  }
+
+  async getProject(id: string): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project;
+  }
+
+  async createProject(projectData: InsertProject): Promise<Project> {
+    const [project] = await db
+      .insert(projects)
+      .values(projectData)
+      .returning();
+    return project;
+  }
+
+  async updateProject(id: string, projectData: Partial<InsertProject>): Promise<Project> {
+    const [project] = await db
+      .update(projects)
+      .set({ ...projectData, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
+  }
+
+  async deleteProject(id: string): Promise<void> {
+    await db.delete(projects).where(eq(projects.id, id));
   }
 
   // Stats

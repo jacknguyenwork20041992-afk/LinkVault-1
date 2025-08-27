@@ -102,6 +102,19 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Projects table
+export const projects = pgTable("projects", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  description: text("description"),
+  assignee: varchar("assignee").notNull(), // Người thực hiện
+  deadline: timestamp("deadline").notNull(),
+  status: varchar("status").notNull().default("todo"), // todo, in_progress, completed, cancelled
+  link: varchar("link"), // Link project (optional)
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -198,6 +211,12 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
   createdAt: true,
 });
 
+export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -209,6 +228,8 @@ export type Program = typeof programs.$inferSelect;
 export type Category = typeof categories.$inferSelect;
 export type Document = typeof documents.$inferSelect;
 export type Notification = typeof notifications.$inferSelect;
+export type Project = typeof projects.$inferSelect;
+export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type UserNotification = typeof userNotifications.$inferSelect;
 export type InsertProgram = z.infer<typeof insertProgramSchema>;
 export type InsertCategory = z.infer<typeof insertCategorySchema>;

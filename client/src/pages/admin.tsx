@@ -7,6 +7,7 @@ import AdminDashboard from "@/components/AdminDashboard";
 import ProgramsManagement from "@/components/ProgramsManagement";
 import CategoriesManagement from "@/components/CategoriesManagement";
 import DocumentsManagement from "@/components/DocumentsManagement";
+import ProjectsManagement from "@/components/ProjectsManagement";
 import UsersManagement from "@/components/UsersManagement";
 import NotificationsManagement from "@/components/NotificationsManagement";
 import ActivityDashboard from "@/components/ActivityDashboard";
@@ -55,6 +56,8 @@ export default function Admin() {
         return <CategoriesManagement />;
       case "documents":
         return <DocumentsManagement />;
+      case "projects":
+        return <ProjectsManagement />;
       case "users":
         return <UsersManagement />;
       case "notifications":
@@ -76,6 +79,8 @@ export default function Admin() {
         return "Quản lý khóa học";
       case "documents":
         return "Quản lý tài liệu";
+      case "projects":
+        return "Quản lý dự án";
       case "users":
         return "Quản lý người dùng";
       case "notifications":
