@@ -21,6 +21,7 @@ import {
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
+import bcrypt from "bcrypt";
 
 // Interface for storage operations
 export interface IStorage {
@@ -31,6 +32,7 @@ export interface IStorage {
   // Admin user operations
   createUser(userData: CreateUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  updateUser(id: string, userData: Partial<CreateUser>): Promise<User>;
   deleteUser(id: string): Promise<void>;
   
   // Program operations
@@ -44,6 +46,7 @@ export interface IStorage {
   getCategoriesByProgram(programId: string): Promise<Category[]>;
   getAllCategories(): Promise<(Category & { program: Program })[]>;
   createCategory(categoryData: InsertCategory): Promise<Category>;
+  createCategories(categoriesData: InsertCategory[]): Promise<Category[]>;
   updateCategory(id: string, categoryData: Partial<InsertCategory>): Promise<Category>;
   deleteCategory(id: string): Promise<void>;
   
@@ -110,6 +113,24 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async updateUser(id: string, userData: Partial<CreateUser>): Promise<User> {
+    const updateData = { ...userData };
+    // If password is provided and not empty, hash it
+    if (updateData.password && updateData.password.trim() !== "") {
+      updateData.password = await bcrypt.hash(updateData.password, 10);
+    } else {
+      // Remove password from update if it's empty or not provided
+      delete updateData.password;
+    }
+    
+    const [user] = await db
+      .update(users)
+      .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
   }
 
   async deleteUser(id: string): Promise<void> {
@@ -242,6 +263,11 @@ export class DatabaseStorage implements IStorage {
   async createDocuments(documentsData: InsertDocument[]): Promise<Document[]> {
     const createdDocuments = await db.insert(documents).values(documentsData).returning();
     return createdDocuments;
+  }
+
+  async createCategories(categoriesData: InsertCategory[]): Promise<Category[]> {
+    const createdCategories = await db.insert(categories).values(categoriesData).returning();
+    return createdCategories;
   }
 
   async updateDocument(id: string, documentData: Partial<InsertDocument>): Promise<Document> {

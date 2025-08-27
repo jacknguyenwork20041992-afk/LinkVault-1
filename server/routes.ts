@@ -228,6 +228,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk create categories
+  app.post("/api/categories/bulk", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { categories } = req.body;
+      if (!Array.isArray(categories) || categories.length === 0) {
+        return res.status(400).json({ message: "Categories array is required" });
+      }
+      
+      const validatedCategories = categories.map(cat => insertCategorySchema.parse(cat));
+      const createdCategories = await storage.createCategories(validatedCategories);
+      res.json(createdCategories);
+    } catch (error) {
+      console.error("Error creating bulk categories:", error);
+      res.status(400).json({ message: "Failed to create categories" });
+    }
+  });
+
   app.put("/api/documents/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
@@ -270,6 +287,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(400).json({ message: "Failed to create user" });
+    }
+  });
+
+  app.put("/api/users/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateData = req.body;
+      const user = await storage.updateUser(id, updateData);
+      res.json(user);
+    } catch (error) {
+      console.error("Error updating user:", error);
+      res.status(500).json({ message: "Failed to update user" });
     }
   });
 

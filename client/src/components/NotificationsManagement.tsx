@@ -65,6 +65,11 @@ export default function NotificationsManagement() {
   const formatDateTime = (date: string | Date) => {
     const notificationDate = new Date(date);
     
+    // Kiểm tra Date object có hợp lệ không
+    if (isNaN(notificationDate.getTime())) {
+      return "Thời gian không hợp lệ";
+    }
+    
     // Format ngày/tháng/năm và giờ:phút
     const day = notificationDate.getDate().toString().padStart(2, '0');
     const month = (notificationDate.getMonth() + 1).toString().padStart(2, '0');

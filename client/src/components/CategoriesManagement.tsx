@@ -7,11 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CreateCategoryModal from "@/components/modals/CreateCategoryModal";
+import BulkCreateCategoryModal from "@/components/modals/BulkCreateCategoryModal";
 import { apiRequest } from "@/lib/queryClient";
 import type { Category, Program } from "@shared/schema";
 
 export default function CategoriesManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isBulkCreateModalOpen, setIsBulkCreateModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<(Category & { program: Program }) | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -81,9 +83,9 @@ export default function CategoriesManagement() {
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold text-foreground">Quản lý danh mục</h3>
         <Button 
-          onClick={() => setIsCreateModalOpen(true)}
+          onClick={() => setIsBulkCreateModalOpen(true)}
           className="bg-primary text-primary-foreground"
-          data-testid="button-create-category"
+          data-testid="button-bulk-create-categories"
         >
           <Plus className="h-4 w-4 mr-2" />
           Thêm danh mục
@@ -95,7 +97,7 @@ export default function CategoriesManagement() {
           <Tags className="mx-auto h-12 w-12 mb-4 opacity-50" />
           <p>Chưa có danh mục nào</p>
           <Button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setIsBulkCreateModalOpen(true)}
             className="mt-4"
             variant="outline"
           >
@@ -153,6 +155,11 @@ export default function CategoriesManagement() {
         isOpen={isCreateModalOpen}
         onClose={handleModalClose}
         editingCategory={editingCategory}
+      />
+      
+      <BulkCreateCategoryModal
+        isOpen={isBulkCreateModalOpen}
+        onClose={() => setIsBulkCreateModalOpen(false)}
       />
     </div>
   );

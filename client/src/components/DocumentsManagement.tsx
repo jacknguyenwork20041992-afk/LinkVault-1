@@ -118,24 +118,14 @@ export default function DocumentsManagement() {
     <div>
       <div className="flex justify-between items-center mb-6">
         <h3 className="text-lg font-semibold text-foreground">Quản lý tài liệu</h3>
-        <div className="flex space-x-3">
-          <Button 
-            onClick={() => setIsCreateModalOpen(true)}
-            className="bg-primary text-primary-foreground"
-            data-testid="button-create-document"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Thêm tài liệu
-          </Button>
-          <Button 
-            onClick={() => setIsBulkCreateModalOpen(true)}
-            variant="outline"
-            data-testid="button-bulk-create-documents"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Thêm nhiều tài liệu
-          </Button>
-        </div>
+        <Button 
+          onClick={() => setIsBulkCreateModalOpen(true)}
+          className="bg-primary text-primary-foreground"
+          data-testid="button-bulk-create-documents"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Thêm tài liệu
+        </Button>
       </div>
 
       {documents.length === 0 ? (
@@ -143,7 +133,7 @@ export default function DocumentsManagement() {
           <FileText className="mx-auto h-12 w-12 mb-4 opacity-50" />
           <p>Chưa có tài liệu nào</p>
           <Button 
-            onClick={() => setIsCreateModalOpen(true)}
+            onClick={() => setIsBulkCreateModalOpen(true)}
             className="mt-4"
             variant="outline"
           >

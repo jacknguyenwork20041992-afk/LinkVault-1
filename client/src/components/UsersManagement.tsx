@@ -2,15 +2,18 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Trash2, Users, Shield, User } from "lucide-react";
+import { Plus, Trash2, Users, Shield, User, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import CreateUserModal from "@/components/modals/CreateUserModal";
+import EditUserModal from "@/components/modals/EditUserModal";
 import { apiRequest } from "@/lib/queryClient";
 import type { User as UserType } from "@shared/schema";
 
 export default function UsersManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -54,6 +57,16 @@ export default function UsersManagement() {
     if (confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
       deleteMutation.mutate(id);
     }
+  };
+
+  const handleEdit = (user: UserType) => {
+    setEditingUser(user);
+    setIsEditModalOpen(true);
+  };
+
+  const handleEditModalClose = () => {
+    setIsEditModalOpen(false);
+    setEditingUser(null);
   };
 
   const getRoleColor = (role: string) => {
@@ -143,15 +156,25 @@ export default function UsersManagement() {
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "N/A"}
                       </td>
                       <td className="py-3 px-6">
-                        <Button 
-                          variant="destructive" 
-                          size="sm"
-                          onClick={() => handleDelete(user.id)}
-                          disabled={deleteMutation.isPending}
-                          data-testid={`button-delete-${user.id}`}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <div className="flex space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => handleEdit(user)}
+                            data-testid={`button-edit-${user.id}`}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="destructive" 
+                            size="sm"
+                            onClick={() => handleDelete(user.id)}
+                            disabled={deleteMutation.isPending}
+                            data-testid={`button-delete-${user.id}`}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -165,6 +188,12 @@ export default function UsersManagement() {
       <CreateUserModal 
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+      
+      <EditUserModal
+        isOpen={isEditModalOpen}
+        onClose={handleEditModalClose}
+        editingUser={editingUser}
       />
     </div>
   );
