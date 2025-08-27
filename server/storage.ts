@@ -49,7 +49,7 @@ export interface IStorage {
   
   // Document operations
   getDocumentsByCategory(categoryId: string): Promise<Document[]>;
-  getDocumentsByProgram(programId: string): Promise<Document[]>;
+  getDocumentsByProgram(programId: string): Promise<(Document & { category: Category | null })[]>;
   getAllDocuments(): Promise<(Document & { category: Category | null, program: Program | null })[]>;
   getRecentDocuments(limit: number): Promise<(Document & { category: Category | null, program: Program | null })[]>;
   createDocument(documentData: InsertDocument): Promise<Document>;
@@ -191,12 +191,17 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(documents.createdAt));
   }
 
-  async getDocumentsByProgram(programId: string): Promise<Document[]> {
+  async getDocumentsByProgram(programId: string): Promise<(Document & { category: Category | null })[]> {
     return await db
       .select()
       .from(documents)
+      .leftJoin(categories, eq(documents.categoryId, categories.id))
       .where(eq(documents.programId, programId))
-      .orderBy(desc(documents.createdAt));
+      .orderBy(desc(documents.createdAt))
+      .then(results => results.map(result => ({
+        ...result.documents,
+        category: result.categories
+      })));
   }
 
   async getAllDocuments(): Promise<(Document & { category: Category | null, program: Program | null })[]> {

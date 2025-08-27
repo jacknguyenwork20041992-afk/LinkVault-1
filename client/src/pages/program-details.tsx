@@ -182,55 +182,72 @@ export default function ProgramDetails() {
               </CardContent>
             </Card>
           ) : (
-            <Card>
-              <CardContent className="p-0">
-                <div className="overflow-x-auto">
-                  <table className="w-full">
-                    <thead className="bg-muted/50">
-                      <tr>
-                        <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Tài liệu</th>
-                        <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Danh mục</th>
-                        <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Cập nhật</th>
-                        <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {documents.map((document: any) => (
-                        <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
-                          <td className="py-4 px-6">
-                            <div className="flex items-center">
-                              <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)} mr-3 text-lg`}></i>
-                              <div>
-                                <div className="font-medium text-foreground">{document.title}</div>
-                                {document.description && (
-                                  <div className="text-sm text-muted-foreground">{document.description}</div>
-                                )}
-                              </div>
-                            </div>
-                          </td>
-                          <td className="py-4 px-6 text-muted-foreground">{document.category?.name || "N/A"}</td>
-                          <td className="py-4 px-6 text-muted-foreground">
-                            {new Date(document.updatedAt).toLocaleDateString("vi-VN")}
-                          </td>
-                          <td className="py-4 px-6">
-                            <a
-                              href={document.googleDriveLink}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
-                              data-testid={`link-document-${document.id}`}
-                            >
-                              <ExternalLink className="h-4 w-4 mr-1" />
-                              Mở
-                            </a>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </CardContent>
-            </Card>
+            <div className="space-y-6">
+              {(() => {
+                // Group documents by category
+                const groupedDocuments = documents.reduce((groups: any, document: any) => {
+                  const categoryName = document.category?.name || "Không có danh mục";
+                  if (!groups[categoryName]) {
+                    groups[categoryName] = [];
+                  }
+                  groups[categoryName].push(document);
+                  return groups;
+                }, {});
+
+                return Object.entries(groupedDocuments).map(([categoryName, categoryDocuments]: [string, any]) => (
+                  <Card key={categoryName}>
+                    <CardContent className="p-0">
+                      <div className="p-4 border-b border-border bg-muted/30">
+                        <h3 className="text-lg font-semibold text-foreground">{categoryName}</h3>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full">
+                          <thead className="bg-muted/20">
+                            <tr>
+                              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
+                              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
+                              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {categoryDocuments.map((document: any) => (
+                              <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
+                                <td className="py-4 px-6">
+                                  <div className="flex items-center">
+                                    <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)} mr-3 text-lg`}></i>
+                                    <div>
+                                      <div className="font-medium text-foreground">{document.title}</div>
+                                      {document.description && (
+                                        <div className="text-sm text-muted-foreground">{document.description}</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </td>
+                                <td className="py-4 px-6 text-muted-foreground">
+                                  {new Date(document.updatedAt).toLocaleDateString("vi-VN")}
+                                </td>
+                                <td className="py-4 px-6">
+                                  <a
+                                    href={document.googleDriveLink}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-flex items-center text-primary hover:text-primary/80 transition-colors"
+                                    data-testid={`link-document-${document.id}`}
+                                  >
+                                    <ExternalLink className="h-4 w-4 mr-1" />
+                                    Mở
+                                  </a>
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ));
+              })()}
+            </div>
           )}
         </div>
       </main>

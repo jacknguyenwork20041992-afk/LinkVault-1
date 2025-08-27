@@ -30,24 +30,13 @@ export default function ProgramCard({ program }: ProgramCardProps) {
     <Link href={`/program/${program.id}`}>
       <Card className="hover:shadow-md transition-shadow cursor-pointer" data-testid={`card-program-${program.id}`}>
         <CardContent className="p-6">
-          <div className="flex items-center mb-4">
-            <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
-              {getIcon()}
-            </div>
-            <div className="flex-1">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center flex-1">
+              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mr-4">
+                {getIcon()}
+              </div>
               <h3 className="font-semibold text-foreground">{program.name}</h3>
-              <span className="text-sm text-muted-foreground">Xem tài liệu</span>
             </div>
-          </div>
-          
-          {program.description && (
-            <p className="text-sm text-muted-foreground mb-4">{program.description}</p>
-          )}
-          
-          <div className="flex justify-between items-center">
-            <Badge className={`text-xs px-2 py-1 rounded-full ${getLevelColor(program.level)}`}>
-              {program.level}
-            </Badge>
             <ArrowRight className="text-muted-foreground h-4 w-4" />
           </div>
         </CardContent>
