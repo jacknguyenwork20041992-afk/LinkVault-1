@@ -21,13 +21,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -52,7 +45,7 @@ export default function CreateProgramModal({
     defaultValues: {
       name: "",
       description: "",
-      level: "Cơ bản",
+      level: "",
     },
   });
 
@@ -112,7 +105,7 @@ export default function CreateProgramModal({
       form.reset({
         name: "",
         description: "",
-        level: "Cơ bản",
+        level: "",
       });
     }
   }, [editingProgram, isEditing, form]);
@@ -179,18 +172,13 @@ export default function CreateProgramModal({
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Cấp độ</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid="select-program-level">
-                        <SelectValue placeholder="Chọn cấp độ" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="Cơ bản">Cơ bản</SelectItem>
-                      <SelectItem value="Trung cấp">Trung cấp</SelectItem>
-                      <SelectItem value="Nâng cao">Nâng cao</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <FormControl>
+                    <Input
+                      placeholder="Ví dụ: Cơ bản, Trung cấp, Nâng cao..."
+                      data-testid="input-program-level"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
