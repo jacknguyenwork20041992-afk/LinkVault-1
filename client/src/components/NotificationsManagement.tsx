@@ -62,12 +62,16 @@ export default function NotificationsManagement() {
     }
   };
 
-  const formatDateTime = (date: string | Date) => {
+  const formatDateTime = (date: string | Date | null | undefined) => {
+    if (!date) {
+      return "Chưa xác định";
+    }
+    
     const notificationDate = new Date(date);
     
     // Kiểm tra Date object có hợp lệ không
     if (isNaN(notificationDate.getTime())) {
-      return "Thời gian không hợp lệ";
+      return "Chưa xác định";
     }
     
     // Format ngày/tháng/năm và giờ:phút
@@ -144,9 +148,9 @@ export default function NotificationsManagement() {
                   <h4 className="font-semibold text-foreground mb-2">{notification.title}</h4>
                   <p className="text-muted-foreground mb-2">{notification.message}</p>
                   <div className="flex items-center space-x-4 text-sm text-muted-foreground">
-                    <span>{formatDateTime(notification.createdAt!)}</span>
-                    <span className={notification.isGlobal ? "text-accent" : "text-primary"}>
-                      {notification.isGlobal ? "Toàn bộ người dùng" : "Người dùng cụ thể"}
+                    <span>📅 {formatDateTime(notification.createdAt)}</span>
+                    <span className={notification.isGlobal ? "text-green-600 dark:text-green-400" : "text-blue-600 dark:text-blue-400"}>
+                      👥 {notification.isGlobal ? "Toàn bộ người dùng" : "Người dùng cụ thể"}
                     </span>
                   </div>
                 </div>
