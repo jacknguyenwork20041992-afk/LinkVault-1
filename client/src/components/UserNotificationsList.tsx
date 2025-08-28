@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -6,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronLeft, ChevronRight, Bell } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Bell, Home, GraduationCap } from "lucide-react";
 import type { UserNotification, Notification } from "@shared/schema";
 
 interface PaginatedNotifications {
@@ -132,15 +133,39 @@ export default function UserNotificationsList() {
   const total = paginatedData?.total || 0;
 
   return (
-    <div className="container mx-auto p-6">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Bell className="h-5 w-5" />
-            Thông báo ({total} thông báo)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
+    <div className="min-h-screen bg-background">
+      {/* Navigation Header */}
+      <header className="bg-card border-b border-border shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16">
+            <Link href="/">
+              <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
+                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
+                  <GraduationCap className="text-primary-foreground" />
+                </div>
+                <h1 className="text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
+              </div>
+            </Link>
+            
+            <Link href="/">
+              <Button variant="outline" size="sm" className="flex items-center gap-2" data-testid="button-back-home">
+                <Home className="h-4 w-4" />
+                Trang chủ
+              </Button>
+            </Link>
+          </div>
+        </div>
+      </header>
+
+      <div className="max-w-7xl mx-auto p-6">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Bell className="h-5 w-5" />
+              Thông báo ({total} thông báo)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
           {notifications.length === 0 ? (
             <div className="text-center py-8">
               <Bell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -279,6 +304,7 @@ export default function UserNotificationsList() {
           )}
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }
