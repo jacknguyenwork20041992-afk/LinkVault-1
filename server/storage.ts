@@ -8,6 +8,7 @@ import {
   activities,
   projects,
   importantDocuments,
+  accounts,
   type User,
   type UpsertUser,
   type Program,
@@ -18,6 +19,7 @@ import {
   type Activity,
   type Project,
   type ImportantDocument,
+  type Account,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -26,6 +28,7 @@ import {
   type InsertActivity,
   type InsertProject,
   type InsertImportantDocument,
+  type InsertAccount,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -97,6 +100,13 @@ export interface IStorage {
   createImportantDocument(documentData: InsertImportantDocument): Promise<ImportantDocument>;
   updateImportantDocument(id: string, documentData: Partial<InsertImportantDocument>): Promise<ImportantDocument>;
   deleteImportantDocument(id: string): Promise<void>;
+
+  // Accounts operations
+  getAllAccounts(): Promise<Account[]>;
+  getAccount(id: string): Promise<Account | undefined>;
+  createAccount(accountData: InsertAccount): Promise<Account>;
+  updateAccount(id: string, accountData: Partial<InsertAccount>): Promise<Account>;
+  deleteAccount(id: string): Promise<void>;
   
   // Stats
   getStats(): Promise<{
@@ -556,6 +566,40 @@ export class DatabaseStorage implements IStorage {
 
   async deleteImportantDocument(id: string): Promise<void> {
     await db.delete(importantDocuments).where(eq(importantDocuments.id, id));
+  }
+
+  // Accounts operations
+  async getAllAccounts(): Promise<Account[]> {
+    return await db.select().from(accounts).orderBy(desc(accounts.createdAt));
+  }
+
+  async getAccount(id: string): Promise<Account | undefined> {
+    const [account] = await db.select().from(accounts).where(eq(accounts.id, id));
+    return account;
+  }
+
+  async createAccount(accountData: InsertAccount): Promise<Account> {
+    const [account] = await db
+      .insert(accounts)
+      .values({
+        ...accountData,
+        id: sql`gen_random_uuid()`,
+      })
+      .returning();
+    return account;
+  }
+
+  async updateAccount(id: string, accountData: Partial<InsertAccount>): Promise<Account> {
+    const [account] = await db
+      .update(accounts)
+      .set({ ...accountData, updatedAt: new Date() })
+      .where(eq(accounts.id, id))
+      .returning();
+    return account;
+  }
+
+  async deleteAccount(id: string): Promise<void> {
+    await db.delete(accounts).where(eq(accounts.id, id));
   }
 
   // Stats

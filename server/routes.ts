@@ -9,6 +9,7 @@ import {
   insertActivitySchema,
   insertProjectSchema,
   insertImportantDocumentSchema,
+  insertAccountSchema,
   createUserSchema,
 } from "@shared/schema";
 import { z } from "zod";
@@ -548,6 +549,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting important document:", error);
       res.status(500).json({ message: "Failed to delete important document" });
+    }
+  });
+
+  // Accounts routes
+  app.get("/api/accounts", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const accounts = await storage.getAllAccounts();
+      res.json(accounts);
+    } catch (error) {
+      console.error("Error fetching accounts:", error);
+      res.status(500).json({ message: "Failed to fetch accounts" });
+    }
+  });
+
+  app.post("/api/accounts", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertAccountSchema.parse(req.body);
+      const account = await storage.createAccount(validatedData);
+      res.status(201).json(account);
+    } catch (error) {
+      console.error("Error creating account:", error);
+      res.status(400).json({ message: "Failed to create account" });
+    }
+  });
+
+  app.put("/api/accounts/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertAccountSchema.partial().parse(req.body);
+      const account = await storage.updateAccount(id, validatedData);
+      res.json(account);
+    } catch (error) {
+      console.error("Error updating account:", error);
+      res.status(400).json({ message: "Failed to update account" });
+    }
+  });
+
+  app.delete("/api/accounts/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteAccount(id);
+      res.json({ message: "Account deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting account:", error);
+      res.status(500).json({ message: "Failed to delete account" });
     }
   });
 

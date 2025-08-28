@@ -12,6 +12,7 @@ import UsersManagement from "@/components/UsersManagement";
 import NotificationsManagement from "@/components/NotificationsManagement";
 import ActivityDashboard from "@/components/ActivityDashboard";
 import ImportantDocumentsTable from "@/components/ImportantDocumentsTable";
+import AccountsTable from "@/components/AccountsTable";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 
@@ -67,6 +68,8 @@ export default function Admin() {
         return <NotificationsManagement />;
       case "activities":
         return <ActivityDashboard />;
+      case "accounts":
+        return <AccountsTable />;
       default:
         return <AdminDashboard />;
     }

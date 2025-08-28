@@ -126,6 +126,19 @@ export const projects = pgTable("projects", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Accounts table for storing website accounts
+export const accounts = pgTable("accounts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  url: varchar("url").notNull(),
+  category: varchar("category"),
+  username: varchar("username").notNull(),
+  password: varchar("password").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -242,6 +255,12 @@ export const insertImportantDocumentSchema = createInsertSchema(importantDocumen
   updatedAt: true,
 });
 
+export const insertAccountSchema = createInsertSchema(accounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -267,3 +286,5 @@ export type CreateUser = z.infer<typeof createUserSchema>;
 export type BulkCreateDocuments = z.infer<typeof bulkCreateDocumentsSchema>;
 export type ImportantDocument = typeof importantDocuments.$inferSelect;
 export type InsertImportantDocument = z.infer<typeof insertImportantDocumentSchema>;
+export type Account = typeof accounts.$inferSelect;
+export type InsertAccount = z.infer<typeof insertAccountSchema>;

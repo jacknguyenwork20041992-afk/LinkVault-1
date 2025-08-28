@@ -10,7 +10,8 @@ import {
   Shield,
   Activity,
   FolderOpen,
-  AlertTriangle
+  AlertTriangle,
+  Key
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { User } from "@shared/schema";
@@ -45,6 +46,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
       items: [
         { id: "dashboard", label: "Dashboard", icon: Gauge },
         { id: "activities", label: "Hoạt động", icon: Activity },
+        { id: "accounts", label: "Danh sách tài khoản", icon: Key },
       ]
     },
     {
