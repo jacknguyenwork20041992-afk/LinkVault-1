@@ -126,10 +126,15 @@ export class DatabaseStorage implements IStorage {
 
   // Admin user operations
   async createUser(userData: CreateUser): Promise<User> {
+    const createData = { ...userData };
+    // Hash password before creating user
+    if (createData.password) {
+      createData.password = await bcrypt.hash(createData.password, 10);
+    }
     const [user] = await db
       .insert(users)
       .values({
-        ...userData,
+        ...createData,
         id: sql`gen_random_uuid()`,
       })
       .returning();
