@@ -11,11 +11,19 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
   // Activity tracking mutation
   const trackActivityMutation = useMutation({
     mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
+      console.log("Sending activity track request:", data);
       return apiRequest("POST", "/api/activities/track", data);
+    },
+    onSuccess: (data) => {
+      console.log("Activity tracked successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Activity tracking failed:", error);
     },
   });
 
   const handleDocumentClick = (document: Document & { category: Category | null, program: Program | null }, linkDescription: string) => {
+    console.log("Document click tracked:", document.title, linkDescription);
     trackActivityMutation.mutate({
       type: "document_click",
       description: `Đã xem tài liệu: ${document.title} - ${linkDescription}`,
