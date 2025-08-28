@@ -338,7 +338,7 @@ export default function CreateDocumentModal({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
+                      <SelectItem value="none">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
                       {filteredCategories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}

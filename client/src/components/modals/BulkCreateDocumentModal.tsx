@@ -276,7 +276,7 @@ export default function BulkCreateDocumentModal({
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  <SelectItem value="">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
+                                  <SelectItem value="none">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
                                   {filteredCategories.map((category: Category) => (
                                     <SelectItem key={category.id} value={category.id}>
                                       {category.name}

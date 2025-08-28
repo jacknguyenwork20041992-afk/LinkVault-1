@@ -286,20 +286,20 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDocument(documentData: InsertDocument): Promise<Document> {
-    // Handle empty categoryId by setting it to null
+    // Handle empty categoryId or "none" by setting it to null
     const cleanData = {
       ...documentData,
-      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" ? documentData.categoryId : null
+      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null
     };
     const [document] = await db.insert(documents).values(cleanData).returning();
     return document;
   }
 
   async createDocuments(documentsData: InsertDocument[]): Promise<Document[]> {
-    // Handle empty categoryId by setting it to null for all documents
+    // Handle empty categoryId or "none" by setting it to null for all documents
     const cleanedData = documentsData.map(doc => ({
       ...doc,
-      categoryId: doc.categoryId && doc.categoryId.trim() !== "" ? doc.categoryId : null
+      categoryId: doc.categoryId && doc.categoryId.trim() !== "" && doc.categoryId !== "none" ? doc.categoryId : null
     }));
     const createdDocuments = await db.insert(documents).values(cleanedData).returning();
     return createdDocuments;
@@ -311,10 +311,10 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocument(id: string, documentData: Partial<InsertDocument>): Promise<Document> {
-    // Handle empty categoryId by setting it to null
+    // Handle empty categoryId or "none" by setting it to null
     const cleanData = {
       ...documentData,
-      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" ? documentData.categoryId : null,
+      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null,
       updatedAt: new Date()
     };
     const [document] = await db
