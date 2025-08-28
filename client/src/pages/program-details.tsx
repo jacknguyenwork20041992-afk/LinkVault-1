@@ -201,65 +201,64 @@ export default function ProgramDetails() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Program Info */}
-        <div className="modern-card mb-12">
-          <div className="p-8">
-            <div className="flex items-center mb-6">
-              <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl flex items-center justify-center mr-6">
-                <Book className="text-blue-600 dark:text-blue-400 text-3xl" />
+        <div className="modern-card mb-6">
+          <div className="p-4">
+            <div className="flex items-center">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-4">
+                <Book className="text-blue-600 dark:text-blue-400 h-6 w-6" />
               </div>
               <div className="flex-1">
-                <h1 className="text-4xl font-bold text-foreground mb-3">{program.name}</h1>
-                <Badge className={`text-sm px-4 py-2 rounded-full ${getLevelColor(program.level)} border-0`}>
-                  {program.level}
-                </Badge>
+                <h1 className="text-2xl font-bold text-foreground mb-1">{program.name}</h1>
+                <div className="flex items-center gap-3">
+                  <Badge className={`text-xs px-3 py-1 rounded-full ${getLevelColor(program.level)} border-0`}>
+                    {program.level}
+                  </Badge>
+                  {program.description && (
+                    <span className="text-muted-foreground text-sm">{program.description}</span>
+                  )}
+                </div>
               </div>
             </div>
-            
-            {program.description && (
-              <div className="bg-muted/20 p-6 rounded-xl">
-                <p className="text-muted-foreground text-lg leading-relaxed">{program.description}</p>
-              </div>
-            )}
           </div>
         </div>
 
         {/* Documents Section */}
         <div>
-          <div className="flex items-center space-x-4 mb-8">
-            <div className="p-3 rounded-xl bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
-              <FileText className="h-6 w-6 text-green-600 dark:text-green-400" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-semibold text-foreground">Tài liệu chương trình</h2>
-              <p className="text-muted-foreground">{documents.length} tài liệu có sẵn</p>
-            </div>
-          </div>
-
-          {/* Search and Filter Bar */}
-          {documents.length > 0 && (
-            <div className="modern-card p-6 mb-8">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                  <Input
-                    placeholder="Tìm kiếm tài liệu theo tên hoặc mô tả..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-2 focus:border-green-400 transition-colors duration-200"
-                    data-testid="input-search-documents"
-                  />
+          {/* Compact Header with Search */}
+          <div className="modern-card p-4 mb-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
+                  <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
                 </div>
-                
-                <div className="flex gap-3">
+                <div>
+                  <h2 className="text-lg font-semibold text-foreground">Tài liệu chương trình</h2>
+                  <p className="text-muted-foreground text-sm">{documents.length} tài liệu có sẵn</p>
+                </div>
+              </div>
+              
+              {/* Inline Search and Filter */}
+              {documents.length > 0 && (
+                <div className="flex gap-3 items-center">
+                  <div className="relative w-64">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Tìm kiếm tài liệu..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10 h-9 text-sm"
+                      data-testid="input-search-documents"
+                    />
+                  </div>
                   <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[200px] border-2 focus:border-green-400 text-foreground" data-testid="select-category-filter">
+                    <SelectTrigger className="w-[160px] h-9 text-sm" data-testid="select-category-filter">
                       <Filter className="h-4 w-4 mr-2 text-green-600" />
-                      <SelectValue placeholder="Lọc theo khóa học" className="text-foreground" />
+                      <SelectValue placeholder="Lọc theo khóa học" />
                     </SelectTrigger>
-                    <SelectContent className="bg-background border border-border">
-                      <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả khóa học</SelectItem>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả khóa học</SelectItem>
                       {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
+                        <SelectItem key={category} value={category}>
                           {category}
                         </SelectItem>
                       ))}
@@ -269,18 +268,19 @@ export default function ProgramDetails() {
                   {(searchTerm || selectedCategory !== "all") && (
                     <Button 
                       variant="outline" 
+                      size="sm"
                       onClick={clearFilters}
-                      className="hover:bg-green-50 hover:border-green-300 hover:text-green-700 transition-all duration-200"
+                      className="h-9"
                       data-testid="button-clear-filters"
                     >
-                      <X className="h-4 w-4 mr-2" />
-                      Xóa bộ lọc
+                      <X className="h-4 w-4 mr-1" />
+                      Xóa
                     </Button>
                   )}
                 </div>
-              </div>
+              )}
             </div>
-          )}
+          </div>
 
           {documentsLoading ? (
             <div className="flex items-center justify-center py-12">
