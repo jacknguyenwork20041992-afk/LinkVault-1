@@ -178,20 +178,22 @@ export default function Home() {
 
             <div className="flex items-center space-x-4">
               {/* Notification Bell */}
-              <button 
-                className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
-                data-testid="button-notifications"
-              >
-                <Bell className="text-lg" />
-                {notifications.length > 0 && (
-                  <span 
-                    className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center"
-                    data-testid="text-notification-count"
-                  >
-                    {notifications.length}
-                  </span>
-                )}
-              </button>
+              <Link href="/notifications">
+                <button 
+                  className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  data-testid="button-notifications"
+                >
+                  <Bell className="text-lg" />
+                  {notifications.length > 0 && (
+                    <span 
+                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                      data-testid="text-notification-count"
+                    >
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+              </Link>
 
               {/* User Menu */}
               <div className="flex items-center space-x-2">

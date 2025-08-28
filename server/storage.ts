@@ -69,7 +69,7 @@ export interface IStorage {
   
   // Notification operations
   getAllNotifications(): Promise<Notification[]>;
-  getNotificationsForUser(userId: string): Promise<(UserNotification & { notification: Notification })[]>;
+  getNotificationsForUser(userId: string, page?: number, limit?: number): Promise<{ notifications: (UserNotification & { notification: Notification })[], total: number, totalPages: number }>;
   getUnreadNotificationsForUser(userId: string): Promise<(UserNotification & { notification: Notification })[]>;
   createNotification(notificationData: InsertNotification): Promise<Notification>;
   markNotificationAsRead(userId: string, notificationId: string): Promise<void>;
@@ -313,17 +313,39 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(notifications).orderBy(desc(notifications.createdAt));
   }
 
-  async getNotificationsForUser(userId: string): Promise<(UserNotification & { notification: Notification })[]> {
-    return await db
+  async getNotificationsForUser(userId: string, page: number = 1, limit: number = 10): Promise<{ notifications: (UserNotification & { notification: Notification })[], total: number, totalPages: number }> {
+    const offset = (page - 1) * limit;
+    
+    // Get total count
+    const totalResult = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(userNotifications)
+      .innerJoin(notifications, eq(userNotifications.notificationId, notifications.id))
+      .where(eq(userNotifications.userId, userId));
+    
+    const total = Number(totalResult[0]?.count) || 0;
+    const totalPages = Math.ceil(total / limit);
+    
+    // Get paginated results
+    const results = await db
       .select()
       .from(userNotifications)
       .innerJoin(notifications, eq(userNotifications.notificationId, notifications.id))
       .where(eq(userNotifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
-      .then(results => results.map(result => ({
-        ...result.user_notifications,
-        notification: result.notifications
-      })));
+      .limit(limit)
+      .offset(offset);
+    
+    const userNotificationsList = results.map((result: any) => ({
+      ...result.user_notifications,
+      notification: result.notifications
+    }));
+    
+    return {
+      notifications: userNotificationsList,
+      total,
+      totalPages
+    };
   }
 
   async getUnreadNotificationsForUser(userId: string): Promise<(UserNotification & { notification: Notification })[]> {

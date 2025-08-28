@@ -9,6 +9,7 @@ import AuthPage from "@/pages/auth";
 import Home from "@/pages/home";
 import Admin from "@/pages/admin";
 import ProgramDetails from "@/pages/program-details";
+import NotificationsPage from "@/pages/notifications-page";
 
 function Router() {
   const { isAuthenticated, isLoading, user } = useAuth();
@@ -29,6 +30,7 @@ function Router() {
         <>
           <Route path="/" component={Home} />
           <Route path="/program/:id" component={ProgramDetails} />
+          <Route path="/notifications" component={NotificationsPage} />
           {user?.role === "admin" && <Route path="/admin" component={Admin} />}
         </>
       )}

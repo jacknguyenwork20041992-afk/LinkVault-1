@@ -302,10 +302,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const notifications = await storage.getNotificationsForUser(userId);
-      res.json(notifications);
+      const result = await storage.getNotificationsForUser(userId);
+      res.json(result.notifications);
     } catch (error) {
       console.error("Error fetching notifications:", error);
+      res.status(500).json({ message: "Failed to fetch notifications" });
+    }
+  });
+
+  app.get("/api/notifications/user", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      
+      const result = await storage.getNotificationsForUser(userId, page, limit);
+      res.json(result);
+    } catch (error) {
+      console.error("Error fetching user notifications:", error);
       res.status(500).json({ message: "Failed to fetch notifications" });
     }
   });
