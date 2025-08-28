@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { Book, FileText, Users, Bell, Plus, UserPlus, Upload } from "lucide-react";
+import { Book, FileText, Users, Bell, Plus, UserPlus, Upload, Clock, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { formatDistanceToNow } from "date-fns";
+import { vi } from "date-fns/locale";
 
 interface AdminDashboardProps {
   onNavigateToView?: (view: string) => void;
@@ -10,6 +12,11 @@ interface AdminDashboardProps {
 export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps) {
   const { data: stats } = useQuery<any>({
     queryKey: ["/api/admin/stats"],
+    retry: false,
+  });
+
+  const { data: activities = [], isLoading: activitiesLoading } = useQuery<any[]>({
+    queryKey: ["/api/activities"],
     retry: false,
   });
 
@@ -135,15 +142,64 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
         </div>
       </div>
 
-      {/* Recent Activity Placeholder */}
+      {/* Recent Activity */}
       <div>
         <h3 className="text-lg font-semibold text-foreground mb-4">Hoạt động gần đây</h3>
         <Card>
           <CardContent className="p-6">
-            <div className="text-center py-8 text-muted-foreground">
-              <Bell className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Hoạt động gần đây sẽ hiển thị ở đây</p>
-            </div>
+            {activitiesLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              </div>
+            ) : activities.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <Bell className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                <p>Chưa có hoạt động nào được ghi lại</p>
+              </div>
+            ) : (
+              <div className="space-y-4 max-h-80 overflow-y-auto">
+                {activities.slice(0, 10).map((activity: any) => (
+                  <div key={activity.id} className="flex items-start space-x-3 p-3 rounded-lg hover:bg-muted/30 transition-colors">
+                    <div className="flex-shrink-0">
+                      {activity.type?.includes('document') ? (
+                        <Eye className="h-5 w-5 text-blue-500 mt-0.5" />
+                      ) : activity.type?.includes('important_document') ? (
+                        <FileText className="h-5 w-5 text-red-500 mt-0.5" />
+                      ) : (
+                        <Bell className="h-5 w-5 text-gray-500 mt-0.5" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm text-foreground font-medium">
+                        {activity.user?.email || 'Người dùng'} 
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        {activity.description}
+                      </p>
+                      <div className="flex items-center mt-1 text-xs text-muted-foreground">
+                        <Clock className="h-3 w-3 mr-1" />
+                        {formatDistanceToNow(new Date(activity.createdAt), { 
+                          addSuffix: true, 
+                          locale: vi 
+                        })}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {activities.length > 10 && (
+                  <div className="text-center pt-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => onNavigateToView?.("activity")}
+                      data-testid="button-view-all-activities"
+                    >
+                      Xem tất cả hoạt động
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
