@@ -58,13 +58,14 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
-) {
-  await storage.upsertUser({
+): Promise<User> {
+  return await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
     firstName: claims["first_name"],
     lastName: claims["last_name"],
     profileImageUrl: claims["profile_image_url"],
+    authProvider: "replit",
     role: "user", // Default role for new users
   });
 }
@@ -81,10 +82,10 @@ export async function setupAuth(app: Express) {
     tokens: client.TokenEndpointResponse & client.TokenEndpointResponseHelpers,
     verified: passport.AuthenticateCallback
   ) => {
-    const user = {};
-    updateUserSession(user, tokens);
-    await upsertUser(tokens.claims());
-    verified(null, user);
+    const userSession = {};
+    updateUserSession(userSession, tokens);
+    const dbUser = await upsertUser(tokens.claims());
+    verified(null, dbUser);
   };
 
   for (const domain of process.env

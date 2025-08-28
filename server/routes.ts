@@ -15,9 +15,12 @@ import {
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Setup email/password authentication only
+  // Setup multiple authentication methods
   const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
+  const { setupGoogleAuth } = await import("./googleAuth");
+  
   setupLocalAuth(app);
+  setupGoogleAuth(app);
 
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -594,6 +597,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting account:", error);
       res.status(500).json({ message: "Failed to delete account" });
+    }
+  });
+
+  // Public registration route  
+  app.post("/api/register", async (req: any, res) => {
+    try {
+      const userData = createUserSchema.parse(req.body);
+      const user = await storage.createUser(userData);
+      
+      // Auto-login after registration
+      req.logIn(user, (err: any) => {
+        if (err) {
+          console.error("Auto-login error:", err);
+          return res.status(201).json(user);
+        }
+        res.status(201).json(user);
+      });
+    } catch (error: any) {
+      console.error("Error creating user:", error);
+      if (error.name === "ZodError") {
+        return res.status(400).json({ message: "Invalid input data", errors: error.errors });
+      }
+      if (error.code === "23505") { // Unique violation
+        return res.status(400).json({ message: "Email đã được sử dụng" });
+      }
+      res.status(500).json({ message: "Failed to create user" });
     }
   });
 

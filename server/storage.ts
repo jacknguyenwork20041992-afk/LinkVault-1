@@ -40,12 +40,13 @@ export interface IStorage {
   // User operations
   getUser(id: string): Promise<User | undefined>;
   getUserByEmail(email: string): Promise<User | undefined>;
+  getUserByGoogleId(googleId: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   
   // Admin user operations
   createUser(userData: CreateUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
-  updateUser(id: string, userData: Partial<CreateUser>): Promise<User>;
+  updateUser(id: string, userData: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
   
   // Program operations
@@ -129,6 +130,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByGoogleId(googleId: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.googleId, googleId));
+    return user;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -165,7 +171,7 @@ export class DatabaseStorage implements IStorage {
     return await db.select().from(users).orderBy(desc(users.createdAt));
   }
 
-  async updateUser(id: string, userData: Partial<CreateUser>): Promise<User> {
+  async updateUser(id: string, userData: Partial<User>): Promise<User> {
     const updateData = { ...userData };
     // If password is provided and not empty, hash it
     if (updateData.password && updateData.password.trim() !== "") {

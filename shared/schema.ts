@@ -35,6 +35,8 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   password: varchar("password"), // Optional password for manual creation
   role: varchar("role").notNull().default("user"), // "admin" or "user"
+  authProvider: varchar("auth_provider").default("manual"), // "manual", "replit", "google"
+  googleId: varchar("google_id"), // Google ID for Google auth users
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -230,12 +232,18 @@ export const createUserSchema = createInsertSchema(users).pick({
   lastName: true,
   password: true,
   role: true,
+  profileImageUrl: true,
+  authProvider: true,
+  googleId: true,
 }).extend({
   email: z.string().email(),
   firstName: z.string().min(1),
   lastName: z.string().min(1),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự").optional(),
   role: z.enum(["admin", "user"]).default("user"),
+  profileImageUrl: z.string().optional(),
+  authProvider: z.enum(["manual", "replit", "google"]).default("manual"),
+  googleId: z.string().optional(),
 });
 
 export const insertActivitySchema = createInsertSchema(activities).omit({
