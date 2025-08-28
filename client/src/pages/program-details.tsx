@@ -185,13 +185,14 @@ export default function ProgramDetails() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex items-center justify-between h-14 sm:h-16">
             <div className="flex items-center">
               <Link href="/">
-                <Button variant="ghost" size="sm" data-testid="button-back-home">
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Trang chủ
+                <Button variant="ghost" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" data-testid="button-back-home">
+                  <ArrowLeft className="h-4 w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Trang chủ</span>
+                  <span className="sm:hidden">Trở về</span>
                 </Button>
               </Link>
             </div>
@@ -199,22 +200,22 @@ export default function ProgramDetails() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Program Info */}
-        <div className="modern-card mb-6">
-          <div className="p-4">
+        <div className="modern-card mb-4 sm:mb-6">
+          <div className="p-3 sm:p-4">
             <div className="flex items-center">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-4">
-                <Book className="text-blue-600 dark:text-blue-400 h-6 w-6" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg flex items-center justify-center mr-3 sm:mr-4">
+                <Book className="text-blue-600 dark:text-blue-400 h-5 w-5 sm:h-6 sm:w-6" />
               </div>
-              <div className="flex-1">
-                <h1 className="text-2xl font-bold text-foreground mb-1">{program.name}</h1>
-                <div className="flex items-center gap-3">
-                  <Badge className={`text-xs px-3 py-1 rounded-full ${getLevelColor(program.level)} border-0`}>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-xl sm:text-2xl font-bold text-foreground mb-1 truncate">{program.name}</h1>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
+                  <Badge className={`text-xs px-2 sm:px-3 py-1 rounded-full ${getLevelColor(program.level)} border-0 self-start`}>
                     {program.level}
                   </Badge>
                   {program.description && (
-                    <span className="text-muted-foreground text-sm">{program.description}</span>
+                    <span className="text-muted-foreground text-sm break-words">{program.description}</span>
                   )}
                 </div>
               </div>
@@ -225,8 +226,8 @@ export default function ProgramDetails() {
         {/* Documents Section */}
         <div>
           {/* Compact Header with Search */}
-          <div className="modern-card p-4 mb-4">
-            <div className="flex items-center justify-between gap-4">
+          <div className="modern-card p-3 sm:p-4 mb-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20">
                   <FileText className="h-5 w-5 text-green-600 dark:text-green-400" />
@@ -239,8 +240,8 @@ export default function ProgramDetails() {
               
               {/* Inline Search and Filter */}
               {documents.length > 0 && (
-                <div className="flex gap-3 items-center">
-                  <div className="relative w-64">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 items-stretch sm:items-center">
+                  <div className="relative flex-1 sm:w-64 sm:flex-none">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
                       placeholder="Tìm kiếm tài liệu..."
@@ -250,33 +251,35 @@ export default function ProgramDetails() {
                       data-testid="input-search-documents"
                     />
                   </div>
-                  <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                    <SelectTrigger className="w-[160px] h-9 text-sm" data-testid="select-category-filter">
-                      <Filter className="h-4 w-4 mr-2 text-green-600" />
-                      <SelectValue placeholder="Lọc theo khóa học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Tất cả khóa học</SelectItem>
-                      {availableCategories.map((category) => (
-                        <SelectItem key={category} value={category}>
-                          {category}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  
-                  {(searchTerm || selectedCategory !== "all") && (
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={clearFilters}
-                      className="h-9"
-                      data-testid="button-clear-filters"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Xóa
-                    </Button>
-                  )}
+                  <div className="flex gap-2 sm:gap-3">
+                    <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                      <SelectTrigger className="flex-1 sm:w-[160px] h-9 text-sm" data-testid="select-category-filter">
+                        <Filter className="h-4 w-4 mr-2 text-green-600" />
+                        <SelectValue placeholder="Lọc theo khóa học" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả khóa học</SelectItem>
+                        {availableCategories.map((category) => (
+                          <SelectItem key={category} value={category}>
+                            {category}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {(searchTerm || selectedCategory !== "all") && (
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={clearFilters}
+                        className="h-9 px-2 sm:px-3"
+                        data-testid="button-clear-filters"
+                      >
+                        <X className="h-4 w-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Xóa</span>
+                      </Button>
+                    )}
+                  </div>
                 </div>
               )}
             </div>

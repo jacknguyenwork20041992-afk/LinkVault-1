@@ -11,18 +11,28 @@ import {
   Activity,
   FolderOpen,
   AlertTriangle,
-  Key
+  Key,
+  Menu
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import type { User } from "@shared/schema";
 
 interface AdminSidebarProps {
   activeView: string;
   onViewChange: (view: string) => void;
   user: User;
+  isMobile?: boolean;
+  onMobileClose?: () => void;
 }
 
-export default function AdminSidebar({ activeView, onViewChange, user }: AdminSidebarProps) {
+export default function AdminSidebar({ activeView, onViewChange, user, isMobile, onMobileClose }: AdminSidebarProps) {
+  const handleItemClick = (itemId: string) => {
+    onViewChange(itemId);
+    if (onMobileClose) {
+      onMobileClose();
+    }
+  };
   const handleLogout = async () => {
     try {
       const response = await fetch("/api/logout", {
@@ -69,7 +79,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
   ];
 
   return (
-    <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 w-72 border-r border-border/30 shadow-lg flex flex-col h-full">
+    <div className="bg-gradient-to-b from-slate-50 to-white dark:from-slate-950 dark:to-slate-900 w-full border-r border-border/30 shadow-lg flex flex-col h-full">
       {/* Header với gradient background */}
       <div className="relative p-6 border-b border-border/30 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 flex-shrink-0">
         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/5 to-indigo-600/5 dark:from-blue-400/5 dark:to-indigo-400/5"></div>
@@ -103,12 +113,12 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
                   <li key={item.id}>
                     <Button
                       variant="ghost"
-                      className={`w-full justify-start text-sm group transition-all duration-200 h-11 ${
+                      className={`w-full justify-start text-sm group transition-all duration-200 h-10 sm:h-11 ${
                         isActive 
                           ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 text-blue-700 dark:text-blue-400 border border-blue-200/50 dark:border-blue-800/50 shadow-sm font-medium" 
                           : "text-muted-foreground hover:bg-gradient-to-r hover:from-slate-50 hover:to-slate-100 dark:hover:from-slate-800/50 dark:hover:to-slate-700/50 hover:text-foreground"
                       }`}
-                      onClick={() => onViewChange(item.id)}
+                      onClick={() => handleItemClick(item.id)}
                       data-testid={`button-nav-${item.id}`}
                     >
                       <div className={`p-2 rounded-lg mr-3 transition-all duration-200 ${

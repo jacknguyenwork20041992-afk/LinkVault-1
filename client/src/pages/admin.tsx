@@ -14,12 +14,14 @@ import ActivityDashboard from "@/components/ActivityDashboard";
 import ImportantDocumentsTable from "@/components/ImportantDocumentsTable";
 import AccountsTable from "@/components/AccountsTable";
 import { Button } from "@/components/ui/button";
-import { Home } from "lucide-react";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Home, Menu } from "lucide-react";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [activeView, setActiveView] = useState("dashboard");
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -103,24 +105,45 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-background">
       <div className="flex h-screen">
-        {/* Sidebar */}
-        <AdminSidebar 
-          activeView={activeView} 
-          onViewChange={setActiveView}
-          user={user}
-        />
+        {/* Desktop Sidebar */}
+        <div className="hidden lg:flex">
+          <AdminSidebar 
+            activeView={activeView} 
+            onViewChange={setActiveView}
+            user={user}
+          />
+        </div>
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="bg-card border-b border-border shadow-sm">
-            <div className="px-6 py-4 flex justify-between items-center">
-              <h2 className="text-xl font-semibold text-foreground">{getTitle()}</h2>
-              <div className="flex items-center space-x-4">
+          <header className="bg-card border-b border-border shadow-sm flex-shrink-0">
+            <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-3">
+                {/* Mobile Menu Button */}
+                <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="sm" className="lg:hidden">
+                      <Menu className="h-5 w-5" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="left" className="w-72 p-0">
+                    <AdminSidebar 
+                      activeView={activeView} 
+                      onViewChange={setActiveView}
+                      user={user}
+                      isMobile
+                      onMobileClose={() => setSidebarOpen(false)}
+                    />
+                  </SheetContent>
+                </Sheet>
+                <h2 className="text-lg sm:text-xl font-semibold text-foreground">{getTitle()}</h2>
+              </div>
+              <div className="flex items-center space-x-2 sm:space-x-4">
                 <Link href="/">
-                  <Button variant="outline" size="sm" data-testid="link-home">
-                    <Home className="h-4 w-4 mr-2" />
-                    Trang chủ
+                  <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" data-testid="link-home">
+                    <Home className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Trang chủ</span>
                   </Button>
                 </Link>
               </div>
@@ -128,7 +151,7 @@ export default function Admin() {
           </header>
 
           {/* Main Content */}
-          <main className="p-6">
+          <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">
             {renderContent()}
           </main>
         </div>

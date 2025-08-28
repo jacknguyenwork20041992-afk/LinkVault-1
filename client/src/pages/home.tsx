@@ -198,26 +198,26 @@ export default function Home() {
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
       <header className="bg-card border-b border-border shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
+          <div className="flex justify-between items-center h-14 sm:h-16">
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
-                <GraduationCap className="text-primary-foreground" />
+              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center mr-2 sm:mr-3">
+                <GraduationCap className="text-primary-foreground text-sm sm:text-base" />
               </div>
-              <h1 className="text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
             </div>
 
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Notification Bell */}
               <Link href="/notifications">
                 <button 
-                  className="relative p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="relative p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="button-notifications"
                 >
-                  <Bell className="text-lg" />
+                  <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
                   {notifications.length > 0 && (
                     <span 
-                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center"
+                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
                       data-testid="text-notification-count"
                     >
                       {notifications.length}
@@ -227,8 +227,8 @@ export default function Home() {
               </Link>
 
               {/* User Menu */}
-              <div className="flex items-center space-x-2">
-                <span className="text-sm text-foreground" data-testid="text-user-name">
+              <div className="flex items-center space-x-1 sm:space-x-2">
+                <span className="hidden sm:inline text-sm text-foreground" data-testid="text-user-name">
                   {user?.firstName && user?.lastName 
                     ? `${user.firstName} ${user.lastName}` 
                     : user?.email || "User"
@@ -236,8 +236,9 @@ export default function Home() {
                 </span>
                 {user?.role === "admin" && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm" data-testid="link-admin">
-                      Admin Panel
+                    <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" data-testid="link-admin">
+                      <span className="hidden sm:inline">Admin Panel</span>
+                      <span className="sm:hidden">Admin</span>
                     </Button>
                   </Link>
                 )}
@@ -245,7 +246,7 @@ export default function Home() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors"
                   data-testid="button-logout"
                 >
                   <LogOut className="h-4 w-4" />
@@ -256,16 +257,16 @@ export default function Home() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
         {/* Notifications Section */}
         {notifications.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-              <Bell className="text-primary mr-2" />
+          <div className="mb-6 sm:mb-8">
+            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4 flex items-center">
+              <Bell className="text-primary mr-2 h-5 w-5 sm:h-6 sm:w-6" />
               Thông báo mới
             </h2>
 
-            <div className="space-y-3">
+            <div className="space-y-2 sm:space-y-3">
               {notifications.map((userNotification: any) => (
                 <NotificationCard
                   key={userNotification.id}
@@ -279,26 +280,26 @@ export default function Home() {
 
         {/* Important Documents Section */}
         {importantDocuments.length > 0 && (
-          <div className="mb-8">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="p-3 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
-                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
+              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
               </div>
               <div>
-                <h2 className="text-2xl font-semibold text-foreground">Tài liệu quan trọng</h2>
-                <p className="text-muted-foreground">{importantDocuments.length} tài liệu quan trọng</p>
+                <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Tài liệu quan trọng</h2>
+                <p className="text-sm sm:text-base text-muted-foreground">{importantDocuments.length} tài liệu quan trọng</p>
               </div>
             </div>
 
             <div className="bg-card rounded-lg shadow-sm border border-border">
               <div className="overflow-x-auto">
-                <table className="w-full">
+                <table className="w-full min-w-[600px]">
                   <thead className="bg-muted/50">
                     <tr>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Mô tả</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Ngày tạo</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground">Tài liệu</th>
+                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground hidden sm:table-cell">Mô tả</th>
+                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground hidden md:table-cell">Ngày tạo</th>
+                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground">Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
