@@ -11,6 +11,7 @@ import ProjectsManagement from "@/components/ProjectsManagement";
 import UsersManagement from "@/components/UsersManagement";
 import NotificationsManagement from "@/components/NotificationsManagement";
 import ActivityDashboard from "@/components/ActivityDashboard";
+import ImportantDocumentsTable from "@/components/ImportantDocumentsTable";
 import { Button } from "@/components/ui/button";
 import { Home } from "lucide-react";
 
@@ -56,6 +57,8 @@ export default function Admin() {
         return <CategoriesManagement />;
       case "documents":
         return <DocumentsManagement />;
+      case "important-documents":
+        return <ImportantDocumentsTable />;
       case "projects":
         return <ProjectsManagement />;
       case "users":
@@ -79,6 +82,8 @@ export default function Admin() {
         return "Quản lý khóa học";
       case "documents":
         return "Quản lý tài liệu";
+      case "important-documents":
+        return "Tài liệu quan trọng";
       case "projects":
         return "Quản lý dự án";
       case "users":

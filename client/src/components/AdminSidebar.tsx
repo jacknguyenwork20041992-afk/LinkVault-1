@@ -9,7 +9,8 @@ import {
   LogOut,
   Shield,
   Activity,
-  FolderOpen
+  FolderOpen,
+  AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { User } from "@shared/schema";
@@ -52,6 +53,7 @@ export default function AdminSidebar({ activeView, onViewChange, user }: AdminSi
         { id: "programs", label: "Chương trình", icon: Book },
         { id: "categories", label: "Khóa học", icon: Tags },
         { id: "documents", label: "Tài liệu", icon: FileText },
+        { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
         { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
       ]
     },

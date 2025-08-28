@@ -8,6 +8,7 @@ import {
   insertNotificationSchema,
   insertActivitySchema,
   insertProjectSchema,
+  insertImportantDocumentSchema,
   createUserSchema,
 } from "@shared/schema";
 import { z } from "zod";
@@ -488,6 +489,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting project:", error);
       res.status(500).json({ message: "Failed to delete project" });
+    }
+  });
+
+  // Important documents routes
+  app.get("/api/important-documents", isAuthenticated, async (req, res) => {
+    try {
+      const importantDocuments = await storage.getAllImportantDocuments();
+      res.json(importantDocuments);
+    } catch (error) {
+      console.error("Error fetching important documents:", error);
+      res.status(500).json({ message: "Failed to fetch important documents" });
+    }
+  });
+
+  app.get("/api/important-documents/:id", isAuthenticated, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const importantDocument = await storage.getImportantDocument(id);
+      if (!importantDocument) {
+        return res.status(404).json({ message: "Important document not found" });
+      }
+      res.json(importantDocument);
+    } catch (error) {
+      console.error("Error fetching important document:", error);
+      res.status(500).json({ message: "Failed to fetch important document" });
+    }
+  });
+
+  app.post("/api/important-documents", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertImportantDocumentSchema.parse(req.body);
+      const importantDocument = await storage.createImportantDocument(validatedData);
+      res.json(importantDocument);
+    } catch (error) {
+      console.error("Error creating important document:", error);
+      res.status(400).json({ message: "Failed to create important document" });
+    }
+  });
+
+  app.put("/api/important-documents/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const validatedData = insertImportantDocumentSchema.partial().parse(req.body);
+      const importantDocument = await storage.updateImportantDocument(id, validatedData);
+      res.json(importantDocument);
+    } catch (error) {
+      console.error("Error updating important document:", error);
+      res.status(400).json({ message: "Failed to update important document" });
+    }
+  });
+
+  app.delete("/api/important-documents/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteImportantDocument(id);
+      res.json({ message: "Important document deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting important document:", error);
+      res.status(500).json({ message: "Failed to delete important document" });
     }
   });
 

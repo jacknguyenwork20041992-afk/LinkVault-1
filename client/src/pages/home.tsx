@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { GraduationCap, Bell, LogOut, Clock, Book, ExternalLink, Search } from "lucide-react";
+import { GraduationCap, Bell, LogOut, Clock, Book, ExternalLink, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -51,6 +51,11 @@ export default function Home() {
     retry: false,
   });
 
+  const { data: importantDocuments = [] } = useQuery<any[]>({
+    queryKey: ["/api/important-documents"],
+    retry: false,
+  });
+
   // Filter logic cho programs
   const filteredPrograms = programs.filter((program: any) => {
     const matchesSearch = program.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -68,6 +73,32 @@ export default function Home() {
     
     return matchesSearch && matchesProgram;
   });
+
+  // Activity tracking mutation for important documents
+  const trackActivityMutation = useMutation({
+    mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
+      console.log("Sending activity track request:", data);
+      return apiRequest("POST", "/api/activities/track", data);
+    },
+    onSuccess: (data) => {
+      console.log("Activity tracked successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Activity tracking failed:", error);
+    },
+  });
+
+  const handleImportantDocumentClick = (document: any) => {
+    console.log("Important document click tracked:", document.title);
+    trackActivityMutation.mutate({
+      type: "important_document_click",
+      description: `Đã xem tài liệu quan trọng: ${document.title}`,
+      metadata: {
+        documentId: document.id,
+        documentTitle: document.title,
+      }
+    });
+  };
 
   const markAsReadMutation = useMutation({
     mutationFn: async (notificationId: string) => {
@@ -242,6 +273,71 @@ export default function Home() {
                   onMarkAsRead={() => handleMarkAsRead(userNotification.notification.id)}
                 />
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Important Documents Section */}
+        {importantDocuments.length > 0 && (
+          <div className="mb-8">
+            <div className="flex items-center space-x-4 mb-6">
+              <div className="p-3 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+                <AlertTriangle className="h-6 w-6 text-red-600 dark:text-red-400" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-semibold text-foreground">Tài liệu quan trọng</h2>
+                <p className="text-muted-foreground">{importantDocuments.length} tài liệu quan trọng</p>
+              </div>
+            </div>
+
+            <div className="bg-card rounded-lg shadow-sm border border-border">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
+                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Mô tả</th>
+                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Ngày tạo</th>
+                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {importantDocuments.map((document: any) => (
+                      <tr key={document.id} className="border-t border-border hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors duration-200" data-testid={`row-important-document-${document.id}`}>
+                        <td className="py-4 px-6">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
+                              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-foreground">{document.title}</div>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="py-4 px-6 text-muted-foreground">
+                          {document.description || "Không có mô tả"}
+                        </td>
+                        <td className="py-4 px-6 text-muted-foreground">
+                          {document.createdAt ? new Date(document.createdAt).toLocaleDateString("vi-VN") : ""}
+                        </td>
+                        <td className="py-4 px-6">
+                          <a
+                            href={document.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            onClick={() => handleImportantDocumentClick(document)}
+                            className="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg text-sm font-medium transition-all duration-200"
+                            data-testid={`link-important-document-${document.id}`}
+                          >
+                            <ExternalLink className="h-4 w-4 mr-2" />
+                            Xem tài liệu
+                          </a>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

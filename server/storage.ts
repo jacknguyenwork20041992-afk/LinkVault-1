@@ -7,6 +7,7 @@ import {
   userNotifications,
   activities,
   projects,
+  importantDocuments,
   type User,
   type UpsertUser,
   type Program,
@@ -16,6 +17,7 @@ import {
   type UserNotification,
   type Activity,
   type Project,
+  type ImportantDocument,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -23,6 +25,7 @@ import {
   type InsertUserNotification,
   type InsertActivity,
   type InsertProject,
+  type InsertImportantDocument,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -87,6 +90,13 @@ export interface IStorage {
   createProject(projectData: InsertProject): Promise<Project>;
   updateProject(id: string, projectData: Partial<InsertProject>): Promise<Project>;
   deleteProject(id: string): Promise<void>;
+  
+  // Important document operations
+  getAllImportantDocuments(): Promise<ImportantDocument[]>;
+  getImportantDocument(id: string): Promise<ImportantDocument | undefined>;
+  createImportantDocument(documentData: InsertImportantDocument): Promise<ImportantDocument>;
+  updateImportantDocument(id: string, documentData: Partial<InsertImportantDocument>): Promise<ImportantDocument>;
+  deleteImportantDocument(id: string): Promise<void>;
   
   // Stats
   getStats(): Promise<{
@@ -512,6 +522,40 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: string): Promise<void> {
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // Important document operations
+  async getAllImportantDocuments(): Promise<ImportantDocument[]> {
+    return await db.select().from(importantDocuments).orderBy(desc(importantDocuments.createdAt));
+  }
+
+  async getImportantDocument(id: string): Promise<ImportantDocument | undefined> {
+    const [importantDoc] = await db.select().from(importantDocuments).where(eq(importantDocuments.id, id));
+    return importantDoc;
+  }
+
+  async createImportantDocument(documentData: InsertImportantDocument): Promise<ImportantDocument> {
+    const [importantDoc] = await db
+      .insert(importantDocuments)
+      .values({
+        ...documentData,
+        id: sql`gen_random_uuid()`,
+      })
+      .returning();
+    return importantDoc;
+  }
+
+  async updateImportantDocument(id: string, documentData: Partial<InsertImportantDocument>): Promise<ImportantDocument> {
+    const [importantDoc] = await db
+      .update(importantDocuments)
+      .set({ ...documentData, updatedAt: new Date() })
+      .where(eq(importantDocuments.id, id))
+      .returning();
+    return importantDoc;
+  }
+
+  async deleteImportantDocument(id: string): Promise<void> {
+    await db.delete(importantDocuments).where(eq(importantDocuments.id, id));
   }
 
   // Stats

@@ -103,6 +103,16 @@ export const activities = pgTable("activities", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Important documents table
+export const importantDocuments = pgTable("important_documents", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  title: varchar("title").notNull(),
+  description: text("description"),
+  url: text("url").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Projects table
 export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -226,6 +236,12 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   updatedAt: true,
 });
 
+export const insertImportantDocumentSchema = createInsertSchema(importantDocuments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -249,3 +265,5 @@ export type Activity = typeof activities.$inferSelect;
 export type InsertActivity = z.infer<typeof insertActivitySchema>;
 export type CreateUser = z.infer<typeof createUserSchema>;
 export type BulkCreateDocuments = z.infer<typeof bulkCreateDocumentsSchema>;
+export type ImportantDocument = typeof importantDocuments.$inferSelect;
+export type InsertImportantDocument = z.infer<typeof insertImportantDocumentSchema>;
