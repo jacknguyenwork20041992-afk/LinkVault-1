@@ -227,7 +227,7 @@ export default function ImportantDocumentsTable() {
             <DialogHeader>
               <DialogTitle>Tạo tài liệu quan trọng mới</DialogTitle>
             </DialogHeader>
-            <DocumentForm />
+            <DocumentForm document={undefined} />
           </DialogContent>
         </Dialog>
       </div>
