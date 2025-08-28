@@ -38,15 +38,109 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Link } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
+// Component for managing links within each document
+interface LinksSectionProps {
+  documentIndex: number;
+  form: any;
+}
+
+function LinksSection({ documentIndex, form }: LinksSectionProps) {
+  const { fields: linkFields, append: appendLink, remove: removeLink } = useFieldArray({
+    control: form.control,
+    name: `documents.${documentIndex}.links`,
+  });
+
+  const addLink = () => {
+    appendLink({ url: "", description: "" });
+  };
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-3">
+        <FormLabel>Links tài liệu</FormLabel>
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={addLink}
+          className="text-xs px-2 py-1 h-7"
+          data-testid={`button-add-link-${documentIndex}`}
+        >
+          <Plus className="h-3 w-3 mr-1" />
+          Thêm Link
+        </Button>
+      </div>
+      
+      <div className="space-y-3 max-h-32 overflow-y-auto">
+        {linkFields.map((linkField, linkIndex) => (
+          <div key={linkField.id} className="border rounded-lg p-3 bg-gray-50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-medium text-gray-600">Link #{linkIndex + 1}</span>
+              {linkFields.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => removeLink(linkIndex)}
+                  className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                  data-testid={`button-remove-link-${documentIndex}-${linkIndex}`}
+                >
+                  <Trash2 className="h-3 w-3" />
+                </Button>
+              )}
+            </div>
+            
+            <FormField
+              control={form.control}
+              name={`documents.${documentIndex}.links.${linkIndex}.url`}
+              render={({ field }) => (
+                <FormItem className="mb-2">
+                  <FormControl>
+                    <Input
+                      placeholder="https://drive.google.com/..."
+                      className="text-sm h-8"
+                      data-testid={`input-document-link-${documentIndex}-${linkIndex}`}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name={`documents.${documentIndex}.links.${linkIndex}.description`}
+              render={({ field }) => (
+                <FormItem>
+                  <FormControl>
+                    <Input
+                      placeholder="Mô tả link (ví dụ: Tài liệu chính, Bài tập...)"
+                      className="text-sm h-8"
+                      data-testid={`input-document-link-desc-${documentIndex}-${linkIndex}`}
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 interface BulkCreateDocumentModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export default function BulkCreateDocumentModal({
+function BulkCreateDocumentModal({
   isOpen,
   onClose,
 }: BulkCreateDocumentModalProps) {
@@ -196,43 +290,7 @@ export default function BulkCreateDocumentModal({
                           )}
                         />
 
-                        <div>
-                          <FormLabel>Links tài liệu</FormLabel>
-                          <FormField
-                            control={form.control}
-                            name={`documents.${index}.links.0.url`}
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormLabel className="text-sm">URL</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="https://drive.google.com/..."
-                                    data-testid={`input-document-link-${index}`}
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name={`documents.${index}.links.0.description`}
-                            render={({ field }) => (
-                              <FormItem className="mt-2">
-                                <FormLabel className="text-sm">Mô tả link</FormLabel>
-                                <FormControl>
-                                  <Input
-                                    placeholder="Ví dụ: Tài liệu chính, Bài tập..."
-                                    data-testid={`input-document-link-desc-${index}`}
-                                    {...field}
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                        </div>
+                        <LinksSection documentIndex={index} form={form} />
 
                         <FormField
                           control={form.control}
@@ -353,3 +411,5 @@ export default function BulkCreateDocumentModal({
     </Dialog>
   );
 }
+
+export default BulkCreateDocumentModal;
