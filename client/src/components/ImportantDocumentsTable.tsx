@@ -170,7 +170,7 @@ export default function ImportantDocumentsTable() {
           )}
         </div>
 
-        <div className="flex justify-end space-x-2">
+        <div className="flex justify-end space-x-2 pt-4">
           <Button
             type="button"
             variant="outline"
@@ -178,6 +178,7 @@ export default function ImportantDocumentsTable() {
               setIsCreateOpen(false);
               setEditingDocument(null);
             }}
+            className="border-gray-300 text-gray-700 hover:bg-gray-50"
             data-testid="button-cancel"
           >
             Hủy
@@ -185,6 +186,7 @@ export default function ImportantDocumentsTable() {
           <Button
             type="submit"
             disabled={createMutation.isPending || updateMutation.isPending}
+            className="bg-blue-600 text-white hover:bg-blue-700 disabled:bg-gray-400 px-6 py-2"
             data-testid="button-submit"
           >
             {(createMutation.isPending || updateMutation.isPending) ? "Đang xử lý..." : (document ? "Cập nhật" : "Tạo mới")}
