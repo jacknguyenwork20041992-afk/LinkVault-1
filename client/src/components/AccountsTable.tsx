@@ -7,7 +7,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
@@ -263,6 +263,9 @@ export default function AccountsTable() {
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Thêm tài khoản mới</DialogTitle>
+              <DialogDescription>
+                Tạo tài khoản mới để lưu trữ thông tin đăng nhập website
+              </DialogDescription>
             </DialogHeader>
             <AccountForm onSubmit={(data) => createMutation.mutate(data)} />
           </DialogContent>
@@ -476,6 +479,9 @@ export default function AccountsTable() {
         <DialogContent className="max-w-2xl">
           <DialogHeader>
             <DialogTitle>Chỉnh sửa tài khoản</DialogTitle>
+            <DialogDescription>
+              Cập nhật thông tin đăng nhập cho tài khoản này
+            </DialogDescription>
           </DialogHeader>
           {editingAccount && (
             <AccountForm
