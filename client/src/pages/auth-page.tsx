@@ -132,7 +132,7 @@ export default function AuthPage() {
                     
                     <Button 
                       type="submit" 
-                      className="w-full"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                       disabled={loginMutation.isPending}
                       data-testid="button-login"
                     >
@@ -154,7 +154,7 @@ export default function AuthPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-md transition-all"
                     onClick={handleGoogleLogin}
                     data-testid="button-google-login"
                   >
@@ -261,7 +261,7 @@ export default function AuthPage() {
                     
                     <Button 
                       type="submit" 
-                      className="w-full"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
                       disabled={registerMutation.isPending}
                       data-testid="button-register"
                     >
@@ -283,7 +283,7 @@ export default function AuthPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full"
+                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-md transition-all"
                     onClick={handleGoogleLogin}
                     data-testid="button-google-register"
                   >
