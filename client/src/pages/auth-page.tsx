@@ -56,13 +56,13 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen flex">
+    <div className="min-h-screen flex flex-col lg:flex-row">
       {/* Left side - Auth forms */}
-      <div className="flex-1 flex items-center justify-center p-8">
-        <div className="w-full max-w-md space-y-6">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+        <div className="w-full max-w-md space-y-4 sm:space-y-6">
           <div className="text-center">
-            <h1 className="text-3xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
-            <p className="text-muted-foreground mt-2">Đăng nhập vào hệ thống quản lý tài liệu</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
+            <p className="text-muted-foreground mt-2 text-sm sm:text-base">Đăng nhập vào hệ thống quản lý tài liệu</p>
           </div>
 
           {authError === 'google' && (
@@ -74,21 +74,21 @@ export default function AuthPage() {
           )}
 
           <Tabs defaultValue="login" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="login">Đăng nhập</TabsTrigger>
-              <TabsTrigger value="register">Đăng ký</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-2 h-10 sm:h-11">
+              <TabsTrigger value="login" className="text-sm sm:text-base">Đăng nhập</TabsTrigger>
+              <TabsTrigger value="register" className="text-sm sm:text-base">Đăng ký</TabsTrigger>
             </TabsList>
             
             <TabsContent value="login">
               <Card>
-                <CardHeader>
-                  <CardTitle>Đăng nhập</CardTitle>
-                  <CardDescription>
+                <CardHeader className="pb-4 sm:pb-6">
+                  <CardTitle className="text-lg sm:text-xl">Đăng nhập</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
                     Nhập thông tin tài khoản để đăng nhập
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <form onSubmit={handleLogin} className="space-y-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                  <form onSubmit={handleLogin} className="space-y-3 sm:space-y-4">
                     <div className="space-y-2">
                       <Label htmlFor="login-email">Email</Label>
                       <Input
@@ -97,6 +97,7 @@ export default function AuthPage() {
                         value={loginData.email}
                         onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
                         placeholder="example@domain.com"
+                        className="h-10 sm:h-11 text-sm sm:text-base"
                         required
                         data-testid="input-login-email"
                       />
@@ -111,6 +112,7 @@ export default function AuthPage() {
                           value={loginData.password}
                           onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
                           placeholder="••••••••"
+                          className="h-10 sm:h-11 text-sm sm:text-base pr-12"
                           required
                           data-testid="input-login-password"
                         />
@@ -132,7 +134,7 @@ export default function AuthPage() {
                     
                     <Button 
                       type="submit" 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 sm:py-3 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base h-10 sm:h-11"
                       disabled={loginMutation.isPending}
                       data-testid="button-login"
                     >
@@ -154,7 +156,7 @@ export default function AuthPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-md transition-all"
+                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 sm:py-3 rounded-md transition-all text-sm sm:text-base h-10 sm:h-11"
                     onClick={handleGoogleLogin}
                     data-testid="button-google-login"
                   >
@@ -184,15 +186,15 @@ export default function AuthPage() {
             
             <TabsContent value="register">
               <Card>
-                <CardHeader>
-                  <CardTitle>Đăng ký tài khoản</CardTitle>
-                  <CardDescription>
+                <CardHeader className="pb-4 sm:pb-6">
+                  <CardTitle className="text-lg sm:text-xl">Đăng ký tài khoản</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
                     Tạo tài khoản mới để truy cập hệ thống
                   </CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  <form onSubmit={handleRegister} className="space-y-4">
-                    <div className="grid grid-cols-2 gap-4">
+                <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
+                  <form onSubmit={handleRegister} className="space-y-3 sm:space-y-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                       <div className="space-y-2">
                         <Label htmlFor="register-firstName">Họ</Label>
                         <Input
@@ -200,6 +202,7 @@ export default function AuthPage() {
                           value={registerData.firstName}
                           onChange={(e) => setRegisterData({ ...registerData, firstName: e.target.value })}
                           placeholder="Nguyễn"
+                          className="h-10 sm:h-11 text-sm sm:text-base"
                           required
                           data-testid="input-register-firstName"
                         />
@@ -212,6 +215,7 @@ export default function AuthPage() {
                           value={registerData.lastName}
                           onChange={(e) => setRegisterData({ ...registerData, lastName: e.target.value })}
                           placeholder="Văn A"
+                          className="h-10 sm:h-11 text-sm sm:text-base"
                           required
                           data-testid="input-register-lastName"
                         />
@@ -226,6 +230,7 @@ export default function AuthPage() {
                         value={registerData.email}
                         onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
                         placeholder="example@domain.com"
+                        className="h-10 sm:h-11 text-sm sm:text-base"
                         required
                         data-testid="input-register-email"
                       />
@@ -240,6 +245,7 @@ export default function AuthPage() {
                           value={registerData.password}
                           onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
                           placeholder="••••••••"
+                          className="h-10 sm:h-11 text-sm sm:text-base pr-12"
                           required
                           data-testid="input-register-password"
                         />
@@ -261,7 +267,7 @@ export default function AuthPage() {
                     
                     <Button 
                       type="submit" 
-                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+                      className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 sm:py-3 rounded-md transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed text-sm sm:text-base h-10 sm:h-11"
                       disabled={registerMutation.isPending}
                       data-testid="button-register"
                     >
@@ -283,7 +289,7 @@ export default function AuthPage() {
                   <Button
                     type="button"
                     variant="outline"
-                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 rounded-md transition-all"
+                    className="w-full border-2 border-gray-300 hover:border-gray-400 text-gray-700 hover:bg-gray-50 font-medium py-2.5 sm:py-3 rounded-md transition-all text-sm sm:text-base h-10 sm:h-11"
                     onClick={handleGoogleLogin}
                     data-testid="button-google-register"
                   >
@@ -314,15 +320,15 @@ export default function AuthPage() {
         </div>
       </div>
       
-      {/* Right side - Hero section */}
-      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-8">
-        <div className="text-center text-white space-y-6 max-w-md">
-          <h2 className="text-4xl font-bold">Hệ thống quản lý tài liệu</h2>
-          <p className="text-blue-100 text-lg leading-relaxed">
+      {/* Right side - Hero section - Hidden on mobile/tablet, visible on desktop */}
+      <div className="hidden lg:flex lg:flex-1 bg-gradient-to-br from-blue-600 to-blue-800 items-center justify-center p-6 xl:p-8">
+        <div className="text-center text-white space-y-4 xl:space-y-6 max-w-sm xl:max-w-md">
+          <h2 className="text-3xl xl:text-4xl font-bold leading-tight">Hệ thống quản lý tài liệu</h2>
+          <p className="text-blue-100 text-base xl:text-lg leading-relaxed">
             Truy cập vào kho tài liệu học tập phong phú của VIA English Academy. 
             Quản lý chương trình học, tài liệu và theo dõi tiến độ học tập một cách hiệu quả.
           </p>
-          <div className="space-y-2 text-sm text-blue-200">
+          <div className="space-y-2 text-sm xl:text-base text-blue-200">
             <p>✓ Tài liệu được phân loại theo chương trình</p>
             <p>✓ Tìm kiếm và lọc dễ dàng</p>
             <p>✓ Cập nhật thường xuyên</p>
