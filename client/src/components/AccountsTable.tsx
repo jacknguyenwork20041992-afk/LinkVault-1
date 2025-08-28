@@ -248,28 +248,33 @@ export default function AccountsTable() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+        <div className="flex-1">
           <h2 className="text-2xl font-bold text-foreground">Danh sách tài khoản</h2>
           <p className="text-muted-foreground">Quản lý thông tin đăng nhập các website</p>
         </div>
-        <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-          <DialogTrigger asChild>
-            <Button className="flex items-center gap-2" data-testid="button-create-account">
-              <Plus className="h-4 w-4" />
-              Thêm tài khoản
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl">
-            <DialogHeader>
-              <DialogTitle>Thêm tài khoản mới</DialogTitle>
-              <DialogDescription>
-                Tạo tài khoản mới để lưu trữ thông tin đăng nhập website
-              </DialogDescription>
-            </DialogHeader>
-            <AccountForm onSubmit={(data) => createMutation.mutate(data)} />
-          </DialogContent>
-        </Dialog>
+        <div className="flex-shrink-0">
+          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+            <DialogTrigger asChild>
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 text-white flex items-center gap-2 px-4 py-2 rounded-md shadow-sm font-medium transition-colors" 
+                data-testid="button-create-account"
+              >
+                <Plus className="h-4 w-4" />
+                Thêm tài khoản
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl">
+              <DialogHeader>
+                <DialogTitle>Thêm tài khoản mới</DialogTitle>
+                <DialogDescription>
+                  Tạo tài khoản mới để lưu trữ thông tin đăng nhập website
+                </DialogDescription>
+              </DialogHeader>
+              <AccountForm onSubmit={(data) => createMutation.mutate(data)} />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       {/* Search and Filter */}
