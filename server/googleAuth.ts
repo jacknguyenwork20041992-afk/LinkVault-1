@@ -4,11 +4,18 @@ import type { Express } from "express";
 import { storage } from "./storage";
 
 export function setupGoogleAuth(app: Express) {
+  // Get the base URL for callback
+  const getCallbackURL = (req: any) => {
+    const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';
+    const host = req.headers.host;
+    return `${protocol}://${host}/api/auth/google/callback`;
+  };
+
   // Google OAuth strategy
   passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-    callbackURL: "/api/auth/google/callback"
+    callbackURL: "/api/auth/google/callback" // This will be overridden by passReqToCallback
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
