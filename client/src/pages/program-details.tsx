@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useLocation, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { ArrowLeft, Book, FileText, ExternalLink, Download, Search, Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +19,35 @@ export default function ProgramDetails() {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+
+  // Activity tracking mutation
+  const trackActivityMutation = useMutation({
+    mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
+      console.log("Sending activity track request:", data);
+      return apiRequest("POST", "/api/activities/track", data);
+    },
+    onSuccess: (data) => {
+      console.log("Activity tracked successfully:", data);
+    },
+    onError: (error) => {
+      console.error("Activity tracking failed:", error);
+    },
+  });
+
+  const handleDocumentClick = (document: any, linkDescription: string) => {
+    console.log("Document click tracked:", document.title, linkDescription);
+    trackActivityMutation.mutate({
+      type: "document_click",
+      description: `Đã xem tài liệu: ${document.title} - ${linkDescription}`,
+      metadata: {
+        documentId: document.id,
+        documentTitle: document.title,
+        program: program?.name,
+        category: document.category?.name,
+        linkDescription: linkDescription,
+      }
+    });
+  };
   
   // Extract program ID from URL
   const programId = location.split('/')[2]; // /program/:id
@@ -338,6 +368,7 @@ export default function ProgramDetails() {
                                         href={link.url}
                                         target="_blank"
                                         rel="noopener noreferrer"
+                                        onClick={() => handleDocumentClick(document, link.description)}
                                         className="inline-flex items-center px-3 py-2 bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:hover:bg-green-900/30 rounded-lg text-sm font-medium transition-all duration-200"
                                         data-testid={`link-document-${document.id}-${linkIndex}`}
                                         title={link.description}
