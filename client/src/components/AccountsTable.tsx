@@ -214,7 +214,7 @@ export default function AccountsTable() {
           />
         </div>
 
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-3 pt-4">
           <Button
             type="button"
             variant="outline"
@@ -222,11 +222,16 @@ export default function AccountsTable() {
               setIsCreateOpen(false);
               setEditingAccount(null);
             }}
+            className="px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-md font-medium transition-colors"
             data-testid="button-cancel"
           >
             Hủy
           </Button>
-          <Button type="submit" data-testid="button-save">
+          <Button 
+            type="submit" 
+            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-md font-medium shadow-sm transition-colors disabled:bg-gray-400 disabled:cursor-not-allowed"
+            data-testid="button-save"
+          >
             {account ? "Cập nhật" : "Tạo mới"}
           </Button>
         </div>
