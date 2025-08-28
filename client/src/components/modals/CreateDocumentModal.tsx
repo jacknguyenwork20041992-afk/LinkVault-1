@@ -63,7 +63,7 @@ export default function CreateDocumentModal({
   const documentValidationSchema = insertDocumentSchema.extend({
     title: z.string().min(1, "Tiêu đề là bắt buộc"),
     programId: z.string().min(1, "Chương trình là bắt buộc"),
-    categoryId: z.string().min(1, "Khóa học là bắt buộc"),
+    categoryId: z.string().optional(), // Khóa học không bắt buộc
   });
 
   const form = useForm<InsertDocument>({
@@ -330,14 +330,15 @@ export default function CreateDocumentModal({
               name="categoryId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Khóa học *</FormLabel>
+                  <FormLabel>Khóa học (không bắt buộc)</FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                     <FormControl>
                       <SelectTrigger data-testid="select-document-category">
-                        <SelectValue placeholder="Chọn khóa học" />
+                        <SelectValue placeholder="Không chọn khóa học (áp dụng toàn chương trình)" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
+                      <SelectItem value="">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
                       {filteredCategories.map((category) => (
                         <SelectItem key={category.id} value={category.id}>
                           {category.name}

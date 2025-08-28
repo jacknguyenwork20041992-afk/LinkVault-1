@@ -268,14 +268,15 @@ export default function BulkCreateDocumentModal({
                           name={`documents.${index}.categoryId`}
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Khóa học</FormLabel>
+                              <FormLabel>Khóa học (không bắt buộc)</FormLabel>
                               <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-category-${index}`}>
-                                    <SelectValue placeholder="Chọn khóa học" />
+                                    <SelectValue placeholder="Không chọn khóa học (áp dụng toàn chương trình)" />
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
+                                  <SelectItem value="">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
                                   {filteredCategories.map((category: Category) => (
                                     <SelectItem key={category.id} value={category.id}>
                                       {category.name}
