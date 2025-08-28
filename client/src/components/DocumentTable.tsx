@@ -1,3 +1,5 @@
+import { useMutation } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { ExternalLink } from "lucide-react";
 import type { Document, Category, Program } from "@shared/schema";
 
@@ -6,6 +8,27 @@ interface DocumentTableProps {
 }
 
 export default function DocumentTable({ documents }: DocumentTableProps) {
+  // Activity tracking mutation
+  const trackActivityMutation = useMutation({
+    mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
+      return apiRequest("POST", "/api/activities/track", data);
+    },
+  });
+
+  const handleDocumentClick = (document: Document & { category: Category | null, program: Program | null }, linkDescription: string) => {
+    trackActivityMutation.mutate({
+      type: "document_click",
+      description: `Đã xem tài liệu: ${document.title} - ${linkDescription}`,
+      metadata: {
+        documentId: document.id,
+        documentTitle: document.title,
+        program: document.program?.name,
+        category: document.category?.name,
+        linkDescription: linkDescription,
+      }
+    });
+  };
+
   const getFileIcon = (fileType?: string) => {
     if (!fileType) return "fa-file-alt";
     switch (fileType.toLowerCase()) {
@@ -93,6 +116,7 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => handleDocumentClick(document, link.description)}
                         className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-md text-xs font-medium transition-all duration-200"
                         data-testid={`link-document-${document.id}-${index}`}
                         title={link.description}
