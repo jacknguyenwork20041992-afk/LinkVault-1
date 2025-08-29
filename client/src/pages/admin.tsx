@@ -129,13 +129,13 @@ export default function Admin() {
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <header className="bg-card border-b border-border shadow-sm flex-shrink-0">
+          <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 border-b border-blue-700 shadow-lg flex-shrink-0">
             <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex justify-between items-center">
               <div className="flex items-center space-x-3">
                 {/* Mobile Menu Button */}
                 <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="sm" className="lg:hidden">
+                    <Button variant="ghost" size="sm" className="lg:hidden text-blue-100 hover:text-white hover:bg-blue-800">
                       <Menu className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>
@@ -149,11 +149,11 @@ export default function Admin() {
                     />
                   </SheetContent>
                 </Sheet>
-                <h2 className="text-lg sm:text-xl font-semibold text-foreground">{getTitle()}</h2>
+                <h2 className="text-lg sm:text-xl font-semibold text-white">{getTitle()}</h2>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
                 <Link href="/">
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" data-testid="link-home">
+                  <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-home">
                     <Home className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">Trang chủ</span>
                   </Button>
