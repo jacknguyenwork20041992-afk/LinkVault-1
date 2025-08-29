@@ -192,6 +192,22 @@ export const faqItems = pgTable("faq_items", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Training Files table for uploaded documents to train AI
+export const trainingFiles = pgTable("training_files", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  filename: varchar("filename").notNull(),
+  originalName: varchar("original_name").notNull(),
+  fileType: varchar("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  objectPath: varchar("object_path").notNull(),
+  extractedContent: text("extracted_content"),
+  metadata: jsonb("metadata"),
+  status: varchar("status").notNull().default("processing"), // processing, completed, failed
+  uploadedBy: varchar("uploaded_by").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -384,6 +400,12 @@ export const insertFaqItemSchema = createInsertSchema(faqItems).omit({
   updatedAt: true,
 });
 
+export const insertTrainingFileSchema = createInsertSchema(trainingFiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -421,3 +443,5 @@ export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;
 export type InsertKnowledgeArticle = z.infer<typeof insertKnowledgeArticleSchema>;
 export type FaqItem = typeof faqItems.$inferSelect;
 export type InsertFaqItem = z.infer<typeof insertFaqItemSchema>;
+export type TrainingFile = typeof trainingFiles.$inferSelect;
+export type InsertTrainingFile = z.infer<typeof insertTrainingFileSchema>;

@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import multer from "multer";
 import { storage } from "./storage";
 import {
   insertProgramSchema,
@@ -15,10 +16,13 @@ import {
   insertKnowledgeCategorySchema,
   insertKnowledgeArticleSchema,
   insertFaqItemSchema,
+  insertTrainingFileSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
 import { chatWithGeminiAI } from "./gemini";
+import { ObjectStorageService } from "./objectStorage";
+import { TextExtractor } from "./textExtractor";
 import { z } from "zod";
 
 // Demo chat responses when OpenAI is unavailable
@@ -69,6 +73,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   setupLocalAuth(app);
   setupGoogleAuth(app);
+
+  // Configure multer for file uploads
+  const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+      fileSize: 50 * 1024 * 1024, // 50MB limit
+    },
+    fileFilter: (req, file, cb) => {
+      const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+      const ext = '.' + file.originalname.split('.').pop()?.toLowerCase();
+      if (allowedTypes.includes(ext)) {
+        cb(null, true);
+      } else {
+        cb(new Error('Unsupported file type'));
+      }
+    }
+  });
 
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
@@ -940,6 +961,280 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error searching knowledge base:", error);
       res.status(500).json({ message: "Failed to search knowledge base" });
+    }
+  });
+
+  // Object Storage Routes
+  // Upload URL endpoint
+  app.post("/api/objects/upload", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Training Files Routes
+  // Upload and process training file directly
+  app.post("/api/training-files/upload", isAuthenticated, isAdmin, upload.single('file'), async (req, res) => {
+    try {
+      const file = req.file;
+      const { description } = req.body;
+
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const user = req.user as any;
+      const textExtractor = new TextExtractor();
+      
+      // Get file info
+      const fileExtension = file.originalname.split('.').pop()?.toLowerCase() || '';
+      const fileType = fileExtension;
+      
+      // Create training file record with processing status
+      const trainingFile = await storage.createTrainingFile({
+        filename: `${Date.now()}-${file.originalname}`,
+        originalName: file.originalname,
+        fileType,
+        fileSize: file.size,
+        objectPath: '', // No object storage path for direct upload
+        status: "processing",
+        uploadedBy: user.id,
+        metadata: {
+          description: description || null,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+
+      // Process file in background
+      setImmediate(async () => {
+        try {
+          // Extract text from file buffer
+          const extractedText = await textExtractor.extractText(file.buffer, file.originalname);
+          
+          // Update training file with extracted content
+          await storage.updateTrainingFile(trainingFile.id, {
+            extractedContent: extractedText.content,
+            status: "completed",
+            metadata: {
+              ...trainingFile.metadata,
+              extractionMetadata: extractedText.metadata,
+              processedAt: new Date().toISOString(),
+            },
+          });
+
+          console.log(`Successfully processed training file: ${file.originalname}`);
+        } catch (error) {
+          console.error(`Error processing training file ${file.originalname}:`, error);
+          
+          // Update status to failed
+          await storage.updateTrainingFile(trainingFile.id, {
+            status: "failed",
+            metadata: {
+              ...trainingFile.metadata,
+              error: error.message,
+              failedAt: new Date().toISOString(),
+            },
+          });
+        }
+      });
+
+      res.json({ 
+        message: "File uploaded successfully and is being processed",
+        fileId: trainingFile.id 
+      });
+    } catch (error) {
+      console.error("Error uploading training file:", error);
+      res.status(500).json({ message: "Failed to upload training file" });
+    }
+  });
+
+  // Get all training files
+  app.get("/api/training-files", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const files = await storage.getAllTrainingFiles();
+      res.json(files);
+    } catch (error) {
+      console.error("Error fetching training files:", error);
+      res.status(500).json({ message: "Failed to fetch training files" });
+    }
+  });
+
+  // Process uploaded file for training
+  app.post("/api/training-files/process", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { uploadURL, originalName, description } = req.body;
+      
+      if (!uploadURL || !originalName) {
+        return res.status(400).json({ message: "Upload URL and original name are required" });
+      }
+
+      const user = req.user as any;
+      const objectStorageService = new ObjectStorageService();
+      const textExtractor = new TextExtractor();
+
+      // Normalize the object path
+      const objectPath = objectStorageService.normalizeObjectEntityPath(uploadURL);
+      
+      // Get file info
+      const fileExtension = originalName.split('.').pop()?.toLowerCase() || '';
+      const fileType = fileExtension;
+      
+      // Create training file record with processing status
+      const trainingFile = await storage.createTrainingFile({
+        filename: `${Date.now()}-${originalName}`,
+        originalName,
+        fileType,
+        fileSize: 0, // Will be updated after download
+        objectPath,
+        status: "processing",
+        uploadedBy: user.id,
+        metadata: {
+          description: description || null,
+          uploadedAt: new Date().toISOString(),
+        },
+      });
+
+      // Process file in background
+      setTimeout(async () => {
+        try {
+          // Download file from object storage
+          const objectFile = await objectStorageService.getObjectEntityFile(objectPath);
+          const [metadata] = await objectFile.getMetadata();
+          
+          // Download file content
+          const chunks: Buffer[] = [];
+          const stream = objectFile.createReadStream();
+          
+          for await (const chunk of stream) {
+            chunks.push(chunk);
+          }
+          
+          const fileBuffer = Buffer.concat(chunks);
+          
+          // Extract text from file
+          const extractedData = await textExtractor.extractText(fileBuffer, originalName);
+          const cleanedContent = textExtractor.cleanText(extractedData.content);
+          
+          // Update training file with extracted content
+          await storage.updateTrainingFile(trainingFile.id, {
+            extractedContent: cleanedContent,
+            fileSize: parseInt(metadata.size || '0'),
+            status: "completed",
+            metadata: {
+              ...trainingFile.metadata,
+              ...extractedData.metadata,
+              extractedAt: new Date().toISOString(),
+            },
+          });
+
+          console.log(`Successfully processed training file: ${originalName}`);
+          
+        } catch (error) {
+          console.error("Error processing training file:", error);
+          await storage.updateTrainingFile(trainingFile.id, {
+            status: "failed",
+            metadata: {
+              ...trainingFile.metadata,
+              error: error.message,
+              failedAt: new Date().toISOString(),
+            },
+          });
+        }
+      }, 1000); // Small delay to ensure upload is complete
+
+      res.status(201).json({
+        id: trainingFile.id,
+        message: "File upload received and processing started",
+        objectPath,
+      });
+      
+    } catch (error) {
+      console.error("Error processing training file:", error);
+      res.status(500).json({ message: "Failed to process training file" });
+    }
+  });
+
+  // Delete training file
+  app.delete("/api/training-files/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteTrainingFile(id);
+      res.json({ message: "Training file deleted" });
+    } catch (error) {
+      console.error("Error deleting training file:", error);
+      res.status(500).json({ message: "Failed to delete training file" });
+    }
+  });
+
+  // Re-process failed training file
+  app.post("/api/training-files/:id/reprocess", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const trainingFile = await storage.getTrainingFile(id);
+      
+      if (!trainingFile) {
+        return res.status(404).json({ message: "Training file not found" });
+      }
+
+      const objectStorageService = new ObjectStorageService();
+      const textExtractor = new TextExtractor();
+
+      // Set status to processing
+      await storage.updateTrainingFile(id, { status: "processing" });
+
+      // Process file
+      setTimeout(async () => {
+        try {
+          const objectFile = await objectStorageService.getObjectEntityFile(trainingFile.objectPath);
+          const [metadata] = await objectFile.getMetadata();
+          
+          const chunks: Buffer[] = [];
+          const stream = objectFile.createReadStream();
+          
+          for await (const chunk of stream) {
+            chunks.push(chunk);
+          }
+          
+          const fileBuffer = Buffer.concat(chunks);
+          const extractedData = await textExtractor.extractText(fileBuffer, trainingFile.originalName);
+          const cleanedContent = textExtractor.cleanText(extractedData.content);
+          
+          await storage.updateTrainingFile(id, {
+            extractedContent: cleanedContent,
+            fileSize: parseInt(metadata.size || '0'),
+            status: "completed",
+            metadata: {
+              ...trainingFile.metadata,
+              ...extractedData.metadata,
+              reprocessedAt: new Date().toISOString(),
+            },
+          });
+
+          console.log(`Successfully reprocessed training file: ${trainingFile.originalName}`);
+          
+        } catch (error) {
+          console.error("Error reprocessing training file:", error);
+          await storage.updateTrainingFile(id, {
+            status: "failed",
+            metadata: {
+              ...trainingFile.metadata,
+              error: error.message,
+              failedAt: new Date().toISOString(),
+            },
+          });
+        }
+      }, 1000);
+
+      res.json({ message: "File reprocessing started" });
+      
+    } catch (error) {
+      console.error("Error reprocessing training file:", error);
+      res.status(500).json({ message: "Failed to reprocess training file" });
     }
   });
 

@@ -14,6 +14,7 @@ import {
   knowledgeCategories,
   knowledgeArticles,
   faqItems,
+  trainingFiles,
   type User,
   type UpsertUser,
   type Program,
@@ -30,6 +31,7 @@ import {
   type KnowledgeCategory,
   type KnowledgeArticle,
   type FaqItem,
+  type TrainingFile,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -44,6 +46,7 @@ import {
   type InsertKnowledgeCategory,
   type InsertKnowledgeArticle,
   type InsertFaqItem,
+  type InsertTrainingFile,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -156,6 +159,13 @@ export interface IStorage {
     articles: KnowledgeArticle[];
     faqs: FaqItem[];
   }>;
+  
+  // Training Files operations
+  getAllTrainingFiles(): Promise<TrainingFile[]>;
+  getTrainingFile(id: string): Promise<TrainingFile | undefined>;
+  createTrainingFile(fileData: InsertTrainingFile): Promise<TrainingFile>;
+  updateTrainingFile(id: string, fileData: Partial<InsertTrainingFile>): Promise<TrainingFile>;
+  deleteTrainingFile(id: string): Promise<void>;
   
   // Knowledge operations for AI context
   getKnowledgeContext(): Promise<{
@@ -894,6 +904,33 @@ export class DatabaseStorage implements IStorage {
       .orderBy(desc(faqItems.priority));
 
     return { articles, faqs };
+  }
+
+  // Training Files operations
+  async getAllTrainingFiles(): Promise<TrainingFile[]> {
+    return await db.select().from(trainingFiles).orderBy(desc(trainingFiles.createdAt));
+  }
+
+  async getTrainingFile(id: string): Promise<TrainingFile | undefined> {
+    const [file] = await db.select().from(trainingFiles).where(eq(trainingFiles.id, id));
+    return file;
+  }
+
+  async createTrainingFile(fileData: InsertTrainingFile): Promise<TrainingFile> {
+    const [file] = await db.insert(trainingFiles).values(fileData).returning();
+    return file;
+  }
+
+  async updateTrainingFile(id: string, fileData: Partial<InsertTrainingFile>): Promise<TrainingFile> {
+    const [file] = await db.update(trainingFiles)
+      .set(fileData)
+      .where(eq(trainingFiles.id, id))
+      .returning();
+    return file;
+  }
+
+  async deleteTrainingFile(id: string): Promise<void> {
+    await db.delete(trainingFiles).where(eq(trainingFiles.id, id));
   }
 
   // Knowledge operations for AI context

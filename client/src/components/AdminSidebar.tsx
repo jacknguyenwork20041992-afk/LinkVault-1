@@ -13,7 +13,8 @@ import {
   AlertTriangle,
   Key,
   Menu,
-  Brain
+  Brain,
+  Upload
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -69,6 +70,7 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
         { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
         { id: "knowledge-base", label: "Cơ sở kiến thức AI", icon: Brain },
+        { id: "training-files", label: "File Training AI", icon: Upload },
       ]
     },
     {
