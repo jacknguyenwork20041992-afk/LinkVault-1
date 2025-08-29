@@ -74,6 +74,11 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "categories", label: "Khóa học", icon: Tags },
         { id: "documents", label: "Tài liệu", icon: FileText },
         { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
+      ]
+    },
+    {
+      title: "AI Chat Bot",
+      items: [
         { id: "knowledge-base", label: "Cơ sở kiến thức AI", icon: Brain },
         { id: "training-files", label: "File Training AI", icon: Upload },
       ]
