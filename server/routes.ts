@@ -12,6 +12,9 @@ import {
   insertAccountSchema,
   insertChatConversationSchema,
   insertChatMessageSchema,
+  insertKnowledgeCategorySchema,
+  insertKnowledgeArticleSchema,
+  insertFaqItemSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
@@ -756,7 +759,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       try {
         aiResponse = await chatWithGeminiAI(message, knowledgeContext, conversationHistory);
       } catch (error) {
-        console.log("Using demo responses due to Gemini error:", error.message);
+        console.log("Using demo responses due to Gemini error:", (error as Error).message);
         aiResponse = getDemoResponse(message, knowledgeContext);
       }
 
@@ -786,6 +789,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting conversation:", error);
       res.status(500).json({ message: "Failed to delete conversation" });
+    }
+  });
+
+  // Knowledge Base Admin Routes
+  // Knowledge Categories
+  app.get("/api/admin/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categories = await storage.getAllKnowledgeCategories();
+      res.json(categories);
+    } catch (error) {
+      console.error("Error fetching knowledge categories:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge categories" });
+    }
+  });
+
+  app.post("/api/admin/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const categoryData = insertKnowledgeCategorySchema.parse(req.body);
+      const category = await storage.createKnowledgeCategory(categoryData);
+      res.status(201).json(category);
+    } catch (error) {
+      console.error("Error creating knowledge category:", error);
+      res.status(500).json({ message: "Failed to create knowledge category" });
+    }
+  });
+
+  app.put("/api/admin/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const categoryData = insertKnowledgeCategorySchema.partial().parse(req.body);
+      const category = await storage.updateKnowledgeCategory(id, categoryData);
+      res.json(category);
+    } catch (error) {
+      console.error("Error updating knowledge category:", error);
+      res.status(500).json({ message: "Failed to update knowledge category" });
+    }
+  });
+
+  app.delete("/api/admin/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteKnowledgeCategory(id);
+      res.json({ message: "Knowledge category deleted" });
+    } catch (error) {
+      console.error("Error deleting knowledge category:", error);
+      res.status(500).json({ message: "Failed to delete knowledge category" });
+    }
+  });
+
+  // Knowledge Articles
+  app.get("/api/admin/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const articles = await storage.getAllKnowledgeArticles();
+      res.json(articles);
+    } catch (error) {
+      console.error("Error fetching knowledge articles:", error);
+      res.status(500).json({ message: "Failed to fetch knowledge articles" });
+    }
+  });
+
+  app.post("/api/admin/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const articleData = insertKnowledgeArticleSchema.parse(req.body);
+      const article = await storage.createKnowledgeArticle(articleData);
+      res.status(201).json(article);
+    } catch (error) {
+      console.error("Error creating knowledge article:", error);
+      res.status(500).json({ message: "Failed to create knowledge article" });
+    }
+  });
+
+  app.put("/api/admin/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const articleData = insertKnowledgeArticleSchema.partial().parse(req.body);
+      const article = await storage.updateKnowledgeArticle(id, articleData);
+      res.json(article);
+    } catch (error) {
+      console.error("Error updating knowledge article:", error);
+      res.status(500).json({ message: "Failed to update knowledge article" });
+    }
+  });
+
+  app.delete("/api/admin/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteKnowledgeArticle(id);
+      res.json({ message: "Knowledge article deleted" });
+    } catch (error) {
+      console.error("Error deleting knowledge article:", error);
+      res.status(500).json({ message: "Failed to delete knowledge article" });
+    }
+  });
+
+  // FAQ Items
+  app.get("/api/admin/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const faqs = await storage.getAllFaqItems();
+      res.json(faqs);
+    } catch (error) {
+      console.error("Error fetching FAQ items:", error);
+      res.status(500).json({ message: "Failed to fetch FAQ items" });
+    }
+  });
+
+  app.post("/api/admin/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const faqData = insertFaqItemSchema.parse(req.body);
+      const faq = await storage.createFaqItem(faqData);
+      res.status(201).json(faq);
+    } catch (error) {
+      console.error("Error creating FAQ item:", error);
+      res.status(500).json({ message: "Failed to create FAQ item" });
+    }
+  });
+
+  app.put("/api/admin/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const faqData = insertFaqItemSchema.partial().parse(req.body);
+      const faq = await storage.updateFaqItem(id, faqData);
+      res.json(faq);
+    } catch (error) {
+      console.error("Error updating FAQ item:", error);
+      res.status(500).json({ message: "Failed to update FAQ item" });
+    }
+  });
+
+  app.delete("/api/admin/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteFaqItem(id);
+      res.json({ message: "FAQ item deleted" });
+    } catch (error) {
+      console.error("Error deleting FAQ item:", error);
+      res.status(500).json({ message: "Failed to delete FAQ item" });
+    }
+  });
+
+  // Knowledge Base Search (for users too)
+  app.get("/api/knowledge/search", isAuthenticated, async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== "string") {
+        return res.status(400).json({ message: "Search query is required" });
+      }
+      const results = await storage.searchKnowledgeBase(q);
+      res.json(results);
+    } catch (error) {
+      console.error("Error searching knowledge base:", error);
+      res.status(500).json({ message: "Failed to search knowledge base" });
     }
   });
 

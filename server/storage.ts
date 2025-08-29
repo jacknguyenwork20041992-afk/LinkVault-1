@@ -11,6 +11,9 @@ import {
   accounts,
   chatConversations,
   chatMessages,
+  knowledgeCategories,
+  knowledgeArticles,
+  faqItems,
   type User,
   type UpsertUser,
   type Program,
@@ -24,6 +27,9 @@ import {
   type Account,
   type ChatConversation,
   type ChatMessage,
+  type KnowledgeCategory,
+  type KnowledgeArticle,
+  type FaqItem,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -35,6 +41,9 @@ import {
   type InsertAccount,
   type InsertChatConversation,
   type InsertChatMessage,
+  type InsertKnowledgeCategory,
+  type InsertKnowledgeArticle,
+  type InsertFaqItem,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -122,6 +131,32 @@ export interface IStorage {
   createChatMessage(messageData: InsertChatMessage): Promise<ChatMessage>;
   deleteChatConversation(id: string, userId: string): Promise<void>;
   
+  // Knowledge Base operations for AI training
+  getAllKnowledgeCategories(): Promise<KnowledgeCategory[]>;
+  getKnowledgeCategory(id: string): Promise<KnowledgeCategory | undefined>;
+  createKnowledgeCategory(categoryData: InsertKnowledgeCategory): Promise<KnowledgeCategory>;
+  updateKnowledgeCategory(id: string, categoryData: Partial<InsertKnowledgeCategory>): Promise<KnowledgeCategory>;
+  deleteKnowledgeCategory(id: string): Promise<void>;
+  
+  getKnowledgeArticlesByCategory(categoryId: string): Promise<KnowledgeArticle[]>;
+  getAllKnowledgeArticles(): Promise<(KnowledgeArticle & { category: KnowledgeCategory | null })[]>;
+  getKnowledgeArticle(id: string): Promise<KnowledgeArticle | undefined>;
+  createKnowledgeArticle(articleData: InsertKnowledgeArticle): Promise<KnowledgeArticle>;
+  updateKnowledgeArticle(id: string, articleData: Partial<InsertKnowledgeArticle>): Promise<KnowledgeArticle>;
+  deleteKnowledgeArticle(id: string): Promise<void>;
+  
+  getFaqItemsByCategory(categoryId: string): Promise<FaqItem[]>;
+  getAllFaqItems(): Promise<(FaqItem & { category: KnowledgeCategory | null })[]>;
+  getFaqItem(id: string): Promise<FaqItem | undefined>;
+  createFaqItem(faqData: InsertFaqItem): Promise<FaqItem>;
+  updateFaqItem(id: string, faqData: Partial<InsertFaqItem>): Promise<FaqItem>;
+  deleteFaqItem(id: string): Promise<void>;
+  
+  searchKnowledgeBase(query: string): Promise<{
+    articles: KnowledgeArticle[];
+    faqs: FaqItem[];
+  }>;
+  
   // Knowledge operations for AI context
   getKnowledgeContext(): Promise<{
     programs: Array<{
@@ -154,6 +189,19 @@ export interface IStorage {
       title: string;
       description?: string;
       url: string;
+    }>;
+    knowledgeBase: Array<{
+      category: string;
+      articles: Array<{
+        title: string;
+        content: string;
+        keywords: string[];
+      }>;
+      faqs: Array<{
+        question: string;
+        answer: string;
+        keywords: string[];
+      }>;
     }>;
   }>;
 
@@ -695,6 +743,159 @@ export class DatabaseStorage implements IStorage {
       .where(and(eq(chatConversations.id, id), eq(chatConversations.userId, userId)));
   }
 
+  // Knowledge Base operations for AI training
+  async getAllKnowledgeCategories(): Promise<KnowledgeCategory[]> {
+    return await db.select().from(knowledgeCategories).orderBy(knowledgeCategories.name);
+  }
+
+  async getKnowledgeCategory(id: string): Promise<KnowledgeCategory | undefined> {
+    const [category] = await db.select().from(knowledgeCategories).where(eq(knowledgeCategories.id, id));
+    return category;
+  }
+
+  async createKnowledgeCategory(categoryData: InsertKnowledgeCategory): Promise<KnowledgeCategory> {
+    const [category] = await db.insert(knowledgeCategories)
+      .values(categoryData)
+      .returning();
+    return category;
+  }
+
+  async updateKnowledgeCategory(id: string, categoryData: Partial<InsertKnowledgeCategory>): Promise<KnowledgeCategory> {
+    const [category] = await db.update(knowledgeCategories)
+      .set({ ...categoryData, updatedAt: new Date() })
+      .where(eq(knowledgeCategories.id, id))
+      .returning();
+    return category;
+  }
+
+  async deleteKnowledgeCategory(id: string): Promise<void> {
+    await db.delete(knowledgeCategories).where(eq(knowledgeCategories.id, id));
+  }
+
+  async getKnowledgeArticlesByCategory(categoryId: string): Promise<KnowledgeArticle[]> {
+    return await db.select().from(knowledgeArticles)
+      .where(eq(knowledgeArticles.categoryId, categoryId))
+      .orderBy(desc(knowledgeArticles.priority), knowledgeArticles.title);
+  }
+
+  async getAllKnowledgeArticles(): Promise<(KnowledgeArticle & { category: KnowledgeCategory | null })[]> {
+    return await db.select({
+      id: knowledgeArticles.id,
+      categoryId: knowledgeArticles.categoryId,
+      title: knowledgeArticles.title,
+      content: knowledgeArticles.content,
+      keywords: knowledgeArticles.keywords,
+      isActive: knowledgeArticles.isActive,
+      priority: knowledgeArticles.priority,
+      createdAt: knowledgeArticles.createdAt,
+      updatedAt: knowledgeArticles.updatedAt,
+      category: knowledgeCategories,
+    })
+    .from(knowledgeArticles)
+    .leftJoin(knowledgeCategories, eq(knowledgeArticles.categoryId, knowledgeCategories.id))
+    .orderBy(desc(knowledgeArticles.priority), knowledgeArticles.title);
+  }
+
+  async getKnowledgeArticle(id: string): Promise<KnowledgeArticle | undefined> {
+    const [article] = await db.select().from(knowledgeArticles).where(eq(knowledgeArticles.id, id));
+    return article;
+  }
+
+  async createKnowledgeArticle(articleData: InsertKnowledgeArticle): Promise<KnowledgeArticle> {
+    const [article] = await db.insert(knowledgeArticles)
+      .values(articleData)
+      .returning();
+    return article;
+  }
+
+  async updateKnowledgeArticle(id: string, articleData: Partial<InsertKnowledgeArticle>): Promise<KnowledgeArticle> {
+    const [article] = await db.update(knowledgeArticles)
+      .set({ ...articleData, updatedAt: new Date() })
+      .where(eq(knowledgeArticles.id, id))
+      .returning();
+    return article;
+  }
+
+  async deleteKnowledgeArticle(id: string): Promise<void> {
+    await db.delete(knowledgeArticles).where(eq(knowledgeArticles.id, id));
+  }
+
+  async getFaqItemsByCategory(categoryId: string): Promise<FaqItem[]> {
+    return await db.select().from(faqItems)
+      .where(eq(faqItems.categoryId, categoryId))
+      .orderBy(desc(faqItems.priority), faqItems.question);
+  }
+
+  async getAllFaqItems(): Promise<(FaqItem & { category: KnowledgeCategory | null })[]> {
+    return await db.select({
+      id: faqItems.id,
+      question: faqItems.question,
+      answer: faqItems.answer,
+      categoryId: faqItems.categoryId,
+      keywords: faqItems.keywords,
+      isActive: faqItems.isActive,
+      priority: faqItems.priority,
+      createdAt: faqItems.createdAt,
+      updatedAt: faqItems.updatedAt,
+      category: knowledgeCategories,
+    })
+    .from(faqItems)
+    .leftJoin(knowledgeCategories, eq(faqItems.categoryId, knowledgeCategories.id))
+    .orderBy(desc(faqItems.priority), faqItems.question);
+  }
+
+  async getFaqItem(id: string): Promise<FaqItem | undefined> {
+    const [faq] = await db.select().from(faqItems).where(eq(faqItems.id, id));
+    return faq;
+  }
+
+  async createFaqItem(faqData: InsertFaqItem): Promise<FaqItem> {
+    const [faq] = await db.insert(faqItems)
+      .values(faqData)
+      .returning();
+    return faq;
+  }
+
+  async updateFaqItem(id: string, faqData: Partial<InsertFaqItem>): Promise<FaqItem> {
+    const [faq] = await db.update(faqItems)
+      .set({ ...faqData, updatedAt: new Date() })
+      .where(eq(faqItems.id, id))
+      .returning();
+    return faq;
+  }
+
+  async deleteFaqItem(id: string): Promise<void> {
+    await db.delete(faqItems).where(eq(faqItems.id, id));
+  }
+
+  async searchKnowledgeBase(query: string): Promise<{ articles: KnowledgeArticle[], faqs: FaqItem[] }> {
+    // Search in articles by title, content, and keywords
+    const articles = await db.select().from(knowledgeArticles)
+      .where(and(
+        eq(knowledgeArticles.isActive, true),
+        sql`(
+          ${knowledgeArticles.title} ILIKE ${'%' + query + '%'} OR 
+          ${knowledgeArticles.content} ILIKE ${'%' + query + '%'} OR 
+          array_to_string(${knowledgeArticles.keywords}, ' ') ILIKE ${'%' + query + '%'}
+        )`
+      ))
+      .orderBy(desc(knowledgeArticles.priority));
+
+    // Search in FAQs by question, answer, and keywords
+    const faqs = await db.select().from(faqItems)
+      .where(and(
+        eq(faqItems.isActive, true),
+        sql`(
+          ${faqItems.question} ILIKE ${'%' + query + '%'} OR 
+          ${faqItems.answer} ILIKE ${'%' + query + '%'} OR 
+          array_to_string(${faqItems.keywords}, ' ') ILIKE ${'%' + query + '%'}
+        )`
+      ))
+      .orderBy(desc(faqItems.priority));
+
+    return { articles, faqs };
+  }
+
   // Knowledge operations for AI context
   async getKnowledgeContext() {
     // Get programs with categories and documents
@@ -768,6 +969,52 @@ export class DatabaseStorage implements IStorage {
     const importantDocsData = await db.select().from(importantDocuments)
       .orderBy(desc(importantDocuments.createdAt));
 
+    // Get knowledge base data
+    const knowledgeData = await db.select({
+      category: knowledgeCategories,
+      article: knowledgeArticles,
+      faq: faqItems,
+    })
+    .from(knowledgeCategories)
+    .leftJoin(knowledgeArticles, eq(knowledgeCategories.id, knowledgeArticles.categoryId))
+    .leftJoin(faqItems, eq(knowledgeCategories.id, faqItems.categoryId))
+    .orderBy(knowledgeCategories.name);
+
+    // Transform knowledge base data
+    const knowledgeMap = new Map();
+    
+    knowledgeData.forEach(row => {
+      const categoryId = row.category.id;
+      
+      if (!knowledgeMap.has(categoryId)) {
+        knowledgeMap.set(categoryId, {
+          category: row.category.name,
+          articles: [],
+          faqs: []
+        });
+      }
+      
+      const knowledge = knowledgeMap.get(categoryId);
+      
+      if (row.article && row.article.isActive) {
+        knowledge.articles.push({
+          title: row.article.title,
+          content: row.article.content,
+          keywords: row.article.keywords || []
+        });
+      }
+      
+      if (row.faq && row.faq.isActive) {
+        knowledge.faqs.push({
+          question: row.faq.question,
+          answer: row.faq.answer,
+          keywords: row.faq.keywords || []
+        });
+      }
+    });
+
+    const knowledgeResult = Array.from(knowledgeMap.values());
+
     return {
       programs: programsResult,
       notifications: notificationsData.map(n => ({
@@ -786,7 +1033,8 @@ export class DatabaseStorage implements IStorage {
         title: d.title,
         description: d.description || undefined,
         url: d.url
-      }))
+      })),
+      knowledgeBase: knowledgeResult
     };
   }
 

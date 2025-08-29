@@ -159,6 +159,39 @@ export const chatMessages = pgTable("chat_messages", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Knowledge Base Tables for AI Training
+export const knowledgeCategories = pgTable("knowledge_categories", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const knowledgeArticles = pgTable("knowledge_articles", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  categoryId: varchar("category_id").references(() => knowledgeCategories.id, { onDelete: "cascade" }),
+  title: varchar("title", { length: 500 }).notNull(),
+  content: text("content").notNull(),
+  keywords: text("keywords").array(),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const faqItems = pgTable("faq_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  question: text("question").notNull(),
+  answer: text("answer").notNull(),
+  categoryId: varchar("category_id").references(() => knowledgeCategories.id),
+  keywords: text("keywords").array(),
+  isActive: boolean("is_active").default(true),
+  priority: integer("priority").default(0),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -224,6 +257,25 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   conversation: one(chatConversations, {
     fields: [chatMessages.conversationId],
     references: [chatConversations.id],
+  }),
+}));
+
+export const knowledgeCategoriesRelations = relations(knowledgeCategories, ({ many }) => ({
+  articles: many(knowledgeArticles),
+  faqs: many(faqItems),
+}));
+
+export const knowledgeArticlesRelations = relations(knowledgeArticles, ({ one }) => ({
+  category: one(knowledgeCategories, {
+    fields: [knowledgeArticles.categoryId],
+    references: [knowledgeCategories.id],
+  }),
+}));
+
+export const faqItemsRelations = relations(faqItems, ({ one }) => ({
+  category: one(knowledgeCategories, {
+    fields: [faqItems.categoryId],
+    references: [knowledgeCategories.id],
   }),
 }));
 
@@ -314,6 +366,24 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
   createdAt: true,
 });
 
+export const insertKnowledgeCategorySchema = createInsertSchema(knowledgeCategories).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertKnowledgeArticleSchema = createInsertSchema(knowledgeArticles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertFaqItemSchema = createInsertSchema(faqItems).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -345,3 +415,9 @@ export type ChatConversation = typeof chatConversations.$inferSelect;
 export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
 export type ChatMessage = typeof chatMessages.$inferSelect;
 export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;
+export type KnowledgeCategory = typeof knowledgeCategories.$inferSelect;
+export type InsertKnowledgeCategory = z.infer<typeof insertKnowledgeCategorySchema>;
+export type KnowledgeArticle = typeof knowledgeArticles.$inferSelect;
+export type InsertKnowledgeArticle = z.infer<typeof insertKnowledgeArticleSchema>;
+export type FaqItem = typeof faqItems.$inferSelect;
+export type InsertFaqItem = z.infer<typeof insertFaqItemSchema>;
