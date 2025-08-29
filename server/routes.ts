@@ -10,8 +10,11 @@ import {
   insertProjectSchema,
   insertImportantDocumentSchema,
   insertAccountSchema,
+  insertChatConversationSchema,
+  insertChatMessageSchema,
   createUserSchema,
 } from "@shared/schema";
+import { chatWithAI } from "./openai";
 import { z } from "zod";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -634,6 +637,107 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching stats:", error);
       res.status(500).json({ message: "Failed to fetch stats" });
+    }
+  });
+
+  // Chat routes
+  app.get("/api/chat/conversations", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const conversations = await storage.getChatConversations(userId);
+      res.json(conversations);
+    } catch (error) {
+      console.error("Error fetching conversations:", error);
+      res.status(500).json({ message: "Failed to fetch conversations" });
+    }
+  });
+
+  app.get("/api/chat/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      const conversation = await storage.getChatConversation(id, userId);
+      if (!conversation) {
+        return res.status(404).json({ message: "Conversation not found" });
+      }
+      res.json(conversation);
+    } catch (error) {
+      console.error("Error fetching conversation:", error);
+      res.status(500).json({ message: "Failed to fetch conversation" });
+    }
+  });
+
+  app.post("/api/chat", isAuthenticated, async (req: any, res) => {
+    try {
+      const userId = req.user.id;
+      const { message, conversationId } = req.body;
+
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      let conversation;
+      
+      if (conversationId) {
+        // Get existing conversation
+        conversation = await storage.getChatConversation(conversationId, userId);
+        if (!conversation) {
+          return res.status(404).json({ message: "Conversation not found" });
+        }
+      } else {
+        // Create new conversation
+        const conversationData = insertChatConversationSchema.parse({
+          userId,
+          title: message.slice(0, 50) + (message.length > 50 ? "..." : "")
+        });
+        conversation = await storage.createChatConversation(conversationData);
+      }
+
+      // Save user message
+      await storage.createChatMessage({
+        conversationId: conversation.id,
+        role: "user",
+        content: message
+      });
+
+      // Get knowledge context
+      const knowledgeContext = await storage.getKnowledgeContext();
+      
+      // Get conversation history for context
+      const conversationHistory = (currentConversationId && conversation.messages ? conversation.messages : []).map((msg: any) => ({
+        role: msg.role as "user" | "assistant",
+        content: msg.content
+      }));
+
+      // Get AI response
+      const aiResponse = await chatWithAI(message, knowledgeContext, conversationHistory);
+
+      // Save AI message
+      const aiMessage = await storage.createChatMessage({
+        conversationId: conversation.id,
+        role: "assistant",
+        content: aiResponse
+      });
+
+      res.json({
+        message: aiMessage,
+        conversationId: conversation.id
+      });
+    } catch (error) {
+      console.error("Error in chat:", error);
+      res.status(500).json({ message: "Chat failed. Please try again." });
+    }
+  });
+
+  app.delete("/api/chat/conversations/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const userId = req.user.id;
+      await storage.deleteChatConversation(id, userId);
+      res.json({ message: "Conversation deleted" });
+    } catch (error) {
+      console.error("Error deleting conversation:", error);
+      res.status(500).json({ message: "Failed to delete conversation" });
     }
   });
 

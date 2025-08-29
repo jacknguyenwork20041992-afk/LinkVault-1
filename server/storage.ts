@@ -9,6 +9,8 @@ import {
   projects,
   importantDocuments,
   accounts,
+  chatConversations,
+  chatMessages,
   type User,
   type UpsertUser,
   type Program,
@@ -20,6 +22,8 @@ import {
   type Project,
   type ImportantDocument,
   type Account,
+  type ChatConversation,
+  type ChatMessage,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -29,6 +33,8 @@ import {
   type InsertProject,
   type InsertImportantDocument,
   type InsertAccount,
+  type InsertChatConversation,
+  type InsertChatMessage,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -109,6 +115,48 @@ export interface IStorage {
   updateAccount(id: string, accountData: Partial<InsertAccount>): Promise<Account>;
   deleteAccount(id: string): Promise<void>;
   
+  // Chat operations
+  getChatConversations(userId: string): Promise<ChatConversation[]>;
+  getChatConversation(id: string, userId: string): Promise<(ChatConversation & { messages: ChatMessage[] }) | undefined>;
+  createChatConversation(conversationData: InsertChatConversation): Promise<ChatConversation>;
+  createChatMessage(messageData: InsertChatMessage): Promise<ChatMessage>;
+  deleteChatConversation(id: string, userId: string): Promise<void>;
+  
+  // Knowledge operations for AI context
+  getKnowledgeContext(): Promise<{
+    programs: Array<{
+      name: string;
+      description?: string;
+      level: string;
+      categories: Array<{
+        name: string;
+        description?: string;
+        documents: Array<{
+          title: string;
+          description?: string;
+          links: Array<{url: string; description: string}>;
+        }>;
+      }>;
+    }>;
+    notifications: Array<{
+      title: string;
+      message: string;
+      createdAt: string;
+    }>;
+    projects: Array<{
+      name: string;
+      description?: string;
+      assignee: string;
+      status: string;
+      deadline: string;
+    }>;
+    importantDocuments: Array<{
+      title: string;
+      description?: string;
+      url: string;
+    }>;
+  }>;
+
   // Stats
   getStats(): Promise<{
     totalPrograms: number;
@@ -606,6 +654,140 @@ export class DatabaseStorage implements IStorage {
 
   async deleteAccount(id: string): Promise<void> {
     await db.delete(accounts).where(eq(accounts.id, id));
+  }
+
+  // Chat operations
+  async getChatConversations(userId: string): Promise<ChatConversation[]> {
+    return await db.select().from(chatConversations)
+      .where(eq(chatConversations.userId, userId))
+      .orderBy(desc(chatConversations.updatedAt));
+  }
+
+  async getChatConversation(id: string, userId: string): Promise<(ChatConversation & { messages: ChatMessage[] }) | undefined> {
+    const [conversation] = await db.select().from(chatConversations)
+      .where(and(eq(chatConversations.id, id), eq(chatConversations.userId, userId)));
+    
+    if (!conversation) return undefined;
+
+    const messages = await db.select().from(chatMessages)
+      .where(eq(chatMessages.conversationId, id))
+      .orderBy(chatMessages.createdAt);
+
+    return { ...conversation, messages };
+  }
+
+  async createChatConversation(conversationData: InsertChatConversation): Promise<ChatConversation> {
+    const [conversation] = await db.insert(chatConversations)
+      .values(conversationData)
+      .returning();
+    return conversation;
+  }
+
+  async createChatMessage(messageData: InsertChatMessage): Promise<ChatMessage> {
+    const [message] = await db.insert(chatMessages)
+      .values(messageData)
+      .returning();
+    return message;
+  }
+
+  async deleteChatConversation(id: string, userId: string): Promise<void> {
+    await db.delete(chatConversations)
+      .where(and(eq(chatConversations.id, id), eq(chatConversations.userId, userId)));
+  }
+
+  // Knowledge operations for AI context
+  async getKnowledgeContext() {
+    // Get programs with categories and documents
+    const programsData = await db.select({
+      program: programs,
+      category: categories,
+      document: documents,
+    })
+    .from(programs)
+    .leftJoin(categories, eq(programs.id, categories.programId))
+    .leftJoin(documents, eq(categories.id, documents.categoryId))
+    .orderBy(programs.name, categories.name, documents.title);
+
+    // Transform to structured data
+    const programsMap = new Map();
+    
+    programsData.forEach(row => {
+      const programId = row.program.id;
+      
+      if (!programsMap.has(programId)) {
+        programsMap.set(programId, {
+          name: row.program.name,
+          description: row.program.description,
+          level: row.program.level,
+          categories: new Map()
+        });
+      }
+      
+      const program = programsMap.get(programId);
+      
+      if (row.category) {
+        const categoryId = row.category.id;
+        
+        if (!program.categories.has(categoryId)) {
+          program.categories.set(categoryId, {
+            name: row.category.name,
+            description: row.category.description,
+            documents: []
+          });
+        }
+        
+        const category = program.categories.get(categoryId);
+        
+        if (row.document) {
+          category.documents.push({
+            title: row.document.title,
+            description: row.document.description,
+            links: Array.isArray(row.document.links) ? row.document.links : []
+          });
+        }
+      }
+    });
+
+    // Convert maps to arrays
+    const programsResult = Array.from(programsMap.values()).map(program => ({
+      ...program,
+      categories: Array.from(program.categories.values())
+    }));
+
+    // Get recent notifications
+    const notificationsData = await db.select().from(notifications)
+      .orderBy(desc(notifications.createdAt))
+      .limit(10);
+
+    // Get active projects
+    const projectsData = await db.select().from(projects)
+      .orderBy(desc(projects.createdAt))
+      .limit(10);
+
+    // Get important documents
+    const importantDocsData = await db.select().from(importantDocuments)
+      .orderBy(desc(importantDocuments.createdAt));
+
+    return {
+      programs: programsResult,
+      notifications: notificationsData.map(n => ({
+        title: n.title,
+        message: n.message,
+        createdAt: n.createdAt?.toISOString() || new Date().toISOString()
+      })),
+      projects: projectsData.map(p => ({
+        name: p.name,
+        description: p.description || undefined,
+        assignee: p.assignee,
+        status: p.status,
+        deadline: p.deadline.toISOString()
+      })),
+      importantDocuments: importantDocsData.map(d => ({
+        title: d.title,
+        description: d.description || undefined,
+        url: d.url
+      }))
+    };
   }
 
   // Stats

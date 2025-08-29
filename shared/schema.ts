@@ -141,10 +141,29 @@ export const accounts = pgTable("accounts", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Chat conversations table
+export const chatConversations = pgTable("chat_conversations", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }),
+  title: varchar("title").notNull(), // Auto-generated or user-defined title
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Chat messages table  
+export const chatMessages = pgTable("chat_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  conversationId: varchar("conversation_id").references(() => chatConversations.id, { onDelete: "cascade" }),
+  role: varchar("role").notNull(), // "user" or "assistant"
+  content: text("content").notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
   activities: many(activities),
+  chatConversations: many(chatConversations),
 }));
 
 export const programsRelations = relations(programs, ({ many }) => ({
@@ -190,6 +209,21 @@ export const activitiesRelations = relations(activities, ({ one }) => ({
   user: one(users, {
     fields: [activities.userId],
     references: [users.id],
+  }),
+}));
+
+export const chatConversationsRelations = relations(chatConversations, ({ one, many }) => ({
+  user: one(users, {
+    fields: [chatConversations.userId],
+    references: [users.id],
+  }),
+  messages: many(chatMessages),
+}));
+
+export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
+  conversation: one(chatConversations, {
+    fields: [chatMessages.conversationId],
+    references: [chatConversations.id],
   }),
 }));
 
@@ -269,6 +303,17 @@ export const insertAccountSchema = createInsertSchema(accounts).omit({
   updatedAt: true,
 });
 
+export const insertChatConversationSchema = createInsertSchema(chatConversations).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -296,3 +341,7 @@ export type ImportantDocument = typeof importantDocuments.$inferSelect;
 export type InsertImportantDocument = z.infer<typeof insertImportantDocumentSchema>;
 export type Account = typeof accounts.$inferSelect;
 export type InsertAccount = z.infer<typeof insertAccountSchema>;
+export type ChatConversation = typeof chatConversations.$inferSelect;
+export type InsertChatConversation = z.infer<typeof insertChatConversationSchema>;
+export type ChatMessage = typeof chatMessages.$inferSelect;
+export type InsertChatMessage = z.infer<typeof insertChatMessageSchema>;

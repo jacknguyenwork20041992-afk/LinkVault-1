@@ -12,6 +12,7 @@ import NotificationCard from "@/components/NotificationCard";
 import ProgramCard from "@/components/ProgramCard";
 import DocumentTable from "@/components/DocumentTable";
 import FloatingSupportButton from "@/components/FloatingSupportButton";
+import FloatingChatButton from "@/components/FloatingChatButton";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
@@ -483,6 +484,9 @@ export default function Home() {
 
       {/* Floating Support Button */}
       <FloatingSupportButton />
+      
+      {/* Floating Chat Button */}
+      <FloatingChatButton />
     </div>
   );
 }
