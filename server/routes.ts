@@ -794,7 +794,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Knowledge Base Admin Routes
   // Knowledge Categories
-  app.get("/api/admin/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const categories = await storage.getAllKnowledgeCategories();
       res.json(categories);
@@ -804,7 +804,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const categoryData = insertKnowledgeCategorySchema.parse(req.body);
       const category = await storage.createKnowledgeCategory(categoryData);
@@ -815,7 +815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.put("/api/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const categoryData = insertKnowledgeCategorySchema.partial().parse(req.body);
@@ -827,7 +827,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.delete("/api/knowledge/categories/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteKnowledgeCategory(id);
@@ -839,7 +839,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Knowledge Articles
-  app.get("/api/admin/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const articles = await storage.getAllKnowledgeArticles();
       res.json(articles);
@@ -849,7 +849,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/knowledge/articles", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const articleData = insertKnowledgeArticleSchema.parse(req.body);
       const article = await storage.createKnowledgeArticle(articleData);
@@ -860,7 +860,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.put("/api/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const articleData = insertKnowledgeArticleSchema.partial().parse(req.body);
@@ -872,7 +872,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.delete("/api/knowledge/articles/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteKnowledgeArticle(id);
@@ -884,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // FAQ Items
-  app.get("/api/admin/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
+  app.get("/api/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const faqs = await storage.getAllFaqItems();
       res.json(faqs);
@@ -894,7 +894,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/admin/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/knowledge/faqs", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const faqData = insertFaqItemSchema.parse(req.body);
       const faq = await storage.createFaqItem(faqData);
@@ -905,7 +905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/admin/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.put("/api/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       const faqData = insertFaqItemSchema.partial().parse(req.body);
@@ -917,7 +917,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/admin/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
+  app.delete("/api/knowledge/faqs/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
       await storage.deleteFaqItem(id);
