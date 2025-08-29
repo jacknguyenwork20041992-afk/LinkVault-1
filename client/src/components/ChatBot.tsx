@@ -187,7 +187,7 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
           </div>
         </CardHeader>
 
-        <CardContent className="flex-1 flex flex-col p-3 gap-3 min-h-0">
+        <CardContent className="flex-1 flex flex-col p-3 gap-3 min-h-0 overflow-hidden">
           {/* Conversations Sidebar - Mobile: Hidden when in conversation */}
           <div className={`${currentConversationId ? 'hidden sm:block' : 'block'} ${currentConversationId ? 'sm:w-full' : 'w-full'}`}>
             <div className="text-sm font-medium mb-2">Cuộc trò chuyện</div>
@@ -227,9 +227,9 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
           </div>
 
           {/* Chat Messages */}
-          <div className={`flex-1 flex flex-col ${!currentConversationId && conversations.length > 0 ? 'hidden sm:flex' : 'flex'}`}>
-            <ScrollArea className="flex-1 pr-3">
-              <div className="space-y-3">
+          <div className={`flex-1 flex flex-col min-h-0 ${!currentConversationId && conversations.length > 0 ? 'hidden sm:flex' : 'flex'}`}>
+            <ScrollArea className="flex-1 pr-2 overflow-hidden">
+              <div className="space-y-3 max-w-full">
                 {messages.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
                     <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -249,13 +249,14 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
                       )}
                       
                       <div
-                        className={`max-w-[80%] p-3 rounded-lg ${
+                        className={`max-w-[75%] p-3 rounded-lg overflow-hidden ${
                           msg.role === "user"
                             ? "bg-blue-600 text-white"
                             : "bg-muted"
                         }`}
+                        style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                       >
-                        <div className="text-sm whitespace-pre-wrap break-words">{msg.content}</div>
+                        <div className="text-sm whitespace-pre-wrap break-words overflow-hidden">{msg.content}</div>
                       </div>
 
                       {msg.role === "user" && (
