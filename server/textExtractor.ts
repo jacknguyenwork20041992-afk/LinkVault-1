@@ -39,20 +39,22 @@ export class TextExtractor {
 
   private async extractFromPDF(buffer: Buffer, filename: string): Promise<ExtractedText> {
     try {
-      // Dynamic import to avoid pdf-parse initialization issues
-      const pdfParse = (await import('pdf-parse')).default;
-      const data = await pdfParse(buffer);
+      // Temporary fallback - return file info without text extraction
+      // TODO: Implement proper PDF text extraction
+      const content = `[PDF File: ${filename}]\nFile đã được upload thành công nhưng text extraction cho PDF đang được phát triển.\nFile size: ${Math.round(buffer.length / 1024)}KB`;
+      
       return {
-        content: data.text,
+        content,
         metadata: {
-          pages: data.numpages,
-          wordCount: data.text.split(/\s+/).length,
+          pages: 0,
+          wordCount: content.split(/\s+/).length,
           fileType: 'pdf',
           filename,
+          note: 'PDF text extraction temporarily disabled',
         },
       };
     } catch (error) {
-      throw new Error(`Failed to extract text from PDF: ${error.message}`);
+      throw new Error(`Failed to process PDF: ${error.message}`);
     }
   }
 
