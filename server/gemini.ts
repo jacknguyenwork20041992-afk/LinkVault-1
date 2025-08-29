@@ -40,9 +40,25 @@ Từ khóa: ${article.keywords?.join(', ') || 'N/A'}`).join('\n')}
 ` : ''}
 
 ${knowledgeContext.programs?.length > 0 ? `
-Các chương trình học:
+Các chương trình học và tài liệu:
 ${knowledgeContext.programs.map((p: any) => `${p.name} (${p.level}): ${p.description || 'Chương trình đào tạo chuyên nghiệp'}
-${p.categories?.length > 0 ? `Danh mục tài liệu: ${p.categories.map((c: any) => c.name).join(', ')}` : ''}`).join('\n')}
+${p.categories?.length > 0 ? p.categories.map((c: any) => {
+  let categoryInfo = `Khóa học: ${c.name}`;
+  if (c.description) categoryInfo += ` - ${c.description}`;
+  if (c.documents?.length > 0) {
+    categoryInfo += `\nTài liệu trong khóa:`;
+    c.documents.forEach((doc: any) => {
+      categoryInfo += `\n- ${doc.title}`;
+      if (doc.description) categoryInfo += ` - ${doc.description}`;
+      if (doc.links?.length > 0) {
+        doc.links.forEach((link: any) => {
+          categoryInfo += `\n  Link: ${link.description} (${link.url})`;
+        });
+      }
+    });
+  }
+  return categoryInfo;
+}).join('\n') : ''}`).join('\n\n')}
 ` : ''}
 
 ${knowledgeContext.notifications?.length > 0 ? `
