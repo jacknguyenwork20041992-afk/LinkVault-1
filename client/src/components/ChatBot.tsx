@@ -163,7 +163,7 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
               <Bot className="h-5 w-5 text-blue-600" />
-              Trợ lý AI-ACA
+              Trợ lý AI-R&D
             </CardTitle>
             <div className="flex items-center gap-1">
               <Button

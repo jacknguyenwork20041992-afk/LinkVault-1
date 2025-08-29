@@ -17,7 +17,7 @@ export default function FloatingChatButton() {
         data-testid="button-floating-chat"
       >
         <MessageCircle className="h-5 w-5" />
-        <span className="text-sm font-medium whitespace-nowrap">Trợ lý AI-ACA</span>
+        <span className="text-sm font-medium whitespace-nowrap">Trợ lý AI-R&D</span>
       </Button>
 
       {/* Chat Bot */}
