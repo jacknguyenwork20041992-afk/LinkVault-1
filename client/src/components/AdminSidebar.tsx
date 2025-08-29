@@ -58,6 +58,12 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
       items: [
         { id: "dashboard", label: "Dashboard", icon: Gauge },
         { id: "activities", label: "Hoạt động", icon: Activity },
+      ]
+    },
+    {
+      title: "Quản lý công việc",
+      items: [
+        { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
         { id: "accounts", label: "Danh sách tài khoản", icon: Key },
       ]
     },
@@ -68,7 +74,6 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "categories", label: "Khóa học", icon: Tags },
         { id: "documents", label: "Tài liệu", icon: FileText },
         { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
-        { id: "projects", label: "Quản lý dự án", icon: FolderOpen },
         { id: "knowledge-base", label: "Cơ sở kiến thức AI", icon: Brain },
         { id: "training-files", label: "File Training AI", icon: Upload },
       ]
