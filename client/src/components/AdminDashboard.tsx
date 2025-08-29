@@ -44,6 +44,14 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
       color: "text-secondary-foreground",
       testId: "button-upload-document",
       action: () => onNavigateToView?.("documents")
+    },
+    {
+      title: "Tạo thông báo",
+      description: "Gửi thông báo mới",
+      icon: Bell,
+      color: "text-orange-500",
+      testId: "button-create-notification",
+      action: () => onNavigateToView?.("notifications")
     }
   ];
 
@@ -119,7 +127,7 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
       {/* Quick Actions */}
       <div className="mb-8">
         <h3 className="text-lg font-semibold text-foreground mb-4">Thao tác nhanh</h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {quickActions.map((action) => {
             const Icon = action.icon;
             return (
