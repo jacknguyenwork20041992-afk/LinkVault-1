@@ -158,7 +158,7 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
 
   return (
     <div className="fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-end sm:justify-end p-2 sm:p-4">
-      <Card className="w-full h-full sm:w-96 sm:h-[600px] flex flex-col shadow-2xl">
+      <Card className="w-full h-full sm:w-[500px] sm:h-[700px] flex flex-col shadow-2xl">
         <CardHeader className="flex-shrink-0 pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2 text-lg">
