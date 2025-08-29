@@ -31,14 +31,14 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
   const { toast } = useToast();
 
   // Fetch conversations
-  const { data: conversations = [] } = useQuery({
+  const { data: conversations = [] } = useQuery<ChatConversation[]>({
     queryKey: ["/api/chat/conversations"],
     enabled: isOpen,
     refetchOnWindowFocus: false,
   });
 
   // Fetch current conversation messages
-  const { data: currentConversation } = useQuery({
+  const { data: currentConversation } = useQuery<ChatConversation & { messages: ChatMessage[] }>({
     queryKey: ["/api/chat/conversations", currentConversationId],
     enabled: isOpen && !!currentConversationId,
     refetchOnWindowFocus: false,
@@ -205,7 +205,7 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
                     <div className="flex-1 truncate">
                       <div className="text-sm font-medium truncate">{conv.title}</div>
                       <div className="text-xs text-muted-foreground">
-                        {new Date(conv.updatedAt).toLocaleDateString('vi-VN')}
+                        {conv.updatedAt ? new Date(conv.updatedAt).toLocaleDateString('vi-VN') : ''}
                       </div>
                     </div>
                     <Button

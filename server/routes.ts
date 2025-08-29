@@ -704,7 +704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const knowledgeContext = await storage.getKnowledgeContext();
       
       // Get conversation history for context
-      const conversationHistory = (currentConversationId && conversation.messages ? conversation.messages : []).map((msg: any) => ({
+      const conversationHistory = (conversationId && conversation && 'messages' in conversation ? conversation.messages : []).map((msg: any) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content
       }));
