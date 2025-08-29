@@ -106,14 +106,29 @@ function buildKnowledgePrompt(context: KnowledgeContext): string {
   }
 
   prompt += `
-**CÁCH TRẢ LỜI:**
-• Trả lời NGẮN GỌN, súc tích (tối đa 3-4 câu cho mỗi ý)
-• SỬ DỤNG gạch đầu dòng (•) để chia nhỏ thông tin
-• CHIA rõ các đầu mục với **tiêu đề in đậm**
-• Tập trung vào thông tin CỤ THỂ về VIA English Academy
-• Nếu không có thông tin, nói thẳng "Tôi không có thông tin về..." và gợi ý liên hệ admin
 
-**QUAN TRỌNG**: Chỉ trả lời về VIA English Academy. Không đưa ra thông tin chung chung hoặc ngoài phạm vi.`;
+CÁCH TRẢ LỜI:
+- Trả lời NGẮN GỌN, súc tích (tối đa 3-4 câu cho mỗi ý)
+- SỬ DỤNG format rõ ràng: gạch đầu dòng (-), đánh số (1., 2., 3.) hoặc số La Mã (I., II., III.)
+- TIÊU ĐỀ viết HOA hoặc in đậm, KHÔNG dùng dấu ** hay ###
+- Tập trung vào thông tin CỤ THỂ về VIA English Academy
+- Nếu không có thông tin, nói thẳng "Tôi không có thông tin về..." và gợi ý liên hệ admin
+
+QUAN TRỌNG: 
+- Chỉ trả lời về VIA English Academy
+- KHÔNG sử dụng dấu ** hay ### trong câu trả lời
+- Sử dụng định dạng: gạch đầu dòng (-), đánh số (1., 2., 3.) hoặc số La Mã (I., II., III.)
+
+VÍ DỤ FORMAT ĐÚNG:
+CHƯƠNG TRÌNH HỌC TẠI VIA:
+1. Tiếng Anh giao tiếp
+2. Tiếng Anh học thuật
+3. Luyện thi IELTS
+
+THÔNG TIN CHI TIẾT:
+- Giờ học: 7h-21h hàng ngày
+- Địa điểm: Các chi nhánh tại TP.HCM
+- Học phí: Liên hệ để biết chi tiết`;
 
   return prompt;
 }
