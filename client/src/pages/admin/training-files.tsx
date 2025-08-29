@@ -169,14 +169,12 @@ export default function TrainingFilesPage() {
             data-testid="input-training-file"
           />
           <Button 
-            asChild 
-            className="cursor-pointer"
+            onClick={() => document.getElementById('training-file-upload')?.click()}
+            className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
             data-testid="button-upload-training-file"
           >
-            <label htmlFor="training-file-upload">
-              <Upload className="h-4 w-4 mr-2" />
-              Upload File Training
-            </label>
+            <Upload className="h-4 w-4" />
+            Upload File Training
           </Button>
         </div>
       </div>
