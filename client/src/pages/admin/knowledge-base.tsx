@@ -446,7 +446,10 @@ function KnowledgeCategoryFormDialog({ category, onClose }: { category: Knowledg
       await apiRequest(method, url, data);
     },
     onSuccess: () => {
+      // Force refresh all knowledge-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/knowledge/categories"] });
+      queryClient.refetchQueries({ queryKey: ["/api/knowledge/categories"] });
+      
       toast({
         title: "Thành công",
         description: isEditing ? "Đã cập nhật danh mục" : "Đã tạo danh mục mới",
@@ -633,7 +636,10 @@ function KnowledgeArticleFormDialog({
       await apiRequest(method, url, data);
     },
     onSuccess: () => {
+      // Force refresh all knowledge-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/knowledge/articles"] });
+      queryClient.refetchQueries({ queryKey: ["/api/knowledge/articles"] });
+      
       toast({
         title: "Thành công",
         description: isEditing ? "Đã cập nhật bài viết" : "Đã tạo bài viết mới",
@@ -845,7 +851,10 @@ function FaqItemFormDialog({
       await apiRequest(method, url, data);
     },
     onSuccess: () => {
+      // Force refresh all knowledge-related queries
       queryClient.invalidateQueries({ queryKey: ["/api/knowledge/faqs"] });
+      queryClient.refetchQueries({ queryKey: ["/api/knowledge/faqs"] });
+      
       toast({
         title: "Thành công",
         description: isEditing ? "Đã cập nhật câu hỏi" : "Đã tạo câu hỏi mới",
