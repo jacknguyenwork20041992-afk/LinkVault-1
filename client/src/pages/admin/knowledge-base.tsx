@@ -184,11 +184,12 @@ export default function KnowledgeBasePage() {
 
         {/* Categories Tab */}
         <TabsContent value="categories" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center border-b pb-4">
             <h2 className="text-xl font-semibold">Danh mục Kiến thức</h2>
             <Button 
               onClick={() => setShowCategoryForm(true)}
               data-testid="button-add-category"
+              className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
               Thêm Danh mục
@@ -246,11 +247,12 @@ export default function KnowledgeBasePage() {
 
         {/* Articles Tab */}
         <TabsContent value="articles" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center border-b pb-4">
             <h2 className="text-xl font-semibold">Bài viết Kiến thức</h2>
             <Button 
               onClick={() => setShowArticleForm(true)}
               data-testid="button-add-article"
+              className="bg-green-600 hover:bg-green-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
               Thêm Bài viết
@@ -315,11 +317,12 @@ export default function KnowledgeBasePage() {
 
         {/* FAQs Tab */}
         <TabsContent value="faqs" className="space-y-4">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-center border-b pb-4">
             <h2 className="text-xl font-semibold">Câu hỏi Thường gặp</h2>
             <Button 
               onClick={() => setShowFaqForm(true)}
               data-testid="button-add-faq"
+              className="bg-purple-600 hover:bg-purple-700 text-white"
             >
               <Plus className="h-4 w-4 mr-2" />
               Thêm Câu hỏi
