@@ -98,6 +98,18 @@ Nếu có bài viết liên quan, hãy tham khảo và tóm tắt thông tin qua
     return response.text || "Xin lỗi, tôi không thể trả lời câu hỏi này lúc này.";
   } catch (error) {
     console.error("Gemini AI error:", error);
-    throw new Error("Không thể kết nối với dịch vụ AI. Vui lòng thử lại sau.");
+    
+    // Provide more specific error messages based on error type
+    if (error?.status === 503) {
+      throw new Error("Dịch vụ AI hiện đang bận. Vui lòng thử lại sau ít phút.");
+    } else if (error?.status === 429) {
+      throw new Error("Quá nhiều yêu cầu. Vui lòng đợi một chút rồi thử lại.");
+    } else if (error?.status === 401 || error?.status === 403) {
+      throw new Error("Lỗi xác thực dịch vụ AI. Vui lòng liên hệ admin.");
+    } else if (error?.status === 400) {
+      throw new Error("Yêu cầu không hợp lệ. Vui lòng thử đặt câu hỏi khác.");
+    } else {
+      throw new Error("Không thể kết nối với dịch vụ AI. Vui lòng thử lại sau.");
+    }
   }
 }

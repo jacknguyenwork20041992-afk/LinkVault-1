@@ -160,6 +160,9 @@ export interface IStorage {
     faqs: FaqItem[];
   }>;
   
+  // Convert training file to knowledge base
+  convertTrainingFileToKnowledgeBase(trainingFileId: string, categoryId?: string): Promise<KnowledgeArticle>;
+  
   // Training Files operations
   getAllTrainingFiles(): Promise<TrainingFile[]>;
   getTrainingFile(id: string): Promise<TrainingFile | undefined>;
@@ -1096,6 +1099,93 @@ export class DatabaseStorage implements IStorage {
       totalUsers: Number(usersCount.count),
       unreadNotifications: Number(unreadCount.count),
     };
+  }
+
+  // Convert training file to knowledge base article
+  async convertTrainingFileToKnowledgeBase(trainingFileId: string, categoryId?: string): Promise<KnowledgeArticle> {
+    // Get the training file
+    const trainingFile = await this.getTrainingFile(trainingFileId);
+    if (!trainingFile) {
+      throw new Error("Training file not found");
+    }
+
+    // If no extracted content, throw error
+    if (!trainingFile.extractedContent || trainingFile.extractedContent.trim() === '') {
+      throw new Error("Training file has no extracted content");
+    }
+
+    // Get or create default category for training files
+    let targetCategoryId = categoryId;
+    if (!targetCategoryId) {
+      // Check if "Training Files" category exists
+      const categories = await this.getAllKnowledgeCategories();
+      let trainingCategory = categories.find(c => c.name === "Tài liệu Training");
+      
+      if (!trainingCategory) {
+        // Create default category for training files
+        trainingCategory = await this.createKnowledgeCategory({
+          name: "Tài liệu Training", 
+          description: "Kiến thức được trích xuất từ các file training upload"
+        });
+      }
+      targetCategoryId = trainingCategory.id;
+    }
+
+    // Extract keywords from filename and content
+    const keywords = this.extractKeywords(trainingFile.originalName, trainingFile.extractedContent);
+
+    // Create knowledge article from training file content
+    const articleData = {
+      categoryId: targetCategoryId,
+      title: `[Training File] ${trainingFile.originalName}`,
+      content: `📄 **File nguồn:** ${trainingFile.originalName}\n📁 **Loại file:** ${trainingFile.fileType}\n📊 **Kích thước:** ${(trainingFile.fileSize / 1024).toFixed(1)}KB\n⏰ **Ngày upload:** ${new Date(trainingFile.createdAt!).toLocaleDateString('vi-VN')}\n\n---\n\n${trainingFile.extractedContent}`,
+      keywords,
+      isActive: true,
+      priority: 0
+    };
+
+    // Create the knowledge article
+    const article = await this.createKnowledgeArticle(articleData);
+
+    // Update training file to mark as converted
+    await this.updateTrainingFile(trainingFileId, {
+      metadata: {
+        ...trainingFile.metadata as any,
+        convertedToKnowledge: true,
+        knowledgeArticleId: article.id,
+        convertedAt: new Date().toISOString()
+      }
+    });
+
+    return article;
+  }
+
+  // Helper method to extract keywords from filename and content
+  private extractKeywords(filename: string, content: string): string[] {
+    const keywords = new Set<string>();
+    
+    // Extract from filename (remove extension and split by common separators)
+    const nameWithoutExt = filename.replace(/\.[^/.]+$/, "");
+    const filenameWords = nameWithoutExt.split(/[-_\s]+/).filter(word => word.length > 2);
+    filenameWords.forEach(word => keywords.add(word.toLowerCase()));
+    
+    // Extract common Vietnamese keywords from content
+    const vietnameseKeywords = [
+      'tiếng anh', 'english', 'grammar', 'vocabulary', 'speaking', 'listening', 'reading', 'writing',
+      'ngữ pháp', 'từ vựng', 'nói', 'nghe', 'đọc', 'viết', 'bài tập', 'exercise', 'lesson', 'bài học',
+      'chương trình', 'program', 'khóa học', 'course', 'cơ bản', 'nâng cao', 'intermediate', 'advanced',
+      'beginners', 'basic', 'student', 'học viên', 'giáo viên', 'teacher', 'class', 'lớp học'
+    ];
+    
+    const contentLower = content.toLowerCase();
+    vietnameseKeywords.forEach(keyword => {
+      if (contentLower.includes(keyword)) {
+        keywords.add(keyword);
+      }
+    });
+    
+    // Limit to first 10 keywords
+    return Array.from(keywords).slice(0, 10);
   }
 }
 

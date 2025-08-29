@@ -78,7 +78,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-      fileSize: 50 * 1024 * 1024, // 50MB limit
+      fileSize: 100 * 1024 * 1024, // 100MB limit (increased from 50MB)
     },
     fileFilter: (req, file, cb) => {
       const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
@@ -1028,6 +1028,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
 
           console.log(`Successfully processed training file: ${file.originalname}`);
+          
+          // Automatically convert to knowledge base article if extraction was successful
+          try {
+            if (extractedText.content && extractedText.content.trim() !== '') {
+              const knowledgeArticle = await storage.convertTrainingFileToKnowledgeBase(trainingFile.id);
+              console.log(`Auto-converted training file to knowledge article: ${knowledgeArticle.title}`);
+            }
+          } catch (conversionError) {
+            console.log(`Note: Could not auto-convert to knowledge base: ${conversionError.message}`);
+            // Don't fail the whole process, just log the conversion error
+          }
         } catch (error) {
           console.error(`Error processing training file ${file.originalname}:`, error);
           
@@ -1134,6 +1145,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           console.log(`Successfully processed training file: ${originalName}`);
           
+          // Automatically convert to knowledge base article if extraction was successful
+          try {
+            if (cleanedContent && cleanedContent.trim() !== '') {
+              const knowledgeArticle = await storage.convertTrainingFileToKnowledgeBase(trainingFile.id);
+              console.log(`Auto-converted training file to knowledge article: ${knowledgeArticle.title}`);
+            }
+          } catch (conversionError) {
+            console.log(`Note: Could not auto-convert to knowledge base: ${conversionError.message}`);
+            // Don't fail the whole process, just log the conversion error
+          }
+          
         } catch (error) {
           console.error("Error processing training file:", error);
           await storage.updateTrainingFile(trainingFile.id, {
@@ -1235,6 +1257,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error reprocessing training file:", error);
       res.status(500).json({ message: "Failed to reprocess training file" });
+    }
+  });
+
+  // Convert training file to knowledge base manually
+  app.post("/api/training-files/:id/convert-to-knowledge", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { categoryId } = req.body;
+      
+      const knowledgeArticle = await storage.convertTrainingFileToKnowledgeBase(id, categoryId);
+      res.json({ 
+        message: "Training file converted to knowledge base successfully",
+        article: knowledgeArticle
+      });
+    } catch (error) {
+      console.error("Error converting training file to knowledge base:", error);
+      res.status(500).json({ message: error.message || "Failed to convert training file" });
     }
   });
 
