@@ -30,7 +30,7 @@ function getDemoResponse(message: string, knowledgeContext: any): string {
   const lowerMessage = message.toLowerCase();
   
   if (lowerMessage.includes("chào") || lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
-    return "Chào bạn! Tôi là trợ lý AI của VIA English Academy. Tôi có thể giúp bạn tìm hiểu về các chương trình học, tài liệu, và thông báo. Bạn muốn hỏi về điều gì?";
+    return "Chào bạn! Tôi là trợ lý AI của VIA R&D Department. Tôi có thể giúp bạn tìm hiểu về các chương trình học, tài liệu, và thông báo. Bạn muốn hỏi về điều gì?";
   }
   
   if (lowerMessage.includes("chương trình") || lowerMessage.includes("khóa học") || lowerMessage.includes("program")) {

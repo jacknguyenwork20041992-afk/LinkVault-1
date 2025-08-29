@@ -233,7 +233,7 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
                 {messages.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
                     <Bot className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                    <p className="text-sm">Chào bạn! Tôi là trợ lý AI của VIA English Academy.</p>
+                    <p className="text-sm">Chào bạn! Tôi là trợ lý AI của VIA R&D Department.</p>
                     <p className="text-sm">Hãy hỏi tôi về chương trình học, tài liệu, hoặc bất cứ điều gì bạn muốn biết!</p>
                   </div>
                 ) : (
