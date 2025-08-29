@@ -2,6 +2,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import mammoth from 'mammoth';
 import * as XLSX from 'xlsx';
+import * as yauzl from 'yauzl';
 
 export interface ExtractedText {
   content: string;
@@ -10,6 +11,8 @@ export interface ExtractedText {
     wordCount: number;
     fileType: string;
     filename: string;
+    note?: string;
+    slides?: number;
   };
 }
 
@@ -54,7 +57,7 @@ export class TextExtractor {
         },
       };
     } catch (error) {
-      throw new Error(`Failed to process PDF: ${error.message}`);
+      throw new Error(`Failed to process PDF: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -70,7 +73,7 @@ export class TextExtractor {
         },
       };
     } catch (error) {
-      throw new Error(`Failed to extract text from Word document: ${error.message}`);
+      throw new Error(`Failed to extract text from Word document: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
@@ -82,7 +85,7 @@ export class TextExtractor {
       // Extract text from all sheets
       workbook.SheetNames.forEach(sheetName => {
         const sheet = workbook.Sheets[sheetName];
-        const sheetContent = XLSX.utils.sheet_to_csv(sheet, { header: 1 });
+        const sheetContent = XLSX.utils.sheet_to_csv(sheet);
         content += `\n--- ${sheetName} ---\n${sheetContent}\n`;
       });
 
@@ -95,35 +98,148 @@ export class TextExtractor {
         },
       };
     } catch (error) {
-      throw new Error(`Failed to extract text from Excel file: ${error.message}`);
+      throw new Error(`Failed to extract text from Excel file: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   }
 
   private async extractFromPowerPoint(buffer: Buffer, filename: string): Promise<ExtractedText> {
-    try {
-      // For PowerPoint files, we'll try to extract as text
-      // Note: This is a basic implementation. For better PPT extraction,
-      // you might want to use specialized libraries
-      const result = await mammoth.extractRawText({ buffer });
-      return {
-        content: result.value || "Không thể trích xuất text từ file PowerPoint này",
-        metadata: {
-          wordCount: result.value.split(/\s+/).length,
-          fileType: path.extname(filename).toLowerCase().slice(1),
-          filename,
-        },
-      };
-    } catch (error) {
-      // Fallback for PowerPoint files
-      return {
-        content: `File PowerPoint: ${filename}\nKhông thể trích xuất text tự động từ file này.`,
-        metadata: {
-          wordCount: 10,
-          fileType: path.extname(filename).toLowerCase().slice(1),
-          filename,
-        },
-      };
-    }
+    return new Promise((resolve) => {
+      try {
+        const ext = path.extname(filename).toLowerCase();
+        
+        if (ext === '.pptx') {
+          // For PPTX files, try to extract from the XML structure
+          yauzl.fromBuffer(buffer, { lazyEntries: true }, (err: any, zipfile: any) => {
+            if (err || !zipfile) {
+              resolve(this.getPowerPointFallback(filename));
+              return;
+            }
+
+            let extractedText = '';
+            let slideCount = 0;
+            let processedEntries = 0;
+            let totalSlideEntries = 0;
+
+            // First pass: count slide entries
+            zipfile.on('entry', (entry: any) => {
+              if (entry.fileName.startsWith('ppt/slides/slide') && entry.fileName.endsWith('.xml')) {
+                totalSlideEntries++;
+              }
+            });
+
+            zipfile.readEntry();
+
+            // Reset and process entries
+            yauzl.fromBuffer(buffer, { lazyEntries: true }, (err2: any, zipfile2: any) => {
+              if (err2 || !zipfile2) {
+                resolve(this.getPowerPointFallback(filename));
+                return;
+              }
+
+              zipfile2.on('entry', (entry: any) => {
+                if (entry.fileName.startsWith('ppt/slides/slide') && entry.fileName.endsWith('.xml')) {
+                  slideCount++;
+                  zipfile2.openReadStream(entry, (err3: any, readStream: any) => {
+                    if (err3 || !readStream) {
+                      processedEntries++;
+                      if (processedEntries === totalSlideEntries) {
+                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
+                      } else {
+                        zipfile2.readEntry();
+                      }
+                      return;
+                    }
+
+                    let xmlData = '';
+                    readStream.on('data', (chunk: any) => {
+                      xmlData += chunk;
+                    });
+
+                    readStream.on('end', () => {
+                      // Extract text from XML using regex
+                      const textMatches = xmlData.match(/<a:t[^>]*>([^<]+)<\/a:t>/g);
+                      if (textMatches) {
+                        const slideText = textMatches
+                          .map(match => match.replace(/<[^>]+>/g, ''))
+                          .join(' ')
+                          .trim();
+                        if (slideText) {
+                          extractedText += `\n--- Slide ${slideCount} ---\n${slideText}\n`;
+                        }
+                      }
+
+                      processedEntries++;
+                      if (processedEntries === totalSlideEntries) {
+                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
+                      } else {
+                        zipfile2.readEntry();
+                      }
+                    });
+
+                    readStream.on('error', () => {
+                      processedEntries++;
+                      if (processedEntries === totalSlideEntries) {
+                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
+                      } else {
+                        zipfile2.readEntry();
+                      }
+                    });
+                  });
+                } else {
+                  zipfile2.readEntry();
+                }
+              });
+
+              zipfile2.on('end', () => {
+                if (totalSlideEntries === 0) {
+                  resolve(this.getPowerPointFallback(filename));
+                }
+              });
+
+              zipfile2.on('error', () => {
+                resolve(this.getPowerPointFallback(filename));
+              });
+
+              zipfile2.readEntry();
+            });
+          });
+        } else {
+          // For .ppt files (older format), use fallback
+          resolve(this.getPowerPointFallback(filename));
+        }
+      } catch (error) {
+        resolve(this.getPowerPointFallback(filename));
+      }
+    });
+  }
+
+  private getPowerPointFallback(filename: string): ExtractedText {
+    const content = `File PowerPoint: ${filename}\n\nFile đã được upload thành công.\n\nGhi chú: Hiện tại hệ thống hỗ trợ trích xuất text cơ bản từ file PowerPoint. Nếu không thể trích xuất được text, vui lòng kiểm tra lại định dạng file hoặc liên hệ admin để được hỗ trợ.\n\nFile này đã được lưu trữ và có thể được sử dụng để training AI.`;
+    
+    return {
+      content,
+      metadata: {
+        wordCount: content.split(/\s+/).length,
+        fileType: path.extname(filename).toLowerCase().slice(1),
+        filename,
+        note: 'PowerPoint file uploaded successfully with basic text extraction'
+      },
+    };
+  }
+
+  private formatPowerPointResult(extractedText: string, filename: string, slideCount: number): ExtractedText {
+    const content = extractedText.trim() || `File PowerPoint: ${filename}\n\nFile đã được upload và xử lý thành công.\nSố slide: ${slideCount}\n\nGhi chú: Một số slide có thể không chứa text hoặc chứa text dạng hình ảnh không thể trích xuất được.`;
+    
+    return {
+      content,
+      metadata: {
+        wordCount: content.split(/\s+/).length,
+        fileType: path.extname(filename).toLowerCase().slice(1),
+        filename,
+        slides: slideCount,
+        note: slideCount > 0 ? `Successfully processed ${slideCount} slides` : 'PowerPoint file processed'
+      },
+    };
   }
 
   /**

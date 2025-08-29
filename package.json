@@ -49,6 +49,7 @@
     "@types/memoizee": "^0.4.12",
     "@types/multer": "^2.0.0",
     "@types/passport-google-oauth20": "^2.0.16",
+    "@types/yauzl": "^2.10.3",
     "@uppy/aws-s3": "^5.0.0",
     "@uppy/core": "^5.0.1",
     "@uppy/dashboard": "^5.0.1",
@@ -92,6 +93,7 @@
     "wouter": "^3.3.5",
     "ws": "^8.18.0",
     "xlsx": "^0.18.5",
+    "yauzl": "^3.2.0",
     "zod": "^3.24.2",
     "zod-validation-error": "^3.4.0"
   },
