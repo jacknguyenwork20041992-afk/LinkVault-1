@@ -17,6 +17,47 @@ import {
 import { chatWithAI } from "./openai";
 import { z } from "zod";
 
+// Demo chat responses when OpenAI is unavailable
+function getDemoResponse(message: string, knowledgeContext: any): string {
+  const lowerMessage = message.toLowerCase();
+  
+  if (lowerMessage.includes("chào") || lowerMessage.includes("hello") || lowerMessage.includes("hi")) {
+    return "Chào bạn! Tôi là trợ lý AI của VIA English Academy. Tôi có thể giúp bạn tìm hiểu về các chương trình học, tài liệu, và thông báo. Bạn muốn hỏi về điều gì?";
+  }
+  
+  if (lowerMessage.includes("chương trình") || lowerMessage.includes("khóa học") || lowerMessage.includes("program")) {
+    const programs = knowledgeContext.programs || [];
+    if (programs.length > 0) {
+      const programList = programs.map((p: any) => `• ${p.name} (${p.level}) - ${p.description}`).join('\n');
+      return `Hiện tại VIA English Academy có các chương trình học sau:\n\n${programList}\n\nBạn muốn tìm hiểu chi tiết về chương trình nào?`;
+    }
+    return "VIA English Academy có nhiều chương trình học đa dạng từ cơ bản đến nâng cao. Bạn có thể xem chi tiết trong danh sách chương trình của trung tâm.";
+  }
+  
+  if (lowerMessage.includes("tài liệu") || lowerMessage.includes("document") || lowerMessage.includes("file")) {
+    return "Trung tâm có rất nhiều tài liệu học tập phong phú bao gồm:\n• Tài liệu giảng dạy chính khóa\n• Bài tập thực hành\n• Tài liệu tham khảo\n• Đề thi mẫu\n\nBạn có thể tìm thấy tất cả trong mục 'Tài liệu' của hệ thống.";
+  }
+  
+  if (lowerMessage.includes("thông báo") || lowerMessage.includes("notification") || lowerMessage.includes("tin tức")) {
+    const notifications = knowledgeContext.notifications || [];
+    if (notifications.length > 0) {
+      return "Có một số thông báo mới từ trung tâm. Bạn có thể xem chi tiết trong mục 'Thông báo' để cập nhật thông tin mới nhất.";
+    }
+    return "Hiện tại không có thông báo mới. Hãy theo dõi thường xuyên để không bỏ lỡ thông tin quan trọng!";
+  }
+  
+  if (lowerMessage.includes("liên hệ") || lowerMessage.includes("contact") || lowerMessage.includes("hỗ trợ")) {
+    return "Nếu bạn cần hỗ trợ thêm, vui lòng:\n• Sử dụng nút 'Hỗ trợ' ở góc màn hình\n• Liên hệ trực tiếp với giáo viên\n• Gửi email cho bộ phận hỗ trợ\n\nChúng tôi luôn sẵn sàng giúp đỡ bạn!";
+  }
+  
+  if (lowerMessage.includes("cảm ơn") || lowerMessage.includes("thanks") || lowerMessage.includes("thank you")) {
+    return "Không có gì! Tôi luôn sẵn sàng hỗ trợ bạn. Nếu có câu hỏi khác, đừng ngại hỏi nhé! 😊";
+  }
+  
+  // Default response
+  return `Tôi hiểu bạn đang hỏi về "${message}". Tôi có thể giúp bạn tìm hiểu về:\n\n• Chương trình học và khóa học\n• Tài liệu học tập\n• Thông báo mới từ trung tâm\n• Thông tin liên hệ và hỗ trợ\n\nBạn muốn hỏi về chủ đề nào cụ thể hơn không?`;
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup multiple authentication methods
   const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
@@ -709,8 +750,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: msg.content
       }));
 
-      // Get AI response
-      const aiResponse = await chatWithAI(message, knowledgeContext, conversationHistory);
+      // Get AI response - Demo mode with predefined responses
+      let aiResponse: string;
+      try {
+        aiResponse = await chatWithAI(message, knowledgeContext, conversationHistory);
+      } catch (error) {
+        console.log("Using demo responses due to OpenAI error:", error.message);
+        aiResponse = getDemoResponse(message, knowledgeContext);
+      }
 
       // Save AI message
       const aiMessage = await storage.createChatMessage({
