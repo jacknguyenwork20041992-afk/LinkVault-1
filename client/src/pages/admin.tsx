@@ -13,6 +13,7 @@ import NotificationsManagement from "@/components/NotificationsManagement";
 import ActivityDashboard from "@/components/ActivityDashboard";
 import ImportantDocumentsTable from "@/components/ImportantDocumentsTable";
 import AccountsTable from "@/components/AccountsTable";
+import KnowledgeBasePage from "@/pages/admin/knowledge-base";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Home, Menu } from "lucide-react";
@@ -72,6 +73,8 @@ export default function Admin() {
         return <ActivityDashboard />;
       case "accounts":
         return <AccountsTable />;
+      case "knowledge-base":
+        return <KnowledgeBasePage />;
       default:
         return <AdminDashboard />;
     }
@@ -97,6 +100,10 @@ export default function Admin() {
         return "Quản lý thông báo";
       case "activities":
         return "Hoạt động người dùng";
+      case "accounts":
+        return "Danh sách tài khoản";
+      case "knowledge-base":
+        return "Cơ sở kiến thức AI";
       default:
         return "Dashboard";
     }
