@@ -196,7 +196,7 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-background to-indigo-50/30 dark:from-blue-950/30 dark:via-background dark:to-indigo-950/30">
       {/* Navigation Header */}
       <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 border-b border-blue-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
@@ -268,7 +268,7 @@ export default function Home() {
         {notifications.length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg animate-pulse-glow animate-float">
                 <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
@@ -292,7 +292,7 @@ export default function Home() {
         {importantDocuments.length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
-              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg">
+              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg animate-gradient sparkle-effect">
                 <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
@@ -301,10 +301,10 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="bg-card rounded-lg shadow-sm border border-border">
+            <div className="vibrant-card rounded-lg shadow-lg border border-border hover-lift">
               <div className="overflow-x-auto">
                 <table className="w-full min-w-[600px]">
-                  <thead className="bg-muted/50">
+                  <thead className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20">
                     <tr>
                       <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground">Tài liệu</th>
                       <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground hidden sm:table-cell">Mô tả</th>
@@ -314,7 +314,7 @@ export default function Home() {
                   </thead>
                   <tbody>
                     {importantDocuments.map((document: any) => (
-                      <tr key={document.id} className="border-t border-border hover:bg-red-50/50 dark:hover:bg-red-900/10 transition-colors duration-200" data-testid={`row-important-document-${document.id}`}>
+                      <tr key={document.id} className="border-t border-border hover:bg-gradient-to-r hover:from-red-50/50 hover:to-orange-50/50 dark:hover:from-red-900/10 dark:hover:to-orange-900/10 transition-all duration-300" data-testid={`row-important-document-${document.id}`}>
                         <td className="py-4 px-6">
                           <div className="flex items-center space-x-3">
                             <div className="p-2 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
@@ -337,7 +337,7 @@ export default function Home() {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => handleImportantDocumentClick(document)}
-                            className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
+                            className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 animate-gradient"
                             data-testid={`link-important-document-${document.id}`}
                           >
                             <ExternalLink className="h-4 w-4 mr-2" />
@@ -357,7 +357,7 @@ export default function Home() {
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg animate-float">
                 <Book className="h-6 w-6 text-white" />
               </div>
               <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">

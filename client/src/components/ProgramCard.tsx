@@ -28,11 +28,11 @@ export default function ProgramCard({ program }: ProgramCardProps) {
 
   return (
     <Link href={`/program/${program.id}`}>
-      <div className="modern-card hover-lift cursor-pointer group" data-testid={`card-program-${program.id}`}>
+      <div className="vibrant-card hover-lift cursor-pointer group" data-testid={`card-program-${program.id}`}>
         <div className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center flex-1">
-              <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
+              <div className="w-14 h-14 bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-xl flex items-center justify-center mr-4 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300 animate-pulse-glow">
                 <Book className="text-blue-600 dark:text-blue-400 text-xl" />
               </div>
               <div className="flex-1">

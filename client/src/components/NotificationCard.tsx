@@ -40,7 +40,7 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
   };
 
   return (
-    <div className="bg-accent/10 border-l-4 border-accent p-4 rounded-r-md" data-testid={`notification-${notification.id}`}>
+    <div className="vibrant-card border-l-4 border-accent p-4 rounded-lg hover-lift" data-testid={`notification-${notification.id}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
           <h3 className="font-medium text-foreground">{notification.title}</h3>
