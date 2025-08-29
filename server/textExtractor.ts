@@ -108,106 +108,114 @@ export class TextExtractor {
         const ext = path.extname(filename).toLowerCase();
         
         if (ext === '.pptx') {
-          // For PPTX files, try to extract from the XML structure
+          // For PPTX files, extract from XML structure
           yauzl.fromBuffer(buffer, { lazyEntries: true }, (err: any, zipfile: any) => {
             if (err || !zipfile) {
+              console.log(`Failed to open PPTX file: ${filename}`);
               resolve(this.getPowerPointFallback(filename));
               return;
             }
 
             let extractedText = '';
             let slideCount = 0;
-            let processedEntries = 0;
-            let totalSlideEntries = 0;
+            const slideTexts: string[] = [];
 
-            // First pass: count slide entries
             zipfile.on('entry', (entry: any) => {
-              if (entry.fileName.startsWith('ppt/slides/slide') && entry.fileName.endsWith('.xml')) {
-                totalSlideEntries++;
-              }
-            });
+              const isSlideFile = entry.fileName.startsWith('ppt/slides/slide') && entry.fileName.endsWith('.xml');
+              
+              if (isSlideFile) {
+                slideCount++;
+                
+                zipfile.openReadStream(entry, (err3: any, readStream: any) => {
+                  if (err3 || !readStream) {
+                    console.log(`Failed to read slide ${slideCount} from ${filename}`);
+                    zipfile.readEntry();
+                    return;
+                  }
 
-            zipfile.readEntry();
+                  let xmlData = '';
+                  readStream.on('data', (chunk: any) => {
+                    xmlData += chunk.toString();
+                  });
 
-            // Reset and process entries
-            yauzl.fromBuffer(buffer, { lazyEntries: true }, (err2: any, zipfile2: any) => {
-              if (err2 || !zipfile2) {
-                resolve(this.getPowerPointFallback(filename));
-                return;
-              }
+                  readStream.on('end', () => {
+                    try {
+                      // More comprehensive text extraction patterns
+                      const patterns = [
+                        /<a:t[^>]*>([^<]+)<\/a:t>/g,           // Standard text runs
+                        /<t[^>]*>([^<]+)<\/t>/g,               // Alternative text format
+                        /<a:p[^>]*><a:r[^>]*><a:t[^>]*>([^<]+)<\/a:t>/g, // Paragraph text
+                        /<p:txBody[^>]*>.*?<a:t[^>]*>([^<]+)<\/a:t>/g    // Text body content
+                      ];
+                      
+                      let slideText = '';
+                      patterns.forEach(pattern => {
+                        let match;
+                        while ((match = pattern.exec(xmlData)) !== null) {
+                          if (match[1] && match[1].trim()) {
+                            slideText += match[1].trim() + ' ';
+                          }
+                        }
+                      });
 
-              zipfile2.on('entry', (entry: any) => {
-                if (entry.fileName.startsWith('ppt/slides/slide') && entry.fileName.endsWith('.xml')) {
-                  slideCount++;
-                  zipfile2.openReadStream(entry, (err3: any, readStream: any) => {
-                    if (err3 || !readStream) {
-                      processedEntries++;
-                      if (processedEntries === totalSlideEntries) {
-                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
-                      } else {
-                        zipfile2.readEntry();
-                      }
-                      return;
-                    }
-
-                    let xmlData = '';
-                    readStream.on('data', (chunk: any) => {
-                      xmlData += chunk;
-                    });
-
-                    readStream.on('end', () => {
-                      // Extract text from XML using regex
-                      const textMatches = xmlData.match(/<a:t[^>]*>([^<]+)<\/a:t>/g);
-                      if (textMatches) {
-                        const slideText = textMatches
-                          .map(match => match.replace(/<[^>]+>/g, ''))
-                          .join(' ')
-                          .trim();
-                        if (slideText) {
-                          extractedText += `\n--- Slide ${slideCount} ---\n${slideText}\n`;
+                      // Also try to extract from CDATA sections
+                      const cdataPattern = /<!\[CDATA\[(.*?)\]\]>/g;
+                      let cdataMatch;
+                      while ((cdataMatch = cdataPattern.exec(xmlData)) !== null) {
+                        if (cdataMatch[1] && cdataMatch[1].trim()) {
+                          slideText += cdataMatch[1].trim() + ' ';
                         }
                       }
 
-                      processedEntries++;
-                      if (processedEntries === totalSlideEntries) {
-                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
+                      if (slideText.trim()) {
+                        slideTexts.push(`--- Slide ${slideCount} ---\n${slideText.trim()}`);
+                        console.log(`Extracted text from slide ${slideCount}: ${slideText.substring(0, 100)}...`);
                       } else {
-                        zipfile2.readEntry();
+                        console.log(`No text found in slide ${slideCount} of ${filename}`);
                       }
-                    });
-
-                    readStream.on('error', () => {
-                      processedEntries++;
-                      if (processedEntries === totalSlideEntries) {
-                        resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
-                      } else {
-                        zipfile2.readEntry();
-                      }
-                    });
+                    } catch (textError) {
+                      console.log(`Error extracting text from slide ${slideCount}: ${textError}`);
+                    }
+                    
+                    zipfile.readEntry();
                   });
-                } else {
-                  zipfile2.readEntry();
-                }
-              });
 
-              zipfile2.on('end', () => {
-                if (totalSlideEntries === 0) {
-                  resolve(this.getPowerPointFallback(filename));
-                }
-              });
-
-              zipfile2.on('error', () => {
-                resolve(this.getPowerPointFallback(filename));
-              });
-
-              zipfile2.readEntry();
+                  readStream.on('error', (streamError: any) => {
+                    console.log(`Stream error reading slide ${slideCount}: ${streamError}`);
+                    zipfile.readEntry();
+                  });
+                });
+              } else {
+                zipfile.readEntry();
+              }
             });
+
+            zipfile.on('end', () => {
+              extractedText = slideTexts.join('\n\n');
+              
+              if (extractedText.trim()) {
+                console.log(`Successfully extracted text from ${slideCount} slides in ${filename}`);
+                resolve(this.formatPowerPointResult(extractedText, filename, slideCount));
+              } else {
+                console.log(`No text extracted from any slides in ${filename}`);
+                resolve(this.getPowerPointFallback(filename));
+              }
+            });
+
+            zipfile.on('error', (zipError: any) => {
+              console.log(`Zip error processing ${filename}: ${zipError}`);
+              resolve(this.getPowerPointFallback(filename));
+            });
+
+            zipfile.readEntry();
           });
         } else {
           // For .ppt files (older format), use fallback
+          console.log(`Old format PPT file, using fallback: ${filename}`);
           resolve(this.getPowerPointFallback(filename));
         }
       } catch (error) {
+        console.log(`Error processing PowerPoint file ${filename}: ${error}`);
         resolve(this.getPowerPointFallback(filename));
       }
     });
