@@ -583,7 +583,11 @@ function KnowledgeCategoryFormDialog({ category, onClose }: { category: Knowledg
               <Button type="button" variant="outline" onClick={onClose}>
                 Hủy
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button 
+                type="submit" 
+                disabled={mutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px] disabled:opacity-50"
+              >
                 {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
               </Button>
             </div>
@@ -798,7 +802,11 @@ function KnowledgeArticleFormDialog({
               <Button type="button" variant="outline" onClick={onClose}>
                 Hủy
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button 
+                type="submit" 
+                disabled={mutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px] disabled:opacity-50"
+              >
                 {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
               </Button>
             </div>
@@ -1017,7 +1025,11 @@ function FaqItemFormDialog({
               <Button type="button" variant="outline" onClick={onClose}>
                 Hủy
               </Button>
-              <Button type="submit" disabled={mutation.isPending}>
+              <Button 
+                type="submit" 
+                disabled={mutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700 text-white min-w-[100px] disabled:opacity-50"
+              >
                 {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
               </Button>
             </div>
