@@ -11,13 +11,12 @@ export default function FloatingChatButton() {
       {/* Floating Button */}
       <Button
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-20 z-50 h-12 w-12 rounded-full shadow-lg bg-green-600 hover:bg-green-700 text-white ${
+        className={`fixed bottom-20 right-6 z-50 h-16 w-16 rounded-full shadow-lg bg-green-500 hover:bg-green-600 text-white ${
           isOpen ? 'hidden' : 'flex'
         } items-center justify-center transition-all duration-300 hover:scale-110`}
         data-testid="button-floating-chat"
-        style={{ position: 'fixed', bottom: '24px', right: '80px' }}
       >
-        <MessageCircle className="h-5 w-5" />
+        <MessageCircle className="h-8 w-8" />
       </Button>
 
       {/* Chat Bot */}

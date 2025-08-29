@@ -14,7 +14,7 @@ export default function FloatingSupportButton() {
       aria-label="Hỗ trợ"
     >
       <HelpCircle className="h-5 w-5" />
-      <span className="text-sm font-medium whitespace-nowrap">HỖ TRỢ</span>
+      <span className="text-sm font-medium whitespace-nowrap">Liên hệ Phòng Aca</span>
     </Button>
   );
 }
