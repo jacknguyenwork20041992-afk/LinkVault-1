@@ -198,27 +198,32 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <header className="bg-card border-b border-border shadow-sm">
+      <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 border-b border-blue-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-14 sm:h-16">
+          <div className="flex justify-between items-center h-16 sm:h-20">
             <div className="flex items-center">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 bg-primary rounded-full flex items-center justify-center mr-2 sm:mr-3">
-                <GraduationCap className="text-primary-foreground text-sm sm:text-base" />
+              <img 
+                src="/via-logo.png" 
+                alt="VIA English Academy" 
+                className="h-10 sm:h-12 w-auto mr-3"
+              />
+              <div>
+                <h1 className="text-xl sm:text-2xl font-bold text-white">VIA ENGLISH ACADEMY</h1>
+                <p className="text-xs sm:text-sm text-blue-100 opacity-90">Learning Pathway</p>
               </div>
-              <h1 className="text-lg sm:text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
             </div>
 
             <div className="flex items-center space-x-2 sm:space-x-4">
               {/* Notification Bell */}
               <Link href="/notifications">
                 <button 
-                  className="relative p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
                   data-testid="button-notifications"
                 >
                   <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
                   {notifications.length > 0 && (
                     <span 
-                      className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
                       data-testid="text-notification-count"
                     >
                       {notifications.length}
@@ -229,7 +234,7 @@ export default function Home() {
 
               {/* User Menu */}
               <div className="flex items-center space-x-1 sm:space-x-2">
-                <span className="hidden sm:inline text-sm text-foreground" data-testid="text-user-name">
+                <span className="hidden sm:inline text-sm text-blue-100" data-testid="text-user-name">
                   {user?.firstName && user?.lastName 
                     ? `${user.firstName} ${user.lastName}` 
                     : user?.email || "User"
@@ -237,7 +242,7 @@ export default function Home() {
                 </span>
                 {user?.role === "admin" && (
                   <Link href="/admin">
-                    <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3" data-testid="link-admin">
+                    <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-admin">
                       <span className="hidden sm:inline">Admin Panel</span>
                       <span className="sm:hidden">Admin</span>
                     </Button>
@@ -247,7 +252,7 @@ export default function Home() {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
-                  className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors"
+                  className="p-1.5 sm:p-2 text-blue-100 hover:text-white hover:bg-blue-800 transition-colors"
                   data-testid="button-logout"
                 >
                   <LogOut className="h-4 w-4" />
@@ -262,10 +267,14 @@ export default function Home() {
         {/* Notifications Section */}
         {notifications.length > 0 && (
           <div className="mb-6 sm:mb-8">
-            <h2 className="text-lg sm:text-xl font-semibold text-foreground mb-3 sm:mb-4 flex items-center">
-              <Bell className="text-primary mr-2 h-5 w-5 sm:h-6 sm:w-6" />
-              Thông báo mới
-            </h2>
+            <div className="flex items-center space-x-3 mb-3 sm:mb-4">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
+                <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+              </div>
+              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
+                Thông báo mới
+              </h2>
+            </div>
 
             <div className="space-y-2 sm:space-y-3">
               {notifications.map((userNotification: any) => (
@@ -283,12 +292,12 @@ export default function Home() {
         {importantDocuments.length > 0 && (
           <div className="mb-6 sm:mb-8">
             <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
-              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-red-600 dark:text-red-400" />
+              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg">
+                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
               <div>
-                <h2 className="text-xl sm:text-2xl font-semibold text-foreground">Tài liệu quan trọng</h2>
-                <p className="text-sm sm:text-base text-muted-foreground">{importantDocuments.length} tài liệu quan trọng</p>
+                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Tài liệu quan trọng</h2>
+                <p className="text-sm sm:text-base text-orange-600 font-medium">{importantDocuments.length} tài liệu quan trọng</p>
               </div>
             </div>
 
@@ -328,7 +337,7 @@ export default function Home() {
                             target="_blank"
                             rel="noopener noreferrer"
                             onClick={() => handleImportantDocumentClick(document)}
-                            className="inline-flex items-center px-3 py-2 bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/20 dark:text-red-400 dark:hover:bg-red-900/30 rounded-lg text-sm font-medium transition-all duration-200"
+                            className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 rounded-lg text-sm font-medium transition-all duration-200 shadow-md hover:shadow-lg"
                             data-testid={`link-important-document-${document.id}`}
                           >
                             <ExternalLink className="h-4 w-4 mr-2" />
@@ -347,10 +356,14 @@ export default function Home() {
         {/* Programs Grid */}
         <div className="mb-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold text-foreground flex items-center">
-              <Book className="text-primary mr-2" />
-              Chương trình học
-            </h2>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg">
+                <Book className="h-6 w-6 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
+                Chương trình học
+              </h2>
+            </div>
             <div className="flex gap-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -409,10 +422,14 @@ export default function Home() {
 
         {/* Recent Documents */}
         <div>
-          <h2 className="text-xl font-semibold text-foreground mb-6 flex items-center">
-            <Clock className="text-primary mr-2" />
-            Tài liệu gần đây
-          </h2>
+          <div className="flex items-center space-x-3 mb-6">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
+              <Clock className="h-6 w-6 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
+              Tài liệu gần đây
+            </h2>
+          </div>
 
           {recentDocuments.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
