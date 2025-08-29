@@ -105,7 +105,15 @@ function buildKnowledgePrompt(context: KnowledgeContext): string {
     prompt += "\n";
   }
 
-  prompt += `Hãy trả lời câu hỏi một cách hữu ích và chính xác. Nếu không có thông tin liên quan, hãy nói rõ và gợi ý người dùng liên hệ admin để biết thêm chi tiết.`;
+  prompt += `
+**CÁCH TRẢ LỜI:**
+• Trả lời NGẮN GỌN, súc tích (tối đa 3-4 câu cho mỗi ý)
+• SỬ DỤNG gạch đầu dòng (•) để chia nhỏ thông tin
+• CHIA rõ các đầu mục với **tiêu đề in đậm**
+• Tập trung vào thông tin CỤ THỂ về VIA English Academy
+• Nếu không có thông tin, nói thẳng "Tôi không có thông tin về..." và gợi ý liên hệ admin
+
+**QUAN TRỌNG**: Chỉ trả lời về VIA English Academy. Không đưa ra thông tin chung chung hoặc ngoài phạm vi.`;
 
   return prompt;
 }

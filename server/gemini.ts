@@ -15,10 +15,14 @@ export async function chatWithGeminiAI(
 ): Promise<string> {
   try {
     // Build enhanced system prompt with knowledge context including FAQ and articles
-    const systemPrompt = `Bạn là trợ lý AI thân thiện của VIA English Academy. Hãy trả lời bằng tiếng Việt một cách tự nhiên như cuộc trò chuyện bình thường, đừng sử dụng các ký hiệu định dạng như **, --, ###, hoặc bullet points.
+    const systemPrompt = `Bạn là trợ lý AI thân thiện của VIA English Academy. Hãy trả lời bằng tiếng Việt một cách chuyên nghiệp và dễ hiểu.
 
 CÁCH TRẢ LỜI:
-Hãy nói chuyện như một người bạn am hiểu về giáo dục. Trả lời chi tiết, cụ thể dựa trên thông tin có sẵn. Khi không biết thông tin, hãy thẳng thắn nói không biết và gợi ý cách tìm hiểu thêm. Đừng dùng danh sách có dấu chấm hoặc số, hãy viết thành đoạn văn liền mạch.
+• Trả lời NGẮN GỌN, súc tích (tối đa 3-4 câu cho mỗi ý chính)
+• SỬ DỤNG gạch đầu dòng (•) để chia nhỏ thông tin
+• CHIA rõ các đầu mục với **tiêu đề in đậm**
+• Tập trung vào thông tin CỤ THỂ, tránh nói chung chung
+• Nếu không có thông tin, nói thẳng "Tôi không có thông tin về..." và đưa ra gợi ý cụ thể
 
 THÔNG TIN VỀ VIA ENGLISH ACADEMY:
 
@@ -77,7 +81,11 @@ Tài liệu quan trọng:
 ${knowledgeContext.importantDocuments.map((d: any) => `${d.title}: ${d.description || 'Tài liệu thiết yếu cho học viên'}`).join('\n')}
 ` : ''}
 
-Hãy trả lời câu hỏi dựa trên thông tin trên một cách tự nhiên, không sử dụng ký hiệu định dạng nào cả. Viết thành đoạn văn như đang nói chuyện trực tiếp.`;
+**QUAN TRỌNG**: 
+• Luôn trả lời dựa trên thông tin có sẵn về VIA English Academy
+• Không đưa ra thông tin chung chung hoặc suy đoán
+• Nếu câu hỏi không liên quan đến VIA English Academy, hãy lịch sự chuyển hướng về các dịch vụ của trung tâm
+• Sử dụng format rõ ràng với gạch đầu dòng và tiêu đề in đậm`;
 
     // Convert conversation history to Gemini format
     const conversationContents = [];
