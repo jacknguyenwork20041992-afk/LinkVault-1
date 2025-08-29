@@ -3,7 +3,7 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Edit, Trash2, BookOpen, HelpCircle, FolderOpen, X } from "lucide-react";
+import { Plus, Edit, Trash2, BookOpen, HelpCircle, FolderOpen, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -52,6 +52,7 @@ export default function KnowledgeBasePage() {
   const [showCategoryForm, setShowCategoryForm] = useState(false);
   const [showArticleForm, setShowArticleForm] = useState(false);
   const [showFaqForm, setShowFaqForm] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Fetch knowledge categories
   const { data: categories = [], isLoading: categoriesLoading } = useQuery<KnowledgeCategory[]>({
@@ -155,6 +156,36 @@ export default function KnowledgeBasePage() {
     setSelectedFaq(null);
   };
 
+  // Filter functions
+  const filteredCategories = categories.filter((category) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      category.name.toLowerCase().includes(searchLower) ||
+      category.description?.toLowerCase().includes(searchLower) ||
+      category.keywords?.some(keyword => keyword.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const filteredArticles = articles.filter((article) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      article.title.toLowerCase().includes(searchLower) ||
+      article.content.toLowerCase().includes(searchLower) ||
+      article.category?.name.toLowerCase().includes(searchLower) ||
+      article.keywords?.some(keyword => keyword.toLowerCase().includes(searchLower))
+    );
+  });
+
+  const filteredFaqs = faqs.filter((faq) => {
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      faq.question.toLowerCase().includes(searchLower) ||
+      faq.answer.toLowerCase().includes(searchLower) ||
+      faq.category?.name.toLowerCase().includes(searchLower) ||
+      faq.keywords?.some(keyword => keyword.toLowerCase().includes(searchLower))
+    );
+  });
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -166,19 +197,33 @@ export default function KnowledgeBasePage() {
         </div>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Tìm kiếm danh mục, bài viết, FAQ theo tên, nội dung hoặc từ khóa..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-knowledge"
+          />
+        </div>
+      </div>
+
       <Tabs defaultValue="categories" className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="categories" className="flex items-center gap-2">
             <FolderOpen className="h-4 w-4" />
-            Danh mục ({categories.length})
+            Danh mục ({searchTerm ? filteredCategories.length : categories.length})
           </TabsTrigger>
           <TabsTrigger value="articles" className="flex items-center gap-2">
             <BookOpen className="h-4 w-4" />
-            Bài viết ({articles.length})
+            Bài viết ({searchTerm ? filteredArticles.length : articles.length})
           </TabsTrigger>
           <TabsTrigger value="faqs" className="flex items-center gap-2">
             <HelpCircle className="h-4 w-4" />
-            FAQ ({faqs.length})
+            FAQ ({searchTerm ? filteredFaqs.length : faqs.length})
           </TabsTrigger>
         </TabsList>
 
@@ -198,9 +243,28 @@ export default function KnowledgeBasePage() {
 
           {categoriesLoading ? (
             <div>Đang tải...</div>
+          ) : filteredCategories.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              {searchTerm ? (
+                <>
+                  <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Không tìm thấy danh mục nào phù hợp với "{searchTerm}"</p>
+                </>
+              ) : (
+                <>
+                  <FolderOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Chưa có danh mục nào</p>
+                </>
+              )}
+            </div>
           ) : (
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {categories.map((category) => (
+              {searchTerm && (
+                <div className="col-span-full text-sm text-muted-foreground mb-4">
+                  Tìm thấy {filteredCategories.length} danh mục
+                </div>
+              )}
+              {filteredCategories.map((category) => (
                 <Card key={category.id} className="hover:shadow-md transition-shadow">
                   <CardHeader className="pb-3">
                     <div className="flex justify-between items-start">
@@ -261,9 +325,28 @@ export default function KnowledgeBasePage() {
 
           {articlesLoading ? (
             <div>Đang tải...</div>
+          ) : filteredArticles.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              {searchTerm ? (
+                <>
+                  <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Không tìm thấy bài viết nào phù hợp với "{searchTerm}"</p>
+                </>
+              ) : (
+                <>
+                  <BookOpen className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Chưa có bài viết nào</p>
+                </>
+              )}
+            </div>
           ) : (
             <div className="space-y-4">
-              {articles.map((article) => (
+              {searchTerm && (
+                <div className="text-sm text-muted-foreground mb-4">
+                  Tìm thấy {filteredArticles.length} bài viết
+                </div>
+              )}
+              {filteredArticles.map((article) => (
                 <Card key={article.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">
@@ -331,9 +414,28 @@ export default function KnowledgeBasePage() {
 
           {faqsLoading ? (
             <div>Đang tải...</div>
+          ) : filteredFaqs.length === 0 ? (
+            <div className="text-center py-12 text-muted-foreground">
+              {searchTerm ? (
+                <>
+                  <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Không tìm thấy câu hỏi nào phù hợp với "{searchTerm}"</p>
+                </>
+              ) : (
+                <>
+                  <HelpCircle className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                  <p>Chưa có câu hỏi nào</p>
+                </>
+              )}
+            </div>
           ) : (
             <div className="space-y-4">
-              {faqs.map((faq) => (
+              {searchTerm && (
+                <div className="text-sm text-muted-foreground mb-4">
+                  Tìm thấy {filteredFaqs.length} câu hỏi
+                </div>
+              )}
+              {filteredFaqs.map((faq) => (
                 <Card key={faq.id} className="hover:shadow-md transition-shadow">
                   <CardHeader>
                     <div className="flex justify-between items-start">

@@ -2,14 +2,16 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Trash2, Bell } from "lucide-react";
+import { Plus, Trash2, Bell, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import CreateNotificationModal from "@/components/modals/CreateNotificationModal";
 import { apiRequest } from "@/lib/queryClient";
 import type { Notification } from "@shared/schema";
 
 export default function NotificationsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -101,6 +103,17 @@ export default function NotificationsManagement() {
     return `${dateStr} lúc ${timeStr}`;
   };
 
+  // Filter notifications based on search term
+  const filteredNotifications = notifications.filter((item: any) => {
+    const notification = item.notification || item;
+    const searchLower = searchTerm.toLowerCase();
+    return (
+      notification.title?.toLowerCase().includes(searchLower) ||
+      notification.message?.toLowerCase().includes(searchLower) ||
+      (notification.isGlobal ? "toàn cục" : "cá nhân").includes(searchLower)
+    );
+  });
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
@@ -123,7 +136,34 @@ export default function NotificationsManagement() {
         </Button>
       </div>
 
-      {notifications.length === 0 ? (
+      {/* Search Bar */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Tìm kiếm thông báo theo tiêu đề, nội dung hoặc loại..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-notifications"
+          />
+        </div>
+      </div>
+
+      {filteredNotifications.length === 0 ? (
+        searchTerm ? (
+          <div className="text-center py-12 text-muted-foreground">
+            <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+            <p>Không tìm thấy thông báo nào phù hợp với "{searchTerm}"</p>
+            <Button 
+              onClick={() => setSearchTerm("")}
+              className="mt-4"
+              variant="outline"
+            >
+              Xóa bộ lọc
+            </Button>
+          </div>
+        ) : notifications.length === 0 ? (
         <div className="text-center py-12 text-muted-foreground">
           <Bell className="mx-auto h-12 w-12 mb-4 opacity-50" />
           <p>Chưa có thông báo nào</p>
@@ -135,9 +175,15 @@ export default function NotificationsManagement() {
             Tạo thông báo đầu tiên
           </Button>
         </div>
+        ) : null
       ) : (
         <div className="space-y-4">
-          {notifications.map((item: any) => {
+          {searchTerm && (
+            <div className="text-sm text-muted-foreground mb-4">
+              Tìm thấy {filteredNotifications.length} thông báo
+            </div>
+          )}
+          {filteredNotifications.map((item: any) => {
             const notification = item.notification || item;
             return (
             <div 
