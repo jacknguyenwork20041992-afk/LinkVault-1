@@ -15,6 +15,7 @@ import {
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
+import { chatWithGeminiAI } from "./gemini";
 import { z } from "zod";
 
 // Demo chat responses when OpenAI is unavailable
@@ -750,12 +751,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         content: msg.content
       }));
 
-      // Get AI response - Demo mode with predefined responses
+      // Get AI response - Try Gemini first, fallback to demo if needed
       let aiResponse: string;
       try {
-        aiResponse = await chatWithAI(message, knowledgeContext, conversationHistory);
+        aiResponse = await chatWithGeminiAI(message, knowledgeContext, conversationHistory);
       } catch (error) {
-        console.log("Using demo responses due to OpenAI error:", error.message);
+        console.log("Using demo responses due to Gemini error:", error.message);
         aiResponse = getDemoResponse(message, knowledgeContext);
       }
 
