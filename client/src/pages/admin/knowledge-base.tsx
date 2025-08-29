@@ -1,16 +1,20 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, Edit, Trash2, BookOpen, HelpCircle, FolderOpen } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { Plus, Edit, Trash2, BookOpen, HelpCircle, FolderOpen, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-// Knowledge Base form components
-const KnowledgeCategoryForm = lazy(() => import("@/components/admin/KnowledgeCategoryForm"));
-const KnowledgeArticleForm = lazy(() => import("@/components/admin/KnowledgeArticleForm"));
-const FaqItemForm = lazy(() => import("@/components/admin/FaqItemForm"));
 
 type KnowledgeCategory = {
   id: string;
@@ -380,30 +384,634 @@ export default function KnowledgeBasePage() {
       </Tabs>
 
       {/* Forms */}
-      <Suspense fallback={<div>Loading...</div>}>
-        {showCategoryForm && (
-          <KnowledgeCategoryForm
-            category={selectedCategory}
-            onClose={handleCloseForm}
-          />
-        )}
+      {showCategoryForm && (
+        <KnowledgeCategoryFormDialog
+          category={selectedCategory}
+          onClose={handleCloseForm}
+        />
+      )}
 
-        {showArticleForm && (
-          <KnowledgeArticleForm
-            article={selectedArticle}
-            categories={categories}
-            onClose={handleCloseForm}
-          />
-        )}
+      {showArticleForm && (
+        <KnowledgeArticleFormDialog
+          article={selectedArticle}
+          categories={categories}
+          onClose={handleCloseForm}
+        />
+      )}
 
-        {showFaqForm && (
-          <FaqItemForm
-            faq={selectedFaq}
-            categories={categories}
-            onClose={handleCloseForm}
-          />
-        )}
-      </Suspense>
+      {showFaqForm && (
+        <FaqItemFormDialog
+          faq={selectedFaq}
+          categories={categories}
+          onClose={handleCloseForm}
+        />
+      )}
     </div>
+  );
+}
+
+// Inline Form Components for immediate functionality
+const categoryFormSchema = z.object({
+  name: z.string().min(1, "Tên danh mục là bắt buộc"),
+  description: z.string().optional(),
+  keywords: z.array(z.string()).optional(),
+});
+
+type CategoryFormData = z.infer<typeof categoryFormSchema>;
+
+function KnowledgeCategoryFormDialog({ category, onClose }: { category: KnowledgeCategory | null, onClose: () => void }) {
+  const { toast } = useToast();
+  const [keywordInput, setKeywordInput] = useState("");
+  const isEditing = !!category;
+
+  const form = useForm<CategoryFormData>({
+    resolver: zodResolver(categoryFormSchema),
+    defaultValues: {
+      name: category?.name || "",
+      description: category?.description || "",
+      keywords: category?.keywords || [],
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (data: CategoryFormData) => {
+      const url = isEditing
+        ? `/api/knowledge/categories/${category!.id}`
+        : "/api/knowledge/categories";
+      const method = isEditing ? "PUT" : "POST";
+      
+      await apiRequest(method, url, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/categories"] });
+      toast({
+        title: "Thành công",
+        description: isEditing ? "Đã cập nhật danh mục" : "Đã tạo danh mục mới",
+      });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể lưu danh mục",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddKeyword = () => {
+    if (keywordInput.trim()) {
+      const currentKeywords = form.getValues("keywords") || [];
+      if (!currentKeywords.includes(keywordInput.trim())) {
+        form.setValue("keywords", [...currentKeywords, keywordInput.trim()]);
+      }
+      setKeywordInput("");
+    }
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    const currentKeywords = form.getValues("keywords") || [];
+    form.setValue("keywords", currentKeywords.filter(k => k !== keyword));
+  };
+
+  const onSubmit = (data: CategoryFormData) => {
+    mutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? "Chỉnh sửa Danh mục" : "Thêm Danh mục mới"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tên danh mục *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nhập tên danh mục" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="description"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Mô tả</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Nhập mô tả danh mục"
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Từ khóa</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Nhập từ khóa"
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddKeyword())}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddKeyword}
+                        >
+                          Thêm
+                        </Button>
+                      </div>
+                      {field.value && field.value.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {field.value.map((keyword, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {keyword}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleRemoveKeyword(keyword)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const articleFormSchema = z.object({
+  categoryId: z.string().min(1, "Danh mục là bắt buộc"),
+  title: z.string().min(1, "Tiêu đề là bắt buộc"),
+  content: z.string().min(1, "Nội dung là bắt buộc"),
+  keywords: z.array(z.string()).optional(),
+});
+
+type ArticleFormData = z.infer<typeof articleFormSchema>;
+
+function KnowledgeArticleFormDialog({ 
+  article, 
+  categories, 
+  onClose 
+}: { 
+  article: KnowledgeArticle | null;
+  categories: KnowledgeCategory[];
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const [keywordInput, setKeywordInput] = useState("");
+  const isEditing = !!article;
+
+  const form = useForm<ArticleFormData>({
+    resolver: zodResolver(articleFormSchema),
+    defaultValues: {
+      categoryId: article?.categoryId || "",
+      title: article?.title || "",
+      content: article?.content || "",
+      keywords: article?.keywords || [],
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (data: ArticleFormData) => {
+      const url = isEditing
+        ? `/api/knowledge/articles/${article!.id}`
+        : "/api/knowledge/articles";
+      const method = isEditing ? "PUT" : "POST";
+      
+      await apiRequest(method, url, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/articles"] });
+      toast({
+        title: "Thành công",
+        description: isEditing ? "Đã cập nhật bài viết" : "Đã tạo bài viết mới",
+      });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể lưu bài viết",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddKeyword = () => {
+    if (keywordInput.trim()) {
+      const currentKeywords = form.getValues("keywords") || [];
+      if (!currentKeywords.includes(keywordInput.trim())) {
+        form.setValue("keywords", [...currentKeywords, keywordInput.trim()]);
+      }
+      setKeywordInput("");
+    }
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    const currentKeywords = form.getValues("keywords") || [];
+    form.setValue("keywords", currentKeywords.filter(k => k !== keyword));
+  };
+
+  const onSubmit = (data: ArticleFormData) => {
+    mutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? "Chỉnh sửa Bài viết" : "Thêm Bài viết mới"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Danh mục *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn danh mục" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="title"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Tiêu đề *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Nhập tiêu đề bài viết" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="content"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nội dung *</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Nhập nội dung bài viết chi tiết..."
+                      className="min-h-[200px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Từ khóa</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Nhập từ khóa"
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddKeyword())}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddKeyword}
+                        >
+                          Thêm
+                        </Button>
+                      </div>
+                      {field.value && field.value.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {field.value.map((keyword, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {keyword}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleRemoveKeyword(keyword)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+const faqFormSchema = z.object({
+  categoryId: z.string().min(1, "Danh mục là bắt buộc"),
+  question: z.string().min(1, "Câu hỏi là bắt buộc"),
+  answer: z.string().min(1, "Câu trả lời là bắt buộc"),
+  keywords: z.array(z.string()).optional(),
+});
+
+type FaqFormData = z.infer<typeof faqFormSchema>;
+
+function FaqItemFormDialog({ 
+  faq, 
+  categories, 
+  onClose 
+}: { 
+  faq: FaqItem | null;
+  categories: KnowledgeCategory[];
+  onClose: () => void;
+}) {
+  const { toast } = useToast();
+  const [keywordInput, setKeywordInput] = useState("");
+  const isEditing = !!faq;
+
+  const form = useForm<FaqFormData>({
+    resolver: zodResolver(faqFormSchema),
+    defaultValues: {
+      categoryId: faq?.categoryId || "",
+      question: faq?.question || "",
+      answer: faq?.answer || "",
+      keywords: faq?.keywords || [],
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: async (data: FaqFormData) => {
+      const url = isEditing
+        ? `/api/knowledge/faqs/${faq!.id}`
+        : "/api/knowledge/faqs";
+      const method = isEditing ? "PUT" : "POST";
+      
+      await apiRequest(method, url, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/knowledge/faqs"] });
+      toast({
+        title: "Thành công",
+        description: isEditing ? "Đã cập nhật câu hỏi" : "Đã tạo câu hỏi mới",
+      });
+      onClose();
+    },
+    onError: () => {
+      toast({
+        title: "Lỗi",
+        description: "Không thể lưu câu hỏi",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddKeyword = () => {
+    if (keywordInput.trim()) {
+      const currentKeywords = form.getValues("keywords") || [];
+      if (!currentKeywords.includes(keywordInput.trim())) {
+        form.setValue("keywords", [...currentKeywords, keywordInput.trim()]);
+      }
+      setKeywordInput("");
+    }
+  };
+
+  const handleRemoveKeyword = (keyword: string) => {
+    const currentKeywords = form.getValues("keywords") || [];
+    form.setValue("keywords", currentKeywords.filter(k => k !== keyword));
+  };
+
+  const onSubmit = (data: FaqFormData) => {
+    mutation.mutate(data);
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>
+            {isEditing ? "Chỉnh sửa Câu hỏi FAQ" : "Thêm Câu hỏi FAQ mới"}
+          </DialogTitle>
+        </DialogHeader>
+
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Danh mục *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn danh mục" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {categories.map((category) => (
+                        <SelectItem key={category.id} value={category.id}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="question"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Câu hỏi *</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Nhập câu hỏi thường gặp..."
+                      className="min-h-[80px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="answer"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Câu trả lời *</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Nhập câu trả lời chi tiết..."
+                      className="min-h-[120px]"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="keywords"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Từ khóa</FormLabel>
+                  <FormControl>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Nhập từ khóa"
+                          value={keywordInput}
+                          onChange={(e) => setKeywordInput(e.target.value)}
+                          onKeyPress={(e) => e.key === "Enter" && (e.preventDefault(), handleAddKeyword())}
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={handleAddKeyword}
+                        >
+                          Thêm
+                        </Button>
+                      </div>
+                      {field.value && field.value.length > 0 && (
+                        <div className="flex flex-wrap gap-2">
+                          {field.value.map((keyword, index) => (
+                            <Badge
+                              key={index}
+                              variant="secondary"
+                              className="flex items-center gap-1"
+                            >
+                              {keyword}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-auto p-0 text-muted-foreground hover:text-destructive"
+                                onClick={() => handleRemoveKeyword(keyword)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="flex justify-end gap-2 pt-4">
+              <Button type="button" variant="outline" onClick={onClose}>
+                Hủy
+              </Button>
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? "Đang lưu..." : (isEditing ? "Cập nhật" : "Tạo mới")}
+              </Button>
+            </div>
+          </form>
+        </Form>
+      </DialogContent>
+    </Dialog>
   );
 }
