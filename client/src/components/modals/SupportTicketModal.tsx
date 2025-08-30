@@ -139,7 +139,7 @@ export default function SupportTicketModal({
             throw new Error(`Failed to upload image: ${uploadResult.status}`);
           }
           
-          imageUrl = uploadURL.split("?")[0]; // Remove query parameters
+          imageUrl = uploadURL ? uploadURL.split("?")[0] : ""; // Remove query parameters
           console.log("Image uploaded successfully, URL:", imageUrl);
         } catch (error) {
           console.error("Error uploading image:", error);
