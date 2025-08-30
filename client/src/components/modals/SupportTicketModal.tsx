@@ -46,7 +46,7 @@ interface SupportTicketModalProps {
 }
 
 const branches = [
-  "Bồ Báo Tân Thắng",
+  "Bờ Bao Tân Thắng",
   "Tỉnh Lộ 10",
   "Huỳnh Thiện Lộc",
   "Nguyễn Văn Lương",
