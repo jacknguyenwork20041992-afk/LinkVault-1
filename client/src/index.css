@@ -16,7 +16,7 @@
   --muted: hsl(220 27% 96%);
   --muted-foreground: hsl(220 10% 45%);
   --accent: linear-gradient(135deg, hsl(14 88% 55%) 0%, hsl(14 88% 50%) 100%);
-  --accent-foreground: hsl(0 0% 100%);
+  --accent-foreground: hsl(220 39% 11%);
   --destructive: hsl(0 72% 51%);
   --destructive-foreground: hsl(0 0% 100%);
   --border: hsl(220 27% 88%);
@@ -68,7 +68,7 @@
   --muted: hsl(213 31% 12%);
   --muted-foreground: hsl(213 10% 55%);
   --accent: hsl(145 63% 49%);
-  --accent-foreground: hsl(0 0% 100%);
+  --accent-foreground: hsl(213 6% 91%);
   --destructive: hsl(0 72% 51%);
   --destructive-foreground: hsl(0 0% 100%);
   --border: hsl(213 31% 15%);
@@ -317,4 +317,19 @@
 .dark .vibrant-card {
   background: linear-gradient(145deg, #1e293b 0%, #0f172a 100%);
   border-color: rgba(59, 130, 246, 0.2);
+}
+
+/* Fix select dropdown text visibility */
+[data-radix-select-content] {
+  background: hsl(var(--popover)) !important;
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+[data-radix-select-item] {
+  color: hsl(var(--popover-foreground)) !important;
+}
+
+[data-radix-select-item][data-highlighted] {
+  background-color: hsl(var(--accent)) !important;
+  color: hsl(var(--accent-foreground)) !important;
 }
