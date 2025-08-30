@@ -118,7 +118,7 @@ export default function SupportTicketModal({
         try {
           // Get upload URL from backend
           const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-          const { uploadURL } = uploadResponse as { uploadURL: string };
+          const { uploadURL } = uploadResponse as any;
           
           // Upload image to object storage
           const uploadResult = await fetch(uploadURL, {
@@ -362,6 +362,7 @@ export default function SupportTicketModal({
                     <Input
                       placeholder="https://..."
                       {...field}
+                      value={field.value || ""}
                       data-testid="input-document-link"
                     />
                   </FormControl>

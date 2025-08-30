@@ -968,7 +968,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Object Storage Routes
   // Upload URL endpoint
-  app.post("/api/objects/upload", isAuthenticated, isAdmin, async (req, res) => {
+  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
@@ -1298,6 +1298,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin endpoint for support tickets
+  app.get("/api/admin/support-tickets", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const tickets = await storage.getAllSupportTickets();
+      res.json(tickets);
+    } catch (error) {
+      console.error("Error fetching admin support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
   app.get("/api/support-tickets/:id", isAuthenticated, async (req: any, res) => {
     try {
       const { id } = req.params;
@@ -1382,6 +1393,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting support ticket:", error);
       res.status(500).json({ message: "Failed to delete support ticket" });
+    }
+  });
+
+  // Support ticket status update (for admin)
+  app.put("/api/support-tickets/:id/status", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      
+      const ticket = await storage.getSupportTicket(id);
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      const updatedTicket = await storage.updateSupportTicket(id, { status });
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Error updating support ticket status:", error);
+      res.status(500).json({ message: "Failed to update support ticket status" });
+    }
+  });
+
+  // Support ticket respond endpoint (for admin)
+  app.post("/api/support-tickets/:ticketId/respond", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { ticketId } = req.params;
+      const { response } = req.body;
+      const user = req.user;
+      
+      // Check if ticket exists
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      const responseData = insertSupportResponseSchema.parse({
+        response,
+        ticketId,
+        responderId: user.id,
+        isInternal: false
+      });
+      
+      const supportResponse = await storage.createSupportResponse(responseData);
+      
+      // Update ticket status to in_progress if it was open
+      if (ticket.status === "open") {
+        await storage.updateSupportTicket(ticketId, { status: "in_progress" });
+      }
+      
+      res.json(supportResponse);
+    } catch (error) {
+      console.error("Error creating support response:", error);
+      if (error.name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      } else {
+        res.status(500).json({ message: "Failed to create support response" });
+      }
+    }
+  });
+
+  // Get responses for a support ticket
+  app.get("/api/support-tickets/:ticketId/responses", isAuthenticated, async (req: any, res) => {
+    try {
+      const { ticketId } = req.params;
+      const user = req.user;
+      
+      // Check if ticket exists and user has access
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      // Check permissions - admin can see all, users can only see their own
+      if (user.role !== "admin" && ticket.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const responses = await storage.getSupportResponsesByTicket(ticketId);
+      res.json(responses);
+    } catch (error) {
+      console.error("Error fetching support responses:", error);
+      res.status(500).json({ message: "Failed to fetch support responses" });
     }
   });
 
