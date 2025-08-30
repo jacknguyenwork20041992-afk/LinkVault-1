@@ -1339,10 +1339,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Convert issueDate string to Date object if provided
       const requestData = { ...req.body };
+      console.log("Original issueDate:", requestData.issueDate, typeof requestData.issueDate);
       if (requestData.issueDate && typeof requestData.issueDate === 'string') {
         requestData.issueDate = new Date(requestData.issueDate);
+        console.log("Converted issueDate:", requestData.issueDate);
       }
       
+      console.log("Final request data before validation:", requestData);
       const ticketData = insertSupportTicketSchema.parse({
         ...requestData,
         userId: user.id,
