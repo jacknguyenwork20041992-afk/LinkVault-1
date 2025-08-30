@@ -212,7 +212,7 @@ export const trainingFiles = pgTable("training_files", {
 export const supportTickets = pgTable("support_tickets", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
-  issueDate: timestamp("issue_date").notNull(),
+  issueDate: timestamp("issue_date", { mode: "string" }).notNull(),
   branch: varchar("branch").notNull(), // Chi nhánh
   classLevel: varchar("class_level").notNull(), // Cấp độ lớp học
   description: text("description").notNull(), // Mô tả vấn đề

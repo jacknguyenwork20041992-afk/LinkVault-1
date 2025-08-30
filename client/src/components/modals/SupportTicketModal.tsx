@@ -119,7 +119,9 @@ export default function SupportTicketModal({
           console.log("Getting upload URL...");
           // Get upload URL from backend
           const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-          const { uploadURL } = uploadResponse as any;
+          const responseData = await uploadResponse.json();
+          console.log("Upload response data:", responseData);
+          const { uploadURL } = responseData;
           console.log("Upload URL received:", uploadURL);
           
           // Upload image to object storage
