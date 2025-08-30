@@ -455,6 +455,8 @@ export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  issueDate: z.string(), // Force string type
 });
 
 export const insertSupportResponseSchema = createInsertSchema(supportResponses).omit({
