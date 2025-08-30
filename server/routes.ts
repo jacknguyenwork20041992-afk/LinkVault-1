@@ -974,6 +974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       console.log("Upload URL generated:", uploadURL);
+      console.log("Sending response:", { uploadURL });
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
@@ -1337,15 +1338,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = req.user;
       
-      // Convert issueDate string to Date object if provided
+      // issueDate is already a string from frontend, no conversion needed
       const requestData = { ...req.body };
-      console.log("Original issueDate:", requestData.issueDate, typeof requestData.issueDate);
-      if (requestData.issueDate && typeof requestData.issueDate === 'string') {
-        requestData.issueDate = new Date(requestData.issueDate);
-        console.log("Converted issueDate:", requestData.issueDate);
-      }
+      console.log("Request data:", requestData);
       
-      console.log("Final request data before validation:", requestData);
       const ticketData = insertSupportTicketSchema.parse({
         ...requestData,
         userId: user.id,
