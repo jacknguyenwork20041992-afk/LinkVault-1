@@ -1334,8 +1334,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/support-tickets", isAuthenticated, async (req: any, res) => {
     try {
       const user = req.user;
+      
+      // Convert issueDate string to Date object if provided
+      const requestData = { ...req.body };
+      if (requestData.issueDate && typeof requestData.issueDate === 'string') {
+        requestData.issueDate = new Date(requestData.issueDate);
+      }
+      
       const ticketData = insertSupportTicketSchema.parse({
-        ...req.body,
+        ...requestData,
         userId: user.id,
       });
       
