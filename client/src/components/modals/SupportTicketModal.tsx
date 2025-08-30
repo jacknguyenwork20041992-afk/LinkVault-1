@@ -46,16 +46,19 @@ interface SupportTicketModalProps {
 }
 
 const branches = [
-  "Hà Nội",
-  "Hồ Chí Minh",
-  "Đà Nẵng",
-  "Hải Phòng",
-  "Cần Thơ",
-  "Nha Trang",
-  "Huế",
-  "Vinh",
-  "Nam Định",
-  "Thái Nguyên",
+  "Bồ Báo Tân Thắng",
+  "Tỉnh Lộ 10",
+  "Huỳnh Thiện Lộc",
+  "Nguyễn Văn Lương",
+  "Bùi Đình Túy",
+  "Hồng Hà",
+  "Đại Thanh",
+  "Gamuda",
+  "Ocean Park",
+  "Hà Huy Tập",
+  "Nguyễn Tri Phương",
+  "Phú Đông",
+  "Thủ Dầu Một",
 ];
 
 const classLevels = [
