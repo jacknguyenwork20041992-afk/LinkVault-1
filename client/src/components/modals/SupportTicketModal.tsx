@@ -148,11 +148,13 @@ export default function SupportTicketModal({
       }
       
       // Create support ticket
-      console.log("Creating support ticket with data:", { ...data, imageUrl });
-      await apiRequest("POST", "/api/support-tickets", {
+      const requestData = {
         ...data,
+        issueDate: data.issueDate.toISOString(), // Convert Date to string
         imageUrl: imageUrl || undefined,
-      });
+      };
+      console.log("Creating support ticket with data:", requestData);
+      await apiRequest("POST", "/api/support-tickets", requestData);
       console.log("Support ticket created successfully");
     },
     onSuccess: () => {
