@@ -98,7 +98,7 @@ export default function SupportTicketModal({
   const form = useForm<SupportTicketFormData>({
     resolver: zodResolver(supportTicketFormSchema),
     defaultValues: {
-      issueDate: new Date(),
+      issueDate: new Date().toISOString().split('T')[0],
       branch: "",
       classLevel: "",
       description: "",
@@ -152,7 +152,6 @@ export default function SupportTicketModal({
       // Create support ticket
       const requestData = {
         ...data,
-        issueDate: data.issueDate.toISOString(), // Convert Date to string
         imageUrl: imageUrl || undefined,
       };
       console.log("Creating support ticket with data:", requestData);
