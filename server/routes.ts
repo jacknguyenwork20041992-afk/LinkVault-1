@@ -17,6 +17,8 @@ import {
   insertKnowledgeArticleSchema,
   insertFaqItemSchema,
   insertTrainingFileSchema,
+  insertSupportTicketSchema,
+  insertSupportResponseSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
@@ -1274,6 +1276,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error converting training file to knowledge base:", error);
       res.status(500).json({ message: error.message || "Failed to convert training file" });
+    }
+  });
+
+  // Support ticket routes
+  app.get("/api/support-tickets", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (user.role === "admin") {
+        // Admin can see all tickets
+        const tickets = await storage.getAllSupportTickets();
+        res.json(tickets);
+      } else {
+        // Users can only see their own tickets
+        const tickets = await storage.getSupportTicketsByUser(user.id);
+        res.json(tickets);
+      }
+    } catch (error) {
+      console.error("Error fetching support tickets:", error);
+      res.status(500).json({ message: "Failed to fetch support tickets" });
+    }
+  });
+
+  app.get("/api/support-tickets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      const ticket = await storage.getSupportTicket(id);
+      
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      // Check permissions - admin can see all, users can only see their own
+      if (user.role !== "admin" && ticket.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error fetching support ticket:", error);
+      res.status(500).json({ message: "Failed to fetch support ticket" });
+    }
+  });
+
+  app.post("/api/support-tickets", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      const ticketData = insertSupportTicketSchema.parse({
+        ...req.body,
+        userId: user.id,
+      });
+      
+      const ticket = await storage.createSupportTicket(ticketData);
+      res.json(ticket);
+    } catch (error) {
+      console.error("Error creating support ticket:", error);
+      if (error.name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      } else {
+        res.status(500).json({ message: "Failed to create support ticket" });
+      }
+    }
+  });
+
+  app.put("/api/support-tickets/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      
+      const ticket = await storage.getSupportTicket(id);
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      // Only admin can update ticket status and priority
+      if (user.role !== "admin" && ticket.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      // Users can only update their own tickets and only certain fields
+      let updateData = req.body;
+      if (user.role !== "admin" && ticket.userId === user.id) {
+        // Users can only update description and documentLink
+        updateData = {
+          description: req.body.description,
+          documentLink: req.body.documentLink,
+          imageUrl: req.body.imageUrl
+        };
+      }
+      
+      const updatedTicket = await storage.updateSupportTicket(id, updateData);
+      res.json(updatedTicket);
+    } catch (error) {
+      console.error("Error updating support ticket:", error);
+      res.status(500).json({ message: "Failed to update support ticket" });
+    }
+  });
+
+  app.delete("/api/support-tickets/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSupportTicket(id);
+      res.json({ message: "Support ticket deleted" });
+    } catch (error) {
+      console.error("Error deleting support ticket:", error);
+      res.status(500).json({ message: "Failed to delete support ticket" });
+    }
+  });
+
+  // Support response routes
+  app.post("/api/support-tickets/:ticketId/responses", isAuthenticated, async (req: any, res) => {
+    try {
+      const { ticketId } = req.params;
+      const user = req.user;
+      
+      // Check if ticket exists
+      const ticket = await storage.getSupportTicket(ticketId);
+      if (!ticket) {
+        return res.status(404).json({ message: "Support ticket not found" });
+      }
+
+      // Check permissions - admin can respond, users can only respond to their own tickets
+      if (user.role !== "admin" && ticket.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      const responseData = insertSupportResponseSchema.parse({
+        ...req.body,
+        ticketId,
+        responderId: user.id,
+        isInternal: user.role === "admin" ? req.body.isInternal || false : false
+      });
+      
+      const response = await storage.createSupportResponse(responseData);
+      
+      // If admin responds, update ticket status to in_progress if it was open
+      if (user.role === "admin" && ticket.status === "open") {
+        await storage.updateSupportTicket(ticketId, { status: "in_progress" });
+      }
+      
+      res.json(response);
+    } catch (error) {
+      console.error("Error creating support response:", error);
+      if (error.name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      } else {
+        res.status(500).json({ message: "Failed to create support response" });
+      }
     }
   });
 

@@ -208,6 +208,32 @@ export const trainingFiles = pgTable("training_files", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Support tickets table
+export const supportTickets = pgTable("support_tickets", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  issueDate: timestamp("issue_date").notNull(),
+  branch: varchar("branch").notNull(), // Chi nhánh
+  classLevel: varchar("class_level").notNull(), // Cấp độ lớp học
+  description: text("description").notNull(), // Mô tả vấn đề
+  documentLink: text("document_link"), // Link tài liệu bị vấn đề
+  imageUrl: text("image_url"), // URL hình ảnh upload
+  status: varchar("status").notNull().default("open"), // open, in_progress, resolved, closed
+  priority: varchar("priority").default("normal"), // low, normal, high, urgent
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Support responses table  
+export const supportResponses = pgTable("support_responses", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  ticketId: varchar("ticket_id").references(() => supportTickets.id, { onDelete: "cascade" }).notNull(),
+  responderId: varchar("responder_id").references(() => users.id).notNull(), // Admin responding
+  response: text("response").notNull(),
+  isInternal: boolean("is_internal").default(false), // true for internal admin notes
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -292,6 +318,25 @@ export const faqItemsRelations = relations(faqItems, ({ one }) => ({
   category: one(knowledgeCategories, {
     fields: [faqItems.categoryId],
     references: [knowledgeCategories.id],
+  }),
+}));
+
+export const supportTicketsRelations = relations(supportTickets, ({ one, many }) => ({
+  user: one(users, {
+    fields: [supportTickets.userId],
+    references: [users.id],
+  }),
+  responses: many(supportResponses),
+}));
+
+export const supportResponsesRelations = relations(supportResponses, ({ one }) => ({
+  ticket: one(supportTickets, {
+    fields: [supportResponses.ticketId],
+    references: [supportTickets.id],
+  }),
+  responder: one(users, {
+    fields: [supportResponses.responderId],
+    references: [users.id],
   }),
 }));
 
@@ -406,6 +451,17 @@ export const insertTrainingFileSchema = createInsertSchema(trainingFiles).omit({
   updatedAt: true,
 });
 
+export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportResponseSchema = createInsertSchema(supportResponses).omit({
+  id: true,
+  createdAt: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -445,3 +501,7 @@ export type FaqItem = typeof faqItems.$inferSelect;
 export type InsertFaqItem = z.infer<typeof insertFaqItemSchema>;
 export type TrainingFile = typeof trainingFiles.$inferSelect;
 export type InsertTrainingFile = z.infer<typeof insertTrainingFileSchema>;
+export type SupportTicket = typeof supportTickets.$inferSelect;
+export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
+export type SupportResponse = typeof supportResponses.$inferSelect;
+export type InsertSupportResponse = z.infer<typeof insertSupportResponseSchema>;

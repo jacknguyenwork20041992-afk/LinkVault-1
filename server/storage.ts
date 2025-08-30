@@ -15,6 +15,8 @@ import {
   knowledgeArticles,
   faqItems,
   trainingFiles,
+  supportTickets,
+  supportResponses,
   type User,
   type UpsertUser,
   type Program,
@@ -32,6 +34,8 @@ import {
   type KnowledgeArticle,
   type FaqItem,
   type TrainingFile,
+  type SupportTicket,
+  type SupportResponse,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -47,6 +51,8 @@ import {
   type InsertKnowledgeArticle,
   type InsertFaqItem,
   type InsertTrainingFile,
+  type InsertSupportTicket,
+  type InsertSupportResponse,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -225,6 +231,18 @@ export interface IStorage {
     totalUsers: number;
     unreadNotifications: number;
   }>;
+
+  // Support ticket operations
+  getAllSupportTickets(): Promise<(SupportTicket & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]>;
+  getSupportTicketsByUser(userId: string): Promise<SupportTicket[]>;
+  getSupportTicket(id: string): Promise<(SupportTicket & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'>, responses: (SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[] }) | undefined>;
+  createSupportTicket(ticketData: InsertSupportTicket): Promise<SupportTicket>;
+  updateSupportTicket(id: string, ticketData: Partial<InsertSupportTicket>): Promise<SupportTicket>;
+  deleteSupportTicket(id: string): Promise<void>;
+  
+  // Support response operations
+  createSupportResponse(responseData: InsertSupportResponse): Promise<SupportResponse>;
+  getSupportResponses(ticketId: string): Promise<(SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1186,6 +1204,181 @@ export class DatabaseStorage implements IStorage {
     
     // Limit to first 10 keywords
     return Array.from(keywords).slice(0, 10);
+  }
+
+  // Support ticket operations
+  async getAllSupportTickets(): Promise<(SupportTicket & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]> {
+    return await db
+      .select({
+        id: supportTickets.id,
+        userId: supportTickets.userId,
+        issueDate: supportTickets.issueDate,
+        branch: supportTickets.branch,
+        classLevel: supportTickets.classLevel,
+        description: supportTickets.description,
+        documentLink: supportTickets.documentLink,
+        imageUrl: supportTickets.imageUrl,
+        status: supportTickets.status,
+        priority: supportTickets.priority,
+        createdAt: supportTickets.createdAt,
+        updatedAt: supportTickets.updatedAt,
+        userEmail: users.email,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userIdJoined: users.id,
+      })
+      .from(supportTickets)
+      .innerJoin(users, eq(supportTickets.userId, users.id))
+      .orderBy(desc(supportTickets.createdAt))
+      .then(results => results.map(row => ({
+        id: row.id,
+        userId: row.userId,
+        issueDate: row.issueDate,
+        branch: row.branch,
+        classLevel: row.classLevel,
+        description: row.description,
+        documentLink: row.documentLink,
+        imageUrl: row.imageUrl,
+        status: row.status,
+        priority: row.priority,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        user: {
+          id: row.userIdJoined,
+          email: row.userEmail,
+          firstName: row.userFirstName,
+          lastName: row.userLastName,
+        }
+      })));
+  }
+
+  async getSupportTicketsByUser(userId: string): Promise<SupportTicket[]> {
+    return await db
+      .select()
+      .from(supportTickets)
+      .where(eq(supportTickets.userId, userId))
+      .orderBy(desc(supportTickets.createdAt));
+  }
+
+  async getSupportTicket(id: string): Promise<(SupportTicket & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'>, responses: (SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[] }) | undefined> {
+    // Get ticket with user info
+    const ticketResult = await db
+      .select({
+        id: supportTickets.id,
+        userId: supportTickets.userId,
+        issueDate: supportTickets.issueDate,
+        branch: supportTickets.branch,
+        classLevel: supportTickets.classLevel,
+        description: supportTickets.description,
+        documentLink: supportTickets.documentLink,
+        imageUrl: supportTickets.imageUrl,
+        status: supportTickets.status,
+        priority: supportTickets.priority,
+        createdAt: supportTickets.createdAt,
+        updatedAt: supportTickets.updatedAt,
+        userEmail: users.email,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userIdJoined: users.id,
+      })
+      .from(supportTickets)
+      .innerJoin(users, eq(supportTickets.userId, users.id))
+      .where(eq(supportTickets.id, id));
+
+    if (ticketResult.length === 0) {
+      return undefined;
+    }
+
+    const ticket = ticketResult[0];
+
+    // Get responses for this ticket
+    const responses = await this.getSupportResponses(id);
+
+    return {
+      id: ticket.id,
+      userId: ticket.userId,
+      issueDate: ticket.issueDate,
+      branch: ticket.branch,
+      classLevel: ticket.classLevel,
+      description: ticket.description,
+      documentLink: ticket.documentLink,
+      imageUrl: ticket.imageUrl,
+      status: ticket.status,
+      priority: ticket.priority,
+      createdAt: ticket.createdAt,
+      updatedAt: ticket.updatedAt,
+      user: {
+        id: ticket.userIdJoined,
+        email: ticket.userEmail,
+        firstName: ticket.userFirstName,
+        lastName: ticket.userLastName,
+      },
+      responses
+    };
+  }
+
+  async createSupportTicket(ticketData: InsertSupportTicket): Promise<SupportTicket> {
+    const [ticket] = await db
+      .insert(supportTickets)
+      .values(ticketData)
+      .returning();
+    return ticket;
+  }
+
+  async updateSupportTicket(id: string, ticketData: Partial<InsertSupportTicket>): Promise<SupportTicket> {
+    const [ticket] = await db
+      .update(supportTickets)
+      .set({ ...ticketData, updatedAt: new Date() })
+      .where(eq(supportTickets.id, id))
+      .returning();
+    return ticket;
+  }
+
+  async deleteSupportTicket(id: string): Promise<void> {
+    await db.delete(supportTickets).where(eq(supportTickets.id, id));
+  }
+
+  // Support response operations
+  async createSupportResponse(responseData: InsertSupportResponse): Promise<SupportResponse> {
+    const [response] = await db
+      .insert(supportResponses)
+      .values(responseData)
+      .returning();
+    return response;
+  }
+
+  async getSupportResponses(ticketId: string): Promise<(SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]> {
+    return await db
+      .select({
+        id: supportResponses.id,
+        ticketId: supportResponses.ticketId,
+        responderId: supportResponses.responderId,
+        response: supportResponses.response,
+        isInternal: supportResponses.isInternal,
+        createdAt: supportResponses.createdAt,
+        responderEmail: users.email,
+        responderFirstName: users.firstName,
+        responderLastName: users.lastName,
+        responderIdJoined: users.id,
+      })
+      .from(supportResponses)
+      .innerJoin(users, eq(supportResponses.responderId, users.id))
+      .where(eq(supportResponses.ticketId, ticketId))
+      .orderBy(supportResponses.createdAt)
+      .then(results => results.map(row => ({
+        id: row.id,
+        ticketId: row.ticketId,
+        responderId: row.responderId,
+        response: row.response,
+        isInternal: row.isInternal,
+        createdAt: row.createdAt,
+        responder: {
+          id: row.responderIdJoined,
+          email: row.responderEmail,
+          firstName: row.responderFirstName,
+          lastName: row.responderLastName,
+        }
+      })));
   }
 }
 

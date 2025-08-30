@@ -15,6 +15,7 @@ import ImportantDocumentsTable from "@/components/ImportantDocumentsTable";
 import AccountsTable from "@/components/AccountsTable";
 import KnowledgeBasePage from "@/pages/admin/knowledge-base";
 import TrainingFilesPage from "@/pages/admin/training-files";
+import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Home, Menu } from "lucide-react";
@@ -78,6 +79,8 @@ export default function Admin() {
         return <KnowledgeBasePage />;
       case "training-files":
         return <TrainingFilesPage />;
+      case "support-tickets":
+        return <SupportTicketsManagement />;
       default:
         return <AdminDashboard />;
     }
@@ -109,6 +112,8 @@ export default function Admin() {
         return "Cơ sở kiến thức AI";
       case "training-files":
         return "File Training AI";
+      case "support-tickets":
+        return "Quản lý yêu cầu hỗ trợ";
       default:
         return "Dashboard";
     }
