@@ -116,11 +116,14 @@ export default function SupportTicketModal({
       // Upload image if selected
       if (selectedImage) {
         try {
+          console.log("Getting upload URL...");
           // Get upload URL from backend
           const uploadResponse = await apiRequest("POST", "/api/objects/upload");
           const { uploadURL } = uploadResponse as any;
+          console.log("Upload URL received:", uploadURL);
           
           // Upload image to object storage
+          console.log("Uploading image to storage...");
           const uploadResult = await fetch(uploadURL, {
             method: "PUT",
             body: selectedImage,
@@ -129,22 +132,28 @@ export default function SupportTicketModal({
             },
           });
           
+          console.log("Upload result status:", uploadResult.status);
           if (!uploadResult.ok) {
-            throw new Error("Failed to upload image");
+            const errorText = await uploadResult.text();
+            console.error("Upload failed with:", errorText);
+            throw new Error(`Failed to upload image: ${uploadResult.status}`);
           }
           
           imageUrl = uploadURL.split("?")[0]; // Remove query parameters
+          console.log("Image uploaded successfully, URL:", imageUrl);
         } catch (error) {
           console.error("Error uploading image:", error);
-          throw new Error("Failed to upload image");
+          throw error; // Re-throw original error instead of generic one
         }
       }
       
       // Create support ticket
+      console.log("Creating support ticket with data:", { ...data, imageUrl });
       await apiRequest("POST", "/api/support-tickets", {
         ...data,
         imageUrl: imageUrl || undefined,
       });
+      console.log("Support ticket created successfully");
     },
     onSuccess: () => {
       toast({
