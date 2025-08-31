@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   Search,
   Filter,
+  X,
 } from "lucide-react";
 import {
   Dialog,
@@ -227,64 +228,62 @@ export default function SupportTicketsManagement() {
         </div>
       </div>
 
-      {/* Filters */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Filter className="h-5 w-5" />
-            Bộ lọc
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Tìm kiếm..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-                data-testid="input-search-tickets"
-              />
-            </div>
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger data-testid="select-status-filter">
-                <SelectValue placeholder="Trạng thái" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả trạng thái</SelectItem>
-                <SelectItem value="open">Đang mở</SelectItem>
-                <SelectItem value="in_progress">Đang xử lý</SelectItem>
-                <SelectItem value="resolved">Đã giải quyết</SelectItem>
-                <SelectItem value="closed">Đã đóng</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={setPriorityFilter}>
-              <SelectTrigger data-testid="select-priority-filter">
-                <SelectValue placeholder="Độ ưu tiên" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
-                <SelectItem value="low">Thấp</SelectItem>
-                <SelectItem value="normal">Bình thường</SelectItem>
-                <SelectItem value="high">Cao</SelectItem>
-                <SelectItem value="urgent">Khẩn cấp</SelectItem>
-              </SelectContent>
-            </Select>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setSearchTerm("");
-                setStatusFilter("all");
-                setPriorityFilter("all");
-              }}
-              data-testid="button-clear-filters"
-            >
-              Xóa bộ lọc
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Search and Filters */}
+      <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <Input
+            placeholder="Tìm kiếm theo nội dung, chi nhánh, lớp..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+            data-testid="input-search-tickets"
+          />
+        </div>
+        
+        <div className="flex flex-wrap gap-3 items-center">
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[140px]" data-testid="select-status-filter">
+              <SelectValue placeholder="Trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả trạng thái</SelectItem>
+              <SelectItem value="open">Đang mở</SelectItem>
+              <SelectItem value="in_progress">Đang xử lý</SelectItem>
+              <SelectItem value="resolved">Đã giải quyết</SelectItem>
+              <SelectItem value="closed">Đã đóng</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={priorityFilter} onValueChange={setPriorityFilter}>
+            <SelectTrigger className="w-[140px]" data-testid="select-priority-filter">
+              <SelectValue placeholder="Độ ưu tiên" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả độ ưu tiên</SelectItem>
+              <SelectItem value="low">Thấp</SelectItem>
+              <SelectItem value="normal">Bình thường</SelectItem>
+              <SelectItem value="high">Cao</SelectItem>
+              <SelectItem value="urgent">Khẩn cấp</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setSearchTerm("");
+              setStatusFilter("all");
+              setPriorityFilter("all");
+            }}
+            data-testid="button-clear-filters"
+            className="flex items-center gap-1"
+          >
+            <X className="h-4 w-4" />
+            Xóa bộ lọc
+          </Button>
+        </div>
+      </div>
 
       {/* Tickets Table */}
       <Card>
