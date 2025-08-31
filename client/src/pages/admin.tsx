@@ -28,16 +28,21 @@ export default function Admin() {
   const [activeView, setActiveView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Fetch unread notifications for admin
-  const { data: notifications = [] } = useQuery({
+  // Fetch unread support ticket notifications for admin
+  const { data: allNotifications = [] } = useQuery({
     queryKey: ["/api/notifications/unread"],
     enabled: isAuthenticated && user?.role === "admin",
   });
 
+  // Chỉ lấy thông báo "Yêu cầu hỗ trợ mới"
+  const supportTicketNotifications = allNotifications.filter((notification: any) => 
+    notification.title === "Yêu cầu hỗ trợ mới"
+  );
+
   const handleNotificationBellClick = async () => {
     // Đánh dấu tất cả thông báo support ticket đã đọc
     try {
-      for (const notification of notifications) {
+      for (const notification of supportTicketNotifications) {
         await fetch(`/api/notifications/${notification.id}/read`, {
           method: 'PUT',
           credentials: 'include'
@@ -190,12 +195,12 @@ export default function Admin() {
                   data-testid="button-admin-notifications"
                 >
                   <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
-                  {notifications.length > 0 && (
+                  {supportTicketNotifications.length > 0 && (
                     <span 
                       className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
                       data-testid="text-admin-notification-count"
                     >
-                      {notifications.length}
+                      {supportTicketNotifications.length}
                     </span>
                   )}
                 </button>
