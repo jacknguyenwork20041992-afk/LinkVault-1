@@ -1315,7 +1315,7 @@ export class DatabaseStorage implements IStorage {
       classLevel: ticket.classLevel,
       description: ticket.description,
       documentLink: ticket.documentLink,
-      imageUrl: ticket.imageUrl,
+      imageUrls: ticket.imageUrls,
       status: ticket.status,
       priority: ticket.priority,
       createdAt: ticket.createdAt,
