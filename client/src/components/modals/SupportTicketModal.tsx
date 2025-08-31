@@ -166,6 +166,8 @@ export default function SupportTicketModal({
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
       // Invalidate admin cache để admin thấy ticket mới
       queryClient.invalidateQueries({ queryKey: ["/api/admin/support-tickets"] });
+      // Invalidate notifications để admin bell update ngay lập tức
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
       handleClose();
     },
     onError: (error) => {
