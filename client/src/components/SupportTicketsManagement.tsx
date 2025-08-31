@@ -295,7 +295,7 @@ export default function SupportTicketsManagement() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full">
+              <table className="w-full min-w-max">
                 <thead className="bg-muted/50">
                   <tr>
                     <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Người gửi</th>
@@ -305,7 +305,7 @@ export default function SupportTicketsManagement() {
                     <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Trạng thái</th>
                     <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Độ ưu tiên</th>
                     <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Ngày tạo</th>
-                    <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+                    <th className="text-left py-3 px-6 text-sm font-medium text-foreground w-32 min-w-[120px]">Thao tác</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -333,14 +333,15 @@ export default function SupportTicketsManagement() {
                       <td className="py-4 px-6 text-muted-foreground">
                         {new Date(ticket.createdAt).toLocaleDateString("vi-VN")}
                       </td>
-                      <td className="py-4 px-6">
+                      <td className="py-4 px-6 w-32 min-w-[120px]">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewTicket(ticket)}
                           data-testid={`button-view-ticket-${ticket.id}`}
+                          className="flex items-center gap-1 whitespace-nowrap"
                         >
-                          <Eye className="h-4 w-4 mr-1" />
+                          <Eye className="h-4 w-4" />
                           Xem
                         </Button>
                       </td>
