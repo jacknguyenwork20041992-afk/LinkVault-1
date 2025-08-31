@@ -35,13 +35,9 @@ export default function Admin() {
   });
 
   // Chỉ lấy thông báo "Yêu cầu hỗ trợ mới" 
-  const supportTicketNotifications = allNotifications.filter((notification: any) => 
-    notification.title === "Yêu cầu hỗ trợ mới"
+  const supportTicketNotifications = allNotifications.filter((item: any) => 
+    item.notification?.title === "Yêu cầu hỗ trợ mới"
   );
-
-  // Debug: Log thông báo để kiểm tra
-  console.log("All notifications:", allNotifications);
-  console.log("Support ticket notifications:", supportTicketNotifications);
 
   const handleNotificationBellClick = async () => {
     // Đánh dấu tất cả thông báo support ticket đã đọc
