@@ -9,7 +9,11 @@ import CreateNotificationModal from "@/components/modals/CreateNotificationModal
 import { apiRequest } from "@/lib/queryClient";
 import type { Notification } from "@shared/schema";
 
-export default function NotificationsManagement() {
+interface NotificationsManagementProps {
+  onViewChange?: (view: string) => void;
+}
+
+export default function NotificationsManagement({ onViewChange }: NotificationsManagementProps) {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
@@ -61,6 +65,13 @@ export default function NotificationsManagement() {
   const handleDelete = (id: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa thông báo này?")) {
       deleteMutation.mutate(id);
+    }
+  };
+
+  const handleNotificationClick = (notification: any) => {
+    // Nếu là thông báo support ticket, chuyển đến trang support-tickets
+    if (notification.title === "Yêu cầu hỗ trợ mới" && onViewChange) {
+      onViewChange("support-tickets");
     }
   };
 
@@ -188,7 +199,12 @@ export default function NotificationsManagement() {
             return (
             <div 
               key={notification.id} 
-              className="bg-card border border-border rounded-lg p-6"
+              className={`bg-card border border-border rounded-lg p-6 ${
+                notification.title === "Yêu cầu hỗ trợ mới" 
+                  ? "cursor-pointer hover:bg-accent/50 transition-colors" 
+                  : ""
+              }`}
+              onClick={() => handleNotificationClick(notification)}
               data-testid={`notification-${notification.id}`}
             >
               <div className="flex justify-between items-start">

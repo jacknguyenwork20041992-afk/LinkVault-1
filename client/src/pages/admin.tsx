@@ -77,7 +77,7 @@ export default function Admin() {
       case "users":
         return <UsersManagement />;
       case "notifications":
-        return <NotificationsManagement />;
+        return <NotificationsManagement onViewChange={setActiveView} />;
       case "activities":
         return <ActivityDashboard />;
       case "accounts":
