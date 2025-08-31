@@ -19,7 +19,8 @@ import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Home, Menu, Bell } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
+import { Home, Menu, Bell, Clock, User, CheckCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Admin() {
@@ -50,8 +51,28 @@ export default function Admin() {
   // Tổng số notifications
   const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
 
-  const handleNotificationBellClick = async () => {
-    // Đánh dấu tất cả thông báo đã đọc
+  const handleNotificationClick = async (notification: any) => {
+    // Đánh dấu notification đã đọc
+    try {
+      await fetch(`/api/notifications/${notification.notification.id}/read`, {
+        method: 'PUT',
+        credentials: 'include'
+      });
+      // Invalidate queries để refresh notifications
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
+
+    // Navigate dựa trên loại notification
+    if (notification.notification?.title === "Yêu cầu hỗ trợ mới") {
+      setActiveView("support-tickets");
+    } else if (notification.notification?.title === "Yêu cầu tài khoản SWE mới") {
+      setActiveView("account-requests");
+    }
+  };
+
+  const handleMarkAllAsRead = async () => {
     try {
       const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications];
       for (const item of allUnreadNotifications) {
@@ -64,14 +85,6 @@ export default function Admin() {
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
     } catch (error) {
       console.error('Error marking notifications as read:', error);
-    }
-
-    // Smart routing: chuyển đến section có nhiều notifications nhất
-    // Nếu bằng nhau thì ưu tiên support tickets
-    if (accountRequestNotifications.length > supportTicketNotifications.length) {
-      setActiveView("account-requests");
-    } else {
-      setActiveView("support-tickets");
     }
   };
 
@@ -210,22 +223,111 @@ export default function Admin() {
                 <h2 className="text-lg sm:text-xl font-semibold text-white">{getTitle()}</h2>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Admin Notification Bell */}
-                <button 
-                  onClick={handleNotificationBellClick}
-                  className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
-                  data-testid="button-admin-notifications"
-                >
-                  <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
-                  {totalNotifications > 0 && (
-                    <span 
-                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
-                      data-testid="text-admin-notification-count"
+                {/* Admin Notification Dropdown */}
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <button 
+                      className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
+                      data-testid="button-admin-notifications"
                     >
-                      {totalNotifications}
-                    </span>
-                  )}
-                </button>
+                      <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
+                      {totalNotifications > 0 && (
+                        <span 
+                          className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
+                          data-testid="text-admin-notification-count"
+                        >
+                          {totalNotifications}
+                        </span>
+                      )}
+                    </button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent 
+                    align="end" 
+                    className="w-80 sm:w-96 max-h-96 overflow-y-auto"
+                    data-testid="dropdown-admin-notifications"
+                  >
+                    {totalNotifications === 0 ? (
+                      <div className="p-4 text-center text-muted-foreground">
+                        <Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
+                        <p>Không có thông báo mới</p>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="px-4 py-2 border-b">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-semibold">Thông báo mới ({totalNotifications})</h3>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              onClick={handleMarkAllAsRead}
+                              className="text-xs"
+                              data-testid="button-mark-all-read"
+                            >
+                              <CheckCheck className="h-3 w-3 mr-1" />
+                              Đánh dấu đã đọc
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Support Ticket Notifications */}
+                        {supportTicketNotifications.map((notification: any) => (
+                          <DropdownMenuItem 
+                            key={notification.notification.id}
+                            onClick={() => handleNotificationClick(notification)}
+                            className="p-4 cursor-pointer hover:bg-muted focus:bg-muted"
+                            data-testid={`notification-support-${notification.notification.id}`}
+                          >
+                            <div className="flex items-start space-x-3 w-full">
+                              <div className="bg-orange-100 p-2 rounded-full flex-shrink-0">
+                                <User className="h-4 w-4 text-orange-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm text-foreground truncate">
+                                  {notification.notification.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {notification.notification.message}
+                                </p>
+                                <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                </div>
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+
+                        {/* Account Request Notifications */}
+                        {accountRequestNotifications.map((notification: any) => (
+                          <DropdownMenuItem 
+                            key={notification.notification.id}
+                            onClick={() => handleNotificationClick(notification)}
+                            className="p-4 cursor-pointer hover:bg-muted focus:bg-muted"
+                            data-testid={`notification-account-${notification.notification.id}`}
+                          >
+                            <div className="flex items-start space-x-3 w-full">
+                              <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
+                                <User className="h-4 w-4 text-blue-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm text-foreground truncate">
+                                  {notification.notification.title}
+                                </p>
+                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                  {notification.notification.message}
+                                </p>
+                                <div className="flex items-center mt-2 text-xs text-muted-foreground">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                </div>
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
                 
                 <Link href="/">
                   <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-home">
