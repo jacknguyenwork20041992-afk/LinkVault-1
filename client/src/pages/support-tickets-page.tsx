@@ -293,7 +293,6 @@ export default function SupportTicketsPage() {
   const [selectedSender, setSelectedSender] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
-  const [showFilters, setShowFilters] = useState(false);
 
   // Fetch user's support tickets
   const { data: tickets = [], isLoading } = useQuery<SupportTicket[]>({
@@ -466,7 +465,8 @@ export default function SupportTicketsPage() {
             
             {/* Search and Filters */}
             <div className="space-y-4 mt-4">
-              <div className="flex items-center gap-4">
+              {/* Top Row: Search + Basic Filters */}
+              <div className="flex flex-col lg:flex-row gap-4">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -478,144 +478,115 @@ export default function SupportTicketsPage() {
                   />
                 </div>
                 
-                <Button
-                  variant={showFilters ? "default" : "outline"}
-                  onClick={() => setShowFilters(!showFilters)}
-                  className="flex items-center gap-2"
-                  data-testid="button-toggle-filters"
-                >
-                  <Filter className="h-4 w-4" />
-                  Bộ lọc
-                  {hasActiveFilters && (
-                    <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs">
-                      !
-                    </Badge>
-                  )}
-                </Button>
+                <div className="flex flex-wrap gap-3 items-end">
+                  {/* Branch Filter */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Chi nhánh</label>
+                    <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                      <SelectTrigger className="w-[140px]" data-testid="select-branch-filter">
+                        <SelectValue placeholder="Tất cả chi nhánh" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">Tất cả chi nhánh</SelectItem>
+                        {uniqueBranches.filter(branch => branch && branch.trim() !== "").map((branch) => (
+                          <SelectItem key={branch} value={branch}>
+                            {branch}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Date From */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Từ ngày</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-[140px] justify-start text-left font-normal"
+                          data-testid="button-date-from"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {dateFrom ? format(dateFrom, "dd/MM/yy") : "Chọn ngày"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateFrom}
+                          onSelect={setDateFrom}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Date To */}
+                  <div className="space-y-1">
+                    <label className="text-xs text-muted-foreground">Đến ngày</label>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-[140px] justify-start text-left font-normal"
+                          data-testid="button-date-to"
+                        >
+                          <Calendar className="mr-2 h-4 w-4" />
+                          {dateTo ? format(dateTo, "dd/MM/yy") : "Chọn ngày"}
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <CalendarComponent
+                          mode="single"
+                          selected={dateTo}
+                          onSelect={setDateTo}
+                          initialFocus
+                        />
+                      </PopoverContent>
+                    </Popover>
+                  </div>
+
+                  {/* Clear Filters Button */}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    disabled={!hasActiveFilters}
+                    className="flex items-center gap-1"
+                    data-testid="button-clear-filters"
+                  >
+                    <X className="h-4 w-4" />
+                    Xóa bộ lọc
+                  </Button>
+                </div>
               </div>
 
-              {/* Filter Panel */}
-              {showFilters && (
-                <Card className="border-dashed">
-                  <CardContent className="pt-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                      {/* Date From */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Từ ngày</label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                              data-testid="button-date-from"
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              {dateFrom ? format(dateFrom, "dd/MM/yyyy") : "Chọn ngày"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarComponent
-                              mode="single"
-                              selected={dateFrom}
-                              onSelect={setDateFrom}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      {/* Date To */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Đến ngày</label>
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <Button
-                              variant="outline"
-                              className="w-full justify-start text-left font-normal"
-                              data-testid="button-date-to"
-                            >
-                              <Calendar className="mr-2 h-4 w-4" />
-                              {dateTo ? format(dateTo, "dd/MM/yyyy") : "Chọn ngày"}
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent className="w-auto p-0" align="start">
-                            <CalendarComponent
-                              mode="single"
-                              selected={dateTo}
-                              onSelect={setDateTo}
-                              initialFocus
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-
-                      {/* Branch Filter */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Chi nhánh</label>
-                        <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                          <SelectTrigger data-testid="select-branch-filter">
-                            <SelectValue placeholder="Chọn chi nhánh" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">Tất cả chi nhánh</SelectItem>
-                            {uniqueBranches.filter(branch => branch && branch.trim() !== "").map((branch) => (
-                              <SelectItem key={branch} value={branch}>
-                                {branch}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                      {/* Action Buttons */}
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium">Thao tác</label>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={clearFilters}
-                            disabled={!hasActiveFilters}
-                            className="flex-1"
-                            data-testid="button-clear-filters"
-                          >
-                            <X className="mr-1 h-3 w-3" />
-                            Xóa bộ lọc
-                          </Button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Active Filters Display */}
-                    {hasActiveFilters && (
-                      <div className="mt-4 pt-4 border-t">
-                        <div className="flex flex-wrap gap-2">
-                          <span className="text-sm text-muted-foreground">Bộ lọc đang áp dụng:</span>
-                          {searchTerm && (
-                            <Badge variant="secondary" className="text-xs">
-                              Tìm kiếm: "{searchTerm}"
-                            </Badge>
-                          )}
-                          {selectedBranch !== "all" && (
-                            <Badge variant="secondary" className="text-xs">
-                              Chi nhánh: {selectedBranch}
-                            </Badge>
-                          )}
-                          {dateFrom && (
-                            <Badge variant="secondary" className="text-xs">
-                              Từ: {format(dateFrom, "dd/MM/yyyy")}
-                            </Badge>
-                          )}
-                          {dateTo && (
-                            <Badge variant="secondary" className="text-xs">
-                              Đến: {format(dateTo, "dd/MM/yyyy")}
-                            </Badge>
-                          )}
-                        </div>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
+              {/* Active Filters Display */}
+              {hasActiveFilters && (
+                <div className="flex flex-wrap gap-2 items-center">
+                  <span className="text-sm text-muted-foreground">Bộ lọc đang áp dụng:</span>
+                  {searchTerm && (
+                    <Badge variant="secondary" className="text-xs">
+                      Tìm kiếm: "{searchTerm}"
+                    </Badge>
+                  )}
+                  {selectedBranch !== "all" && (
+                    <Badge variant="secondary" className="text-xs">
+                      Chi nhánh: {selectedBranch}
+                    </Badge>
+                  )}
+                  {dateFrom && (
+                    <Badge variant="secondary" className="text-xs">
+                      Từ: {format(dateFrom, "dd/MM/yyyy")}
+                    </Badge>
+                  )}
+                  {dateTo && (
+                    <Badge variant="secondary" className="text-xs">
+                      Đến: {format(dateTo, "dd/MM/yyyy")}
+                    </Badge>
+                  )}
+                </div>
               )}
             </div>
           </CardHeader>
