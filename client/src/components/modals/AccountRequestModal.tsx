@@ -186,9 +186,14 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     try {
       // Get upload URL
       const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
+      console.log('Full API response:', response);
       const uploadURL = response.uploadURL;
       
       console.log('Got upload URL:', uploadURL);
+      
+      if (!uploadURL) {
+        throw new Error('No upload URL received from server');
+      }
       
       // Upload file
       const uploadResponse = await fetch(uploadURL, {
@@ -202,24 +207,28 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       console.log('Upload response status:', uploadResponse.status);
       
       if (uploadResponse.ok) {
-        console.log('Setting uploadedFile to:', file);
+        console.log('Upload successful, setting state...');
+        
+        // Store file info in a way that persists
+        const fileInfo = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          lastModified: file.lastModified
+        };
+        
+        console.log('Setting uploadedFile to:', fileInfo);
         console.log('Setting uploadedFileUrl to:', uploadURL);
         
         setUploadedFile(file);
         setUploadedFileUrl(uploadURL);
-        
-        // Verify state was set
-        setTimeout(() => {
-          console.log('After setting - uploadedFile:', uploadedFile);
-          console.log('After setting - uploadedFileUrl:', uploadedFileUrl);
-        }, 100);
         
         toast({
           title: "Thành công",
           description: "File đã được upload thành công",
         });
       } else {
-        throw new Error('Upload failed');
+        throw new Error(`Upload failed with status: ${uploadResponse.status}`);
       }
     } catch (error) {
       console.error('Upload error:', error);
