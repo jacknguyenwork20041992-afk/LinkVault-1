@@ -86,14 +86,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve objects (images from support tickets)  
   app.get("/objects/*", isAuthenticated, async (req, res) => {
-    console.log("OBJECTS ROUTE HIT! Path:", req.path);
     try {
       const userId = req.user?.claims?.sub;
       const user = req.user as any;
       const objectStorageService = new ObjectStorageService();
-      
-      console.log("DEBUG: req.path =", req.path);
-      console.log("DEBUG: req.params.objectPath =", req.params.objectPath);
       
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       
@@ -113,9 +109,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
-      console.log("About to download object...");
       await objectStorageService.downloadObject(objectFile, res);
-      console.log("Object download completed");
     } catch (error) {
       console.error("Error serving object:", error);
       if (error instanceof ObjectNotFoundError) {

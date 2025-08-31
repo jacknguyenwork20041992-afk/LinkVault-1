@@ -470,10 +470,7 @@ export default function SupportTicketsManagement() {
                         </div>
                         <a
                           href={`/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`}
-                          onClick={(e) => {
-                            console.log('Clicking on image link:', selectedTicket.imageUrl);
-                            console.log('Generated href:', `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`);
-                          }}
+                          onClick={(e) => console.log('Opening image:', selectedTicket.imageUrl)}
                           target="_self"
                           className="inline-block text-blue-600 hover:underline border rounded-lg px-4 py-2 bg-blue-50 hover:bg-blue-100"
                           data-testid="link-image"
