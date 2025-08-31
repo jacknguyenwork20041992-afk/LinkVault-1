@@ -988,15 +988,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
     try {
       const userId = req.user?.claims?.sub;
+      const user = req.user as any;
       const objectStorageService = new ObjectStorageService();
       const objectFile = await objectStorageService.getObjectEntityFile(`/${req.path}`);
       
-      // Check if user can access this object
-      const canAccess = await objectStorageService.canAccessObjectEntity({
-        objectFile,
-        userId: userId,
-        requestedPermission: ObjectPermission.READ,
-      });
+      // Admin can access all objects, regular users need ACL check
+      let canAccess = false;
+      if (user.role === "admin") {
+        canAccess = true;
+      } else {
+        canAccess = await objectStorageService.canAccessObjectEntity({
+          objectFile,
+          userId: userId,
+          requestedPermission: ObjectPermission.READ,
+        });
+      }
       
       if (!canAccess) {
         return res.status(403).json({ error: "Access denied" });
@@ -1378,6 +1384,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const ticket = await storage.createSupportTicket(ticketData);
+      
+      // Set ACL policy for uploaded image if exists
+      if (ticketData.imageUrl) {
+        try {
+          const objectStorageService = new ObjectStorageService();
+          await objectStorageService.trySetObjectEntityAclPolicy(
+            ticketData.imageUrl,
+            {
+              owner: user.id,
+              visibility: "private", // Support ticket images should be private
+              aclRules: []
+            }
+          );
+        } catch (error) {
+          console.error("Error setting ACL policy for image:", error);
+          // Don't fail the ticket creation if ACL setting fails
+        }
+      }
       
       // Tạo thông báo cho tất cả admin khi có support ticket mới
       const adminUsers = await storage.getUsersByRole("admin");
