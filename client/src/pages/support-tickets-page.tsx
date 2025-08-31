@@ -76,18 +76,18 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
     }
   };
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusClasses = (status: string) => {
     switch (status) {
       case "open":
-        return "outline";
+        return "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200";
       case "in_progress":
-        return "default";
+        return "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200";
       case "resolved":
-        return "secondary";
+        return "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200";
       case "closed":
-        return "secondary";
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
       default:
-        return "outline";
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
     }
   };
 
@@ -128,7 +128,7 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
           <div className="flex-1">
             {/* Header with Status and Priority */}
             <div className="flex items-center gap-2 mb-3">
-              <Badge variant={getStatusVariant(ticket.status)} className="flex items-center gap-1">
+              <Badge variant="outline" className={`flex items-center gap-1 ${getStatusClasses(ticket.status)}`}>
                 {getStatusIcon(ticket.status)}
                 {getStatusText(ticket.status)}
               </Badge>
@@ -444,18 +444,18 @@ export default function SupportTicketsPage() {
     }
   };
 
-  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusClasses = (status: string) => {
     switch (status) {
       case "open":
-        return "outline";
+        return "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200";
       case "in_progress":
-        return "default";
+        return "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200";
       case "resolved":
-        return "secondary";
+        return "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200";
       case "closed":
-        return "secondary";
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
       default:
-        return "outline";
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
     }
   };
 
