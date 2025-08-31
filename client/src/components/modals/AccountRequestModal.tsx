@@ -123,34 +123,11 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   });
 
   const handleSubmit = (data: AccountRequestForm) => {
-    // Kiểm tra tất cả thông tin bắt buộc
-    if (!data.branchName) {
-      toast({
-        title: "Thiếu thông tin",
-        description: "Vui lòng chọn chi nhánh",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.email) {
-      toast({
-        title: "Thiếu thông tin", 
-        description: "Vui lòng nhập email",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    if (!data.requestType) {
-      toast({
-        title: "Thiếu thông tin",
-        description: "Vui lòng chọn loại yêu cầu",
-        variant: "destructive",
-      });
-      return;
-    }
+    console.log('Submit data:', data);
+    console.log('uploadedFile:', uploadedFile);
+    console.log('uploadedFileUrl:', uploadedFileUrl);
 
+    // Kiểm tra file trước tiên
     if (!uploadedFile || !uploadedFileUrl) {
       toast({
         title: "Thiếu file",
