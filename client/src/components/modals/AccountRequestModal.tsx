@@ -86,10 +86,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   const createAccountRequestMutation = useMutation({
     mutationFn: async (data: AccountRequestForm & { fileName?: string; fileUrl?: string }) => {
       // For now, we'll handle file upload separately or simulate it
-      return await apiRequest("/api/account-requests", {
-        method: "POST",
-        body: JSON.stringify(data),
-      });
+      await apiRequest("POST", "/api/account-requests", data);
     },
     onSuccess: () => {
       toast({
