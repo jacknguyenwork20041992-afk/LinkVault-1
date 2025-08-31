@@ -164,6 +164,8 @@ export default function SupportTicketModal({
         description: "Đã gửi yêu cầu hỗ trợ. Chúng tôi sẽ phản hồi sớm nhất có thể.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets"] });
+      // Invalidate admin cache để admin thấy ticket mới
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support-tickets"] });
       handleClose();
     },
     onError: (error) => {
