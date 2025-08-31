@@ -1355,11 +1355,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       for (const admin of adminUsers) {
         await storage.createNotification({
           title: "Yêu cầu hỗ trợ mới",
-          content: `${user.firstName} ${user.lastName} đã gửi yêu cầu hỗ trợ từ chi nhánh ${ticketData.branch}. Nội dung: ${ticketData.description}`,
-          type: "support_ticket",
-          priority: ticketData.priority === "urgent" ? 2 : (ticketData.priority === "high" ? 1 : 0),
+          message: `${user.firstName} ${user.lastName} đã gửi yêu cầu hỗ trợ từ chi nhánh ${ticketData.branch}. Nội dung: ${ticketData.description}`,
+          isGlobal: false,
           recipientId: admin.id,
-          relatedId: ticket.id,
         });
       }
       
@@ -1468,11 +1466,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Tạo thông báo cho user khi admin phản hồi
       await storage.createNotification({
         title: "Phản hồi mới từ admin",
-        content: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}"`,
-        type: "support_response", 
-        priority: 1,
+        message: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}"`,
+        isGlobal: false,
         recipientId: ticket.userId,
-        relatedId: ticket.id,
       });
       
       res.json(supportResponse);
@@ -1546,11 +1542,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (user.role === "admin" && !responseData.isInternal && ticket.userId !== user.id) {
         await storage.createNotification({
           title: "Phản hồi mới từ admin",
-          content: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${responseData.response.substring(0, 100)}${responseData.response.length > 100 ? '...' : ''}"`,
-          type: "support_response",
-          priority: 1,
+          message: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${responseData.response.substring(0, 100)}${responseData.response.length > 100 ? '...' : ''}"`,
+          isGlobal: false,
           recipientId: ticket.userId,
-          relatedId: ticket.id,
         });
       }
       
