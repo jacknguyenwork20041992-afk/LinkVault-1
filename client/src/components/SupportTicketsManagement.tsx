@@ -152,19 +152,58 @@ export default function SupportTicketsManagement() {
     return matchesStatus && matchesPriority && matchesSearch;
   });
 
-  const getStatusBadge = (status: string) => {
+  const getStatusClasses = (status: string) => {
     switch (status) {
       case "open":
-        return <Badge variant="destructive" className="flex items-center gap-1"><Clock className="h-3 w-3" />Đang mở</Badge>;
+        return "bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-800 dark:text-yellow-200";
       case "in_progress":
-        return <Badge variant="secondary" className="flex items-center gap-1"><AlertTriangle className="h-3 w-3" />Đang xử lý</Badge>;
+        return "bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-800 dark:text-blue-200";
       case "resolved":
-        return <Badge variant="default" className="flex items-center gap-1 bg-green-500 hover:bg-green-600"><CheckCircle className="h-3 w-3" />Đã giải quyết</Badge>;
+        return "bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-800 dark:text-green-200";
       case "closed":
-        return <Badge variant="outline" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Đã đóng</Badge>;
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
       default:
-        return <Badge variant="outline">{status}</Badge>;
+        return "bg-gray-50 border-gray-200 text-gray-800 dark:bg-gray-950 dark:border-gray-800 dark:text-gray-200";
     }
+  };
+
+  const getStatusBadge = (status: string) => {
+    const getStatusIcon = (status: string) => {
+      switch (status) {
+        case "open":
+          return <Clock className="h-3 w-3" />;
+        case "in_progress":
+          return <AlertTriangle className="h-3 w-3" />;
+        case "resolved":
+          return <CheckCircle className="h-3 w-3" />;
+        case "closed":
+          return <XCircle className="h-3 w-3" />;
+        default:
+          return <Clock className="h-3 w-3" />;
+      }
+    };
+
+    const getStatusText = (status: string) => {
+      switch (status) {
+        case "open":
+          return "Đang mở";
+        case "in_progress":
+          return "Đang xử lý";
+        case "resolved":
+          return "Đã giải quyết";
+        case "closed":
+          return "Đã đóng";
+        default:
+          return status;
+      }
+    };
+
+    return (
+      <Badge variant="outline" className={`flex items-center gap-1 ${getStatusClasses(status)}`}>
+        {getStatusIcon(status)}
+        {getStatusText(status)}
+      </Badge>
+    );
   };
 
   const getPriorityBadge = (priority: string) => {
