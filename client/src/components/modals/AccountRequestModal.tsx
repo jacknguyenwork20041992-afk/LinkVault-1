@@ -162,7 +162,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     createAccountRequestMutation.mutate({
       ...data,
       fileName: uploadedFile.name,
-      fileUrl: "simulated-url", // This would be the actual uploaded file URL
+      fileUrl: undefined, // File will be processed later by admin
     });
   };
 

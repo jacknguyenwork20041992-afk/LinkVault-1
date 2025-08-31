@@ -296,15 +296,23 @@ export default function AccountRequestsManagement() {
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{request.fileName}</span>
-                          {request.fileUrl && (
+                          {request.fileUrl && request.fileUrl !== "simulated-url" ? (
                             <a
                               href={request.fileUrl}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:text-blue-800"
+                              title="Xem file"
                             >
                               <ExternalLink className="h-4 w-4" />
                             </a>
+                          ) : (
+                            <span 
+                              className="text-muted-foreground cursor-not-allowed" 
+                              title="File đang được xử lý"
+                            >
+                              <ExternalLink className="h-4 w-4 opacity-50" />
+                            </span>
                           )}
                         </div>
                       ) : (
