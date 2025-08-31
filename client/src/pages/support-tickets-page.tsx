@@ -39,9 +39,10 @@ interface TicketCardProps {
 }
 
 function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
-  // Always fetch responses for this ticket
+  // Only fetch responses when ticket is expanded (lazy loading for better performance)
   const { data: responses = [] } = useQuery<any[]>({
     queryKey: ["/api/support-tickets", ticket.id, "responses"],
+    enabled: isExpanded, // Only fetch when expanded
     retry: false,
   });
 
