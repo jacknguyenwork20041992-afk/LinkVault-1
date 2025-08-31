@@ -469,7 +469,9 @@ export default function SupportTicketsManagement() {
                           <span className="font-medium">Hình ảnh vấn đề:</span>
                         </div>
                         <img
-                          src={selectedTicket.imageUrl}
+                          src={selectedTicket.imageUrl.includes('storage.googleapis.com') 
+                            ? `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`
+                            : selectedTicket.imageUrl}
                           alt="Ticket image"
                           className="max-w-full max-h-64 rounded-lg shadow-md"
                         />
