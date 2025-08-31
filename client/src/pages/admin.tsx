@@ -29,15 +29,19 @@ export default function Admin() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   // Fetch unread support ticket notifications for admin
-  const { data: allNotifications = [] } = useQuery({
+  const { data: allNotifications = [] } = useQuery<any[]>({
     queryKey: ["/api/notifications/unread"],
     enabled: isAuthenticated && user?.role === "admin",
   });
 
-  // Chỉ lấy thông báo "Yêu cầu hỗ trợ mới"
+  // Chỉ lấy thông báo "Yêu cầu hỗ trợ mới" 
   const supportTicketNotifications = allNotifications.filter((notification: any) => 
     notification.title === "Yêu cầu hỗ trợ mới"
   );
+
+  // Debug: Log thông báo để kiểm tra
+  console.log("All notifications:", allNotifications);
+  console.log("Support ticket notifications:", supportTicketNotifications);
 
   const handleNotificationBellClick = async () => {
     // Đánh dấu tất cả thông báo support ticket đã đọc
