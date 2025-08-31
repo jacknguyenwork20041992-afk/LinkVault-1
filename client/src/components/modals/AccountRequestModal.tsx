@@ -72,7 +72,7 @@ interface AccountRequestModalProps {
 export default function AccountRequestModal({ isOpen, onClose }: AccountRequestModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<{ name: string } | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
 
@@ -189,10 +189,10 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       const uploadUrl = file.uploadURL || "";
       setUploadedFileUrl(uploadUrl);
       // Set file info from the uploaded result
-      if (file.data && typeof file.data === 'object' && 'name' in file.data) {
-        setUploadedFile(file.data as File);
-      } else if (file.meta && typeof file.meta === 'object' && 'name' in file.meta) {
-        setUploadedFile({ name: (file.meta as any).name } as File);
+      if (file.meta && typeof file.meta === 'object' && 'name' in file.meta) {
+        setUploadedFile({ name: (file.meta as any).name });
+      } else if (file.name) {
+        setUploadedFile({ name: file.name });
       }
       toast({
         title: "Thành công",
@@ -372,6 +372,12 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               <ObjectUploader
                 maxNumberOfFiles={1}
                 maxFileSize={10485760} // 10MB
+                allowedFileTypes={[
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                  'application/vnd.ms-excel',
+                  '.xlsx',
+                  '.xls'
+                ]}
                 onGetUploadParameters={handleGetUploadParameters}
                 onComplete={handleUploadComplete}
                 buttonClassName="w-full"
