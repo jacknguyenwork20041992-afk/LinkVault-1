@@ -546,8 +546,9 @@ export class DatabaseStorage implements IStorage {
   async createNotification(notificationData: InsertNotification): Promise<Notification> {
     const [notification] = await db.insert(notifications).values(notificationData).returning();
     
-    // Create user notification records for all users if it's global
+    // Create user notification records
     if (notificationData.isGlobal !== false) {
+      // Global notification - for all users
       const allUsers = await db.select({ id: users.id }).from(users);
       const userNotificationRecords = allUsers.map(user => ({
         userId: user.id,
@@ -558,6 +559,13 @@ export class DatabaseStorage implements IStorage {
       if (userNotificationRecords.length > 0) {
         await db.insert(userNotifications).values(userNotificationRecords);
       }
+    } else if (notificationData.recipientId) {
+      // Specific user notification
+      await db.insert(userNotifications).values({
+        userId: notificationData.recipientId,
+        notificationId: notification.id,
+        isRead: false,
+      });
     }
     
     return notification;

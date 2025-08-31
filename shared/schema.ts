@@ -81,6 +81,7 @@ export const notifications = pgTable("notifications", {
   title: varchar("title").notNull(),
   message: text("message").notNull(),
   isGlobal: boolean("is_global").default(true), // true for all users, false for specific users
+  recipientId: varchar("recipient_id").references(() => users.id), // for specific user notifications
   createdAt: timestamp("created_at").defaultNow(),
 });
 
