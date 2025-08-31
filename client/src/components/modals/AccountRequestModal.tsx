@@ -58,9 +58,6 @@ const accountRequestSchema = z.object({
   requestType: z.enum(["new_account", "un_tag_account"], {
     required_error: "Vui lòng chọn loại yêu cầu",
   }),
-  fileRequired: z.boolean().refine(val => val === true, {
-    message: "Vui lòng upload file danh sách học viên Excel",
-  }),
 });
 
 type AccountRequestForm = z.infer<typeof accountRequestSchema>;
@@ -83,7 +80,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       branchName: "",
       email: "",
       requestType: "new_account",
-      fileRequired: false,
     },
   });
 
@@ -103,7 +99,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       form.reset();
       setUploadedFile(null);
       setUploadedFileUrl(null);
-      form.setValue('fileRequired', false);
       onClose();
     },
     onError: (error) => {
@@ -223,8 +218,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       if (uploadResponse.ok) {
         setUploadedFile(file);
         setUploadedFileUrl(uploadURL);
-        form.setValue('fileRequired', true);
-        form.clearErrors('fileRequired');
         toast({
           title: "Thành công",
           description: "File đã được upload thành công",
