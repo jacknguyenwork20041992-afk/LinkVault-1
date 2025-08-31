@@ -54,7 +54,7 @@ const branchOptions = [
 
 const accountRequestSchema = z.object({
   branchName: z.string().min(1, "Vui lòng chọn chi nhánh"),
-  email: z.string().email("Email không hợp lệ"),
+  email: z.string().min(1, "Vui lòng nhập email").email("Email không hợp lệ"),
   requestType: z.enum(["new_account", "un_tag_account"], {
     required_error: "Vui lòng chọn loại yêu cầu",
   }),
@@ -121,10 +121,38 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   });
 
   const handleSubmit = (data: AccountRequestForm) => {
+    // Kiểm tra tất cả thông tin bắt buộc
+    if (!data.branchName) {
+      toast({
+        title: "Thiếu thông tin",
+        description: "Vui lòng chọn chi nhánh",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.email) {
+      toast({
+        title: "Thiếu thông tin", 
+        description: "Vui lòng nhập email",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (!data.requestType) {
+      toast({
+        title: "Thiếu thông tin",
+        description: "Vui lòng chọn loại yêu cầu",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (!uploadedFile) {
       toast({
         title: "Thiếu file",
-        description: "Vui lòng upload file danh sách học viên",
+        description: "Vui lòng upload file danh sách học viên Excel",
         variant: "destructive",
       });
       return;
@@ -141,6 +169,22 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
+      // Kiểm tra định dạng file Excel
+      const allowedTypes = [
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
+        "application/vnd.ms-excel", // .xls
+      ];
+      
+      if (!allowedTypes.includes(file.type)) {
+        toast({
+          title: "File không hợp lệ",
+          description: "Chỉ được phép upload file Excel (.xlsx, .xls)",
+          variant: "destructive",
+        });
+        event.target.value = ""; // Reset input
+        return;
+      }
+      
       setUploadedFile(file);
     }
   };
@@ -178,7 +222,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               name="branchName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Chi nhánh</FormLabel>
+                  <FormLabel>Chi nhánh <span className="text-red-500">*</span></FormLabel>
                   <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger data-testid="select-branch">
@@ -204,7 +248,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               name="email"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Email</FormLabel>
+                  <FormLabel>Email <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <Input
                       type="email"
@@ -224,7 +268,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               name="requestType"
               render={({ field }) => (
                 <FormItem className="space-y-3">
-                  <FormLabel>Chọn loại yêu cầu</FormLabel>
+                  <FormLabel>Chọn loại yêu cầu <span className="text-red-500">*</span></FormLabel>
                   <FormControl>
                     <RadioGroup
                       onValueChange={field.onChange}
@@ -288,15 +332,16 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
             {/* File Upload */}
             <div className="space-y-3">
               <Label htmlFor="file-upload" className="text-sm font-medium">
-                Upload file danh sách học viên
+                Upload file danh sách học viên <span className="text-red-500">*</span>
               </Label>
               <div className="flex items-center gap-3">
                 <Input
                   id="file-upload"
                   type="file"
-                  accept=".xlsx,.xls"
+                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                   onChange={handleFileChange}
                   className="cursor-pointer"
+                  required
                   data-testid="input-file-upload"
                 />
                 <Upload className="h-5 w-5 text-muted-foreground" />
