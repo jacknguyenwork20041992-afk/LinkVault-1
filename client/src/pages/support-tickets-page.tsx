@@ -466,7 +466,7 @@ export default function SupportTicketsPage() {
             {/* Search and Filters */}
             <div className="space-y-4 mt-4">
               {/* Top Row: Search + Basic Filters */}
-              <div className="flex flex-col lg:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center">
                 <div className="relative flex-1 max-w-md">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
@@ -478,74 +478,65 @@ export default function SupportTicketsPage() {
                   />
                 </div>
                 
-                <div className="flex flex-wrap gap-3 items-end">
+                <div className="flex flex-wrap gap-3 items-center">
                   {/* Branch Filter */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Chi nhánh</label>
-                    <Select value={selectedBranch} onValueChange={setSelectedBranch}>
-                      <SelectTrigger className="w-[140px]" data-testid="select-branch-filter">
-                        <SelectValue placeholder="Tất cả chi nhánh" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">Tất cả chi nhánh</SelectItem>
-                        {uniqueBranches.filter(branch => branch && branch.trim() !== "").map((branch) => (
-                          <SelectItem key={branch} value={branch}>
-                            {branch}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Select value={selectedBranch} onValueChange={setSelectedBranch}>
+                    <SelectTrigger className="w-[130px]" data-testid="select-branch-filter">
+                      <SelectValue placeholder="Tất cả chi nhánh" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">Tất cả chi nhánh</SelectItem>
+                      {uniqueBranches.filter(branch => branch && branch.trim() !== "").map((branch) => (
+                        <SelectItem key={branch} value={branch}>
+                          {branch}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
 
                   {/* Date From */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Từ ngày</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[140px] justify-start text-left font-normal"
-                          data-testid="button-date-from"
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {dateFrom ? format(dateFrom, "dd/MM/yy") : "Chọn ngày"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={dateFrom}
-                          onSelect={setDateFrom}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-[120px] justify-start text-left font-normal"
+                        data-testid="button-date-from"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateFrom ? format(dateFrom, "dd/MM") : "Chọn ngày"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateFrom}
+                        onSelect={setDateFrom}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
 
                   {/* Date To */}
-                  <div className="space-y-1">
-                    <label className="text-xs text-muted-foreground">Đến ngày</label>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-[140px] justify-start text-left font-normal"
-                          data-testid="button-date-to"
-                        >
-                          <Calendar className="mr-2 h-4 w-4" />
-                          {dateTo ? format(dateTo, "dd/MM/yy") : "Chọn ngày"}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <CalendarComponent
-                          mode="single"
-                          selected={dateTo}
-                          onSelect={setDateTo}
-                          initialFocus
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-[120px] justify-start text-left font-normal"
+                        data-testid="button-date-to"
+                      >
+                        <Calendar className="mr-2 h-4 w-4" />
+                        {dateTo ? format(dateTo, "dd/MM") : "Chọn ngày"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarComponent
+                        mode="single"
+                        selected={dateTo}
+                        onSelect={setDateTo}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
 
                   {/* Clear Filters Button */}
                   <Button
