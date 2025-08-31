@@ -11,6 +11,7 @@ import Admin from "@/pages/admin";
 import ProgramDetails from "@/pages/program-details";
 import NotificationsPage from "@/pages/notifications-page";
 import SupportTicketsPage from "@/pages/support-tickets-page";
+import AccountDeactivatedPage from "@/pages/account-deactivated";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -30,6 +31,13 @@ function Router() {
         <>
           <Route path="/" component={AuthPage} />
           <Route path="/auth" component={AuthPage} />
+        </>
+      ) : user?.isActive === false ? (
+        // If user is authenticated but deactivated, show only the deactivated page
+        <>
+          <Route path="/" component={AccountDeactivatedPage} />
+          <Route path="/account-deactivated" component={AccountDeactivatedPage} />
+          <Route component={AccountDeactivatedPage} />
         </>
       ) : (
         <>

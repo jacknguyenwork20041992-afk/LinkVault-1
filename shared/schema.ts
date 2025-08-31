@@ -35,6 +35,7 @@ export const users = pgTable("users", {
   profileImageUrl: varchar("profile_image_url"),
   password: varchar("password"), // Optional password for manual creation
   role: varchar("role").notNull().default("user"), // "admin" or "user"
+  isActive: boolean("is_active").notNull().default(true), // true = active, false = deactivated
   authProvider: varchar("auth_provider").default("manual"), // "manual", "replit", "google"
   googleId: varchar("google_id"), // Google ID for Google auth users
   createdAt: timestamp("created_at").defaultNow(),

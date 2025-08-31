@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Trash2, Users, Shield, User, Edit, Search } from "lucide-react";
+import { Plus, Trash2, Users, Shield, User, Edit, Search, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import CreateUserModal from "@/components/modals/CreateUserModal";
 import EditUserModal from "@/components/modals/EditUserModal";
 import { apiRequest } from "@/lib/queryClient";
@@ -70,6 +71,37 @@ export default function UsersManagement() {
     },
   });
 
+  const toggleActiveMutation = useMutation({
+    mutationFn: async ({ id, isActive }: { id: string; isActive: boolean }) => {
+      await apiRequest("PUT", `/api/users/${id}/toggle-active`, { isActive });
+    },
+    onSuccess: (_, variables) => {
+      toast({
+        title: "Thành công",
+        description: variables.isActive ? "Đã kích hoạt tài khoản" : "Đã vô hiệu hóa tài khoản",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/users"] });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Unauthorized",
+          description: "You are logged out. Logging in again...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      toast({
+        title: "Lỗi",
+        description: "Không thể thay đổi trạng thái tài khoản",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleDelete = (id: string) => {
     if (confirm("Bạn có chắc chắn muốn xóa người dùng này?")) {
       deleteMutation.mutate(id);
@@ -84,6 +116,13 @@ export default function UsersManagement() {
   const handleEditModalClose = () => {
     setIsEditModalOpen(false);
     setEditingUser(null);
+  };
+
+  const handleToggleActive = (userId: string, currentStatus: boolean) => {
+    toggleActiveMutation.mutate({ 
+      id: userId, 
+      isActive: !currentStatus 
+    });
   };
 
   const getRoleColor = (role: string) => {
@@ -178,6 +217,7 @@ export default function UsersManagement() {
                   <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Người dùng</th>
                   <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Email</th>
                   <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Vai trò</th>
+                  <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Trạng thái</th>
                   <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tạo lúc</th>
                   <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
                 </tr>
@@ -207,6 +247,26 @@ export default function UsersManagement() {
                         <Badge className={`text-xs px-2 py-1 rounded-full ${getRoleColor(user.role)}`}>
                           {user.role === "admin" ? "Admin" : "Người dùng"}
                         </Badge>
+                      </td>
+                      <td className="py-3 px-6">
+                        <div className="flex items-center space-x-3">
+                          <div className="flex items-center space-x-2">
+                            {user.isActive ? (
+                              <CheckCircle className="h-4 w-4 text-green-600" />
+                            ) : (
+                              <XCircle className="h-4 w-4 text-red-600" />
+                            )}
+                            <span className={`text-sm font-medium ${user.isActive ? 'text-green-600' : 'text-red-600'}`}>
+                              {user.isActive ? "Hoạt động" : "Vô hiệu hóa"}
+                            </span>
+                          </div>
+                          <Switch
+                            checked={user.isActive}
+                            onCheckedChange={() => handleToggleActive(user.id, user.isActive)}
+                            disabled={toggleActiveMutation.isPending}
+                            data-testid={`switch-active-${user.id}`}
+                          />
+                        </div>
                       </td>
                       <td className="py-3 px-6 text-muted-foreground">
                         {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "N/A"}

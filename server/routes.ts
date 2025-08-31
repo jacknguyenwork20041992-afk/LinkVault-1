@@ -383,6 +383,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/users/:id/toggle-active", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { isActive } = req.body;
+      
+      if (typeof isActive !== 'boolean') {
+        return res.status(400).json({ message: "isActive must be a boolean value" });
+      }
+      
+      const user = await storage.toggleUserActive(id, isActive);
+      res.json(user);
+    } catch (error) {
+      console.error("Error toggling user active status:", error);
+      res.status(500).json({ message: "Failed to update user status" });
+    }
+  });
+
   app.delete("/api/users/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;

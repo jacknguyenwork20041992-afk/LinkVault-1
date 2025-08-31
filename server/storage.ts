@@ -72,6 +72,7 @@ export interface IStorage {
   getAllUsers(): Promise<User[]>;
   getUsersByRole(role: string): Promise<User[]>;
   updateUser(id: string, userData: Partial<User>): Promise<User>;
+  toggleUserActive(id: string, isActive: boolean): Promise<User>;
   deleteUser(id: string): Promise<void>;
   
   // Program operations
@@ -316,6 +317,15 @@ export class DatabaseStorage implements IStorage {
     const [user] = await db
       .update(users)
       .set({ ...updateData, updatedAt: new Date() })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async toggleUserActive(id: string, isActive: boolean): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ isActive, updatedAt: new Date() })
       .where(eq(users.id, id))
       .returning();
     return user;

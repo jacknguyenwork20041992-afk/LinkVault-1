@@ -140,6 +140,16 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
 
   const now = Math.floor(Date.now() / 1000);
   if (now <= user.expires_at) {
+    // Additional check: Verify user is still active in database
+    try {
+      const dbUser = await storage.getUser(user.claims.sub);
+      if (!dbUser || !dbUser.isActive) {
+        return res.status(401).json({ message: "Account deactivated" });
+      }
+    } catch (error) {
+      console.error("Error checking user active status:", error);
+      return res.status(401).json({ message: "Unauthorized" });
+    }
     return next();
   }
 
@@ -153,6 +163,13 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     const config = await getOidcConfig();
     const tokenResponse = await client.refreshTokenGrant(config, refreshToken);
     updateUserSession(user, tokenResponse);
+    
+    // Additional check: Verify user is still active in database after token refresh
+    const dbUser = await storage.getUser(user.claims.sub);
+    if (!dbUser || !dbUser.isActive) {
+      return res.status(401).json({ message: "Account deactivated" });
+    }
+    
     return next();
   } catch (error) {
     res.status(401).json({ message: "Unauthorized" });
