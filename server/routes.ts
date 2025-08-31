@@ -77,9 +77,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
+  // DEBUG: Log all requests to see what's being hit
+  app.use((req, res, next) => {
+    if (req.path.includes('/objects/')) {
+      console.log("🔍 DEBUG REQUEST:", req.method, req.path);
+    }
+    next();
+  });
+
+  // Try direct route without auth first
+  app.get("/objects/uploads/*", async (req, res) => {
+    console.log("🎯 DIRECT ROUTE HIT! Path:", req.path);
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      console.log("🎯 About to download...");
+      await objectStorageService.downloadObject(objectFile, res);
+      console.log("🎯 Download success!");
+    } catch (error) {
+      console.error("❌ Error:", error);
+      res.status(500).json({ error: "Failed" });
+    }
+  });
+
   // CRITICAL: Object storage route FIRST to avoid Vite catch-all
   app.get("/objects/*", isAuthenticated, async (req, res) => {
-    console.log("🎯 FINAL ROUTE HIT! Path:", req.path);
+    console.log("🎯 AUTH ROUTE HIT! Path:", req.path);
     try {
       const objectStorageService = new ObjectStorageService();
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
