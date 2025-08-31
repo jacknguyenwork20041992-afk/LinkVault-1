@@ -1,4 +1,4 @@
-import { X } from "lucide-react";
+import { X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { Notification } from "@shared/schema";
 
@@ -8,6 +8,40 @@ interface NotificationCardProps {
 }
 
 export default function NotificationCard({ notification, onMarkAsRead }: NotificationCardProps) {
+  // Check if this is a support ticket response notification
+  const isSupportResponse = notification.title.includes("Phản hồi từ") || notification.title.includes("💬 Phản hồi từ");
+  
+  // Handle click to view details (navigate to support tickets)
+  const handleViewDetails = () => {
+    // Mark as read
+    onMarkAsRead();
+    // Navigate to support tickets page
+    window.location.href = "/support-tickets";
+  };
+
+  // Parse message to make "Nhấn để xem chi tiết" clickable
+  const renderMessage = (message: string) => {
+    if (!isSupportResponse || !message.includes("👆 Nhấn để xem chi tiết")) {
+      return <p className="text-sm text-muted-foreground mt-1">{message}</p>;
+    }
+
+    const parts = message.split("👆 Nhấn để xem chi tiết");
+    return (
+      <div className="text-sm text-muted-foreground mt-1">
+        <p className="mb-2">{parts[0]}</p>
+        <button
+          onClick={handleViewDetails}
+          className="inline-flex items-center gap-1 text-primary hover:text-primary/80 font-medium transition-colors cursor-pointer text-sm"
+          data-testid={`button-view-details-${notification.id}`}
+        >
+          <ExternalLink className="h-3 w-3" />
+          👆 Nhấn để xem chi tiết
+        </button>
+        {parts[1] && <p className="mt-1">{parts[1]}</p>}
+      </div>
+    );
+  };
+
   const formatDateTime = (date: string | Date) => {
     const notificationDate = new Date(date);
     const now = new Date();
@@ -40,11 +74,19 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
   };
 
   return (
-    <div className="vibrant-card border-l-4 border-accent p-4 rounded-lg hover-lift" data-testid={`notification-${notification.id}`}>
+    <div className={`vibrant-card border-l-4 p-4 rounded-lg hover-lift ${
+      isSupportResponse 
+        ? "border-green-500 bg-green-50/50 dark:bg-green-950/20" 
+        : "border-accent"
+    }`} data-testid={`notification-${notification.id}`}>
       <div className="flex justify-between items-start">
         <div className="flex-1">
-          <h3 className="font-medium text-foreground">{notification.title}</h3>
-          <p className="text-sm text-muted-foreground mt-1">{notification.message}</p>
+          <h3 className={`font-medium ${
+            isSupportResponse ? "text-green-700 dark:text-green-400" : "text-foreground"
+          }`}>
+            {notification.title}
+          </h3>
+          {renderMessage(notification.message)}
           <span className="text-xs text-muted-foreground">{formatDateTime(notification.createdAt!)}</span>
         </div>
         <Button 
