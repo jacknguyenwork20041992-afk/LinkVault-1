@@ -25,6 +25,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -569,6 +570,17 @@ export default function SupportTicketsManagement() {
               </Card>
             </div>
           )}
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsViewModalOpen(false)}
+              data-testid="button-close-modal"
+              className="bg-gray-100 hover:bg-gray-200 text-gray-700"
+            >
+              Đóng
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
