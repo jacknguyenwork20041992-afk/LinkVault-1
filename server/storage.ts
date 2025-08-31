@@ -70,6 +70,7 @@ export interface IStorage {
   // Admin user operations
   createUser(userData: CreateUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
+  getUsersByRole(role: string): Promise<User[]>;
   updateUser(id: string, userData: Partial<User>): Promise<User>;
   deleteUser(id: string): Promise<void>;
   
@@ -296,6 +297,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getUsersByRole(role: string): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, role)).orderBy(desc(users.createdAt));
   }
 
   async updateUser(id: string, userData: Partial<User>): Promise<User> {

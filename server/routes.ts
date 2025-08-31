@@ -1349,6 +1349,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       const ticket = await storage.createSupportTicket(ticketData);
+      
+      // Tạo thông báo cho tất cả admin khi có support ticket mới
+      const adminUsers = await storage.getUsersByRole("admin");
+      for (const admin of adminUsers) {
+        await storage.createNotification({
+          title: "Yêu cầu hỗ trợ mới",
+          content: `${user.firstName} ${user.lastName} đã gửi yêu cầu hỗ trợ từ chi nhánh ${ticketData.branch}. Nội dung: ${ticketData.description}`,
+          type: "support_ticket",
+          priority: ticketData.priority === "urgent" ? 2 : (ticketData.priority === "high" ? 1 : 0),
+          recipientId: admin.id,
+          relatedId: ticket.id,
+        });
+      }
+      
       res.json(ticket);
     } catch (error) {
       console.error("Error creating support ticket:", error);
@@ -1451,6 +1465,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateSupportTicket(ticketId, { status: "in_progress" });
       }
       
+      // Tạo thông báo cho user khi admin phản hồi
+      await storage.createNotification({
+        title: "Phản hồi mới từ admin",
+        content: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}"`,
+        type: "support_response", 
+        priority: 1,
+        recipientId: ticket.userId,
+        relatedId: ticket.id,
+      });
+      
       res.json(supportResponse);
     } catch (error) {
       console.error("Error creating support response:", error);
@@ -1479,7 +1503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ message: "Access denied" });
       }
 
-      const responses = await storage.getSupportResponsesByTicket(ticketId);
+      const responses = await storage.getSupportResponses(ticketId);
       res.json(responses);
     } catch (error) {
       console.error("Error fetching support responses:", error);
@@ -1516,6 +1540,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // If admin responds, update ticket status to in_progress if it was open
       if (user.role === "admin" && ticket.status === "open") {
         await storage.updateSupportTicket(ticketId, { status: "in_progress" });
+      }
+      
+      // Tạo thông báo cho user khi admin phản hồi (không phải internal note)
+      if (user.role === "admin" && !responseData.isInternal && ticket.userId !== user.id) {
+        await storage.createNotification({
+          title: "Phản hồi mới từ admin",
+          content: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${responseData.response.substring(0, 100)}${responseData.response.length > 100 ? '...' : ''}"`,
+          type: "support_response",
+          priority: 1,
+          recipientId: ticket.userId,
+          relatedId: ticket.id,
+        });
       }
       
       res.json(response);
