@@ -33,10 +33,9 @@ interface TicketCardProps {
 }
 
 function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
-  // Fetch responses for this ticket when expanded
+  // Always fetch responses for this ticket
   const { data: responses = [] } = useQuery<any[]>({
     queryKey: ["/api/support-tickets", ticket.id, "responses"],
-    enabled: isExpanded,
     retry: false,
   });
 
@@ -205,68 +204,46 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                 </div>
               )}
 
-              {/* Toggle Responses Button */}
-              <div className="flex items-center justify-between pt-2 border-t">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onToggleExpanded}
-                  className="flex items-center gap-2"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  {isExpanded ? 'Ẩn phản hồi' : 'Xem phản hồi'}
-                  {responses.length > 0 && (
-                    <Badge variant="secondary" className="ml-1">
-                      {responses.length}
-                    </Badge>
-                  )}
-                </Button>
-              </div>
-
-              {/* Responses Section */}
-              {isExpanded && (
-                <div className="space-y-3 pt-3 border-t bg-accent/5 -mx-6 px-6 pb-3">
+              {/* Responses Section - Always show */}
+              {responses.length > 0 && (
+                <div className="space-y-3 pt-3 border-t bg-green-50 dark:bg-green-950/20 -mx-6 px-6 pb-3">
                   <h4 className="font-medium text-foreground flex items-center gap-2">
-                    <MessageSquare className="h-4 w-4" />
-                    Phản hồi từ hỗ trợ ({responses.length})
+                    <MessageSquare className="h-4 w-4 text-green-600" />
+                    <span className="text-green-700 dark:text-green-400">Phản hồi từ hỗ trợ ({responses.length})</span>
                   </h4>
                   
-                  {responses.length === 0 ? (
-                    <p className="text-muted-foreground text-sm italic">Chưa có phản hồi nào</p>
-                  ) : (
-                    <div className="space-y-3">
-                      {responses.map((response: any) => (
-                        <div key={response.id} className="bg-background rounded-lg p-4 border">
-                          <div className="flex items-start gap-3">
-                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
-                              <span className="text-xs font-semibold text-primary-foreground">
-                                {response.responder?.firstName?.charAt(0) || 'A'}
+                  <div className="space-y-3">
+                    {responses.map((response: any) => (
+                      <div key={response.id} className="bg-background rounded-lg p-4 border border-green-200 dark:border-green-800 shadow-sm">
+                        <div className="flex items-start gap-3">
+                          <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center flex-shrink-0">
+                            <span className="text-xs font-semibold text-white">
+                              {response.responder?.firstName?.charAt(0) || 'A'}
+                            </span>
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="font-medium text-foreground">
+                                {response.responder?.firstName && response.responder?.lastName 
+                                  ? `${response.responder.firstName} ${response.responder.lastName}`
+                                  : 'Admin'
+                                }
                               </span>
+                              <Badge variant="outline" className="text-xs border-green-200 text-green-700 dark:border-green-800 dark:text-green-400">
+                                Hỗ trợ viên
+                              </Badge>
                             </div>
-                            <div className="flex-1">
-                              <div className="flex items-center gap-2 mb-1">
-                                <span className="font-medium text-foreground">
-                                  {response.responder?.firstName && response.responder?.lastName 
-                                    ? `${response.responder.firstName} ${response.responder.lastName}`
-                                    : 'Admin'
-                                  }
-                                </span>
-                                <Badge variant="outline" className="text-xs">
-                                  Hỗ trợ
-                                </Badge>
-                              </div>
-                              <p className="text-muted-foreground text-sm mb-2">
-                                {response.response}
-                              </p>
-                              <span className="text-xs text-muted-foreground">
-                                {formatDateTime(response.createdAt)}
-                              </span>
-                            </div>
+                            <p className="text-muted-foreground text-sm mb-2 bg-green-50 dark:bg-green-950/30 p-3 rounded-md border-l-4 border-green-500">
+                              {response.response}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {formatDateTime(response.createdAt)}
+                            </span>
                           </div>
                         </div>
-                      ))}
-                    </div>
-                  )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
