@@ -469,10 +469,11 @@ export default function SupportTicketsManagement() {
                           <span className="font-medium">Hình ảnh vấn đề:</span>
                         </div>
                         <a
-                          href={selectedTicket.imageUrl.includes('storage.googleapis.com') 
-                            ? `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`
-                            : selectedTicket.imageUrl}
-                          onClick={(e) => console.log('Clicking on image link:', selectedTicket.imageUrl)}
+                          href={`/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                          onClick={(e) => {
+                            console.log('Clicking on image link:', selectedTicket.imageUrl);
+                            console.log('Generated href:', `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`);
+                          }}
                           target="_self"
                           className="inline-block text-blue-600 hover:underline border rounded-lg px-4 py-2 bg-blue-50 hover:bg-blue-100"
                           data-testid="link-image"
