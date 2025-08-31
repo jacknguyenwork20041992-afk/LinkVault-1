@@ -558,7 +558,7 @@ export default function SupportTicketsPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="all">Tất cả chi nhánh</SelectItem>
-                            {uniqueBranches.map((branch) => (
+                            {uniqueBranches.filter(branch => branch && branch.trim() !== "").map((branch) => (
                               <SelectItem key={branch} value={branch}>
                                 {branch}
                               </SelectItem>
