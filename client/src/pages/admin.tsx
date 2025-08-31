@@ -33,7 +33,7 @@ export default function Admin() {
   const { data: allNotifications = [] } = useQuery<any[]>({
     queryKey: ["/api/notifications/unread"],
     enabled: isAuthenticated && user?.role === "admin",
-    refetchInterval: 3000, // Tự động refresh mỗi 3 giây để cập nhật notifications ngay lập tức
+    refetchInterval: 1000, // Tự động refresh mỗi 1 giây để cập nhật notifications ngay lập tức
     refetchIntervalInBackground: true,
   });
 

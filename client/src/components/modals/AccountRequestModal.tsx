@@ -94,6 +94,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
         description: "Yêu cầu tài khoản đã được gửi thành công. Chúng tôi sẽ xử lý và phản hồi sớm nhất có thể.",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/account-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
       form.reset();
       setUploadedFile(null);
       onClose();
