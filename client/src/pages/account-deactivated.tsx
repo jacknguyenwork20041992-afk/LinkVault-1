@@ -1,15 +1,7 @@
-import { AlertTriangle, Mail, Phone } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 
 export default function AccountDeactivatedPage() {
-  const handleEmailContact = () => {
-    window.location.href = "mailto:rd@viaenglish.com";
-  };
-
-  const handlePhoneContact = () => {
-    window.location.href = "tel:+84123456789";
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 flex items-center justify-center p-4">
@@ -33,35 +25,14 @@ export default function AccountDeactivatedPage() {
             </p>
           </div>
 
-          <div className="space-y-3">
-            <Button 
-              onClick={handleEmailContact}
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
-              data-testid="button-email-contact"
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Gửi email: rd@viaenglish.com
-            </Button>
-            
-            <Button 
-              onClick={handlePhoneContact}
-              variant="outline"
-              className="w-full border-blue-600 text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-950"
-              data-testid="button-phone-contact"
-            >
-              <Phone className="w-4 h-4 mr-2" />
-              Gọi điện: 0123 456 789
-            </Button>
-          </div>
-
           <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
             <div className="text-center space-y-2">
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 <strong>Giờ làm việc phòng R&D:</strong>
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-300">
-                Thứ 2 - Thứ 6: 8:00 - 17:30<br />
-                Thứ 7: 8:00 - 12:00
+                Thứ 2 - Thứ 6: 8:30 - 18:00<br />
+                Thứ 7: 9:00 - 12:00
               </p>
             </div>
           </div>
