@@ -1502,9 +1502,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Tạo thông báo cho user khi admin phản hồi
+      const adminName = user.firstName && user.lastName 
+        ? `${user.firstName} ${user.lastName}` 
+        : "Admin";
+      
+      const statusText = ticket.status === "open" ? "Đang xử lý" : 
+                        ticket.status === "in_progress" ? "Đang xử lý" :
+                        ticket.status === "resolved" ? "Đã giải quyết" : "Đã đóng";
+      
       await storage.createNotification({
-        title: "Phản hồi mới từ admin",
-        message: `Admin đã phản hồi yêu cầu hỗ trợ của bạn: "${response.substring(0, 100)}${response.length > 100 ? '...' : ''}"`,
+        title: `💬 Phản hồi từ ${adminName}`,
+        message: `🏢 Chi nhánh: ${ticket.branch}\n📚 Lớp: ${ticket.classLevel}\n📊 Trạng thái: ${statusText}\n\n💭 Phản hồi: "${response.substring(0, 150)}${response.length > 150 ? '...' : ''}"\n\n👆 Nhấn để xem chi tiết`,
         isGlobal: false,
         recipientId: ticket.userId,
       });
