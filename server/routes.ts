@@ -113,7 +113,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(403).json({ error: "Access denied" });
       }
 
+      console.log("About to download object...");
       await objectStorageService.downloadObject(objectFile, res);
+      console.log("Object download completed");
     } catch (error) {
       console.error("Error serving object:", error);
       if (error instanceof ObjectNotFoundError) {

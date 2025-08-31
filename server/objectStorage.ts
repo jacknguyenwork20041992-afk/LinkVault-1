@@ -97,12 +97,25 @@ export class ObjectStorageService {
   // Downloads an object to the response.
   async downloadObject(file: File, res: Response, cacheTtlSec: number = 3600) {
     try {
+      console.log("DOWNLOAD: Starting download process for file:", file.name);
+      
       // Get file metadata
+      console.log("DOWNLOAD: Getting metadata...");
       const [metadata] = await file.getMetadata();
+      console.log("DOWNLOAD: Metadata received:", {
+        contentType: metadata.contentType,
+        size: metadata.size,
+        name: metadata.name
+      });
+      
       // Get the ACL policy for the object.
+      console.log("DOWNLOAD: Getting ACL policy...");
       const aclPolicy = await getObjectAclPolicy(file);
+      console.log("DOWNLOAD: ACL policy:", aclPolicy);
       const isPublic = aclPolicy?.visibility === "public";
+      
       // Set appropriate headers
+      console.log("DOWNLOAD: Setting headers...");
       res.set({
         "Content-Type": metadata.contentType || "application/octet-stream",
         "Content-Length": metadata.size,
@@ -110,20 +123,28 @@ export class ObjectStorageService {
           isPublic ? "public" : "private"
         }, max-age=${cacheTtlSec}`,
       });
+      console.log("DOWNLOAD: Headers set");
 
       // Stream the file to the response
+      console.log("DOWNLOAD: Creating read stream...");
       const stream = file.createReadStream();
 
       stream.on("error", (err) => {
-        console.error("Stream error:", err);
+        console.error("DOWNLOAD: Stream error:", err);
         if (!res.headersSent) {
           res.status(500).json({ error: "Error streaming file" });
         }
       });
+      
+      stream.on("end", () => {
+        console.log("DOWNLOAD: Stream ended successfully");
+      });
 
+      console.log("DOWNLOAD: Piping stream to response...");
       stream.pipe(res);
+      console.log("DOWNLOAD: Stream pipe initiated");
     } catch (error) {
-      console.error("Error downloading file:", error);
+      console.error("DOWNLOAD: Error downloading file:", error);
       if (!res.headersSent) {
         res.status(500).json({ error: "Error downloading file" });
       }
