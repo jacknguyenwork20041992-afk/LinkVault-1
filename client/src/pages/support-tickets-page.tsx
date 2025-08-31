@@ -500,20 +500,20 @@ export default function SupportTicketsPage() {
   return (
     <div className="min-h-screen bg-background">
       {/* Navigation Header */}
-      <header className="bg-card border-b border-border shadow-sm">
+      <header className="bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/">
               <div className="flex items-center cursor-pointer hover:opacity-80 transition-opacity">
-                <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center mr-3">
-                  <GraduationCap className="text-primary-foreground" />
+                <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center mr-3 backdrop-blur-sm">
+                  <GraduationCap className="text-white h-5 w-5" />
                 </div>
-                <h1 className="text-xl font-bold text-foreground">VIA ENGLISH ACADEMY</h1>
+                <h1 className="text-xl font-bold text-white">VIA ENGLISH ACADEMY</h1>
               </div>
             </Link>
             
             <Link href="/">
-              <Button variant="outline" size="sm" className="flex items-center gap-2" data-testid="button-back-home">
+              <Button variant="secondary" size="sm" className="flex items-center gap-2 bg-white/10 text-white border-white/20 hover:bg-white/20" data-testid="button-back-home">
                 <Home className="h-4 w-4" />
                 Trang chủ
               </Button>
@@ -525,17 +525,23 @@ export default function SupportTicketsPage() {
       <div className="max-w-7xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <HelpCircle className="h-5 w-5" />
-                Yêu cầu hỗ trợ của tôi ({filteredTickets.length})
-                {filteredTickets.length > TICKETS_PER_PAGE && (
-                  <span className="text-sm text-muted-foreground font-normal">
-                    - Trang {currentPage}/{totalPages}
-                  </span>
-                )}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-3">
+                <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+                  <HelpCircle className="h-6 w-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-purple-700 bg-clip-text text-transparent">
+                    Yêu cầu hỗ trợ của tôi ({filteredTickets.length})
+                  </h1>
+                  {filteredTickets.length > TICKETS_PER_PAGE && (
+                    <p className="text-sm text-muted-foreground">
+                      Trang {currentPage}/{totalPages}
+                    </p>
+                  )}
+                </div>
               </div>
-            </CardTitle>
+            </div>
             
             {/* Search and Filters */}
             <div className="space-y-4 mt-4">
