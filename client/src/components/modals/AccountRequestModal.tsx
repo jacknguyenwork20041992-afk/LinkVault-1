@@ -317,8 +317,10 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               </Button>
               <Button 
                 type="submit" 
+                variant="default"
                 disabled={createAccountRequestMutation.isPending}
                 data-testid="button-submit-account-request"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
               >
                 {createAccountRequestMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu"}
               </Button>
