@@ -23,8 +23,9 @@ import {
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
 import { chatWithGeminiAI } from "./gemini";
-import { ObjectStorageService } from "./objectStorage";
 import { TextExtractor } from "./textExtractor";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 import { z } from "zod";
 
 // Demo chat responses when OpenAI is unavailable
@@ -980,6 +981,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
+  // Serve objects (images from support tickets)
+  app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.claims?.sub;
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(`/${req.path}`);
+      
+      // Check if user can access this object
+      const canAccess = await objectStorageService.canAccessObjectEntity({
+        objectFile,
+        userId: userId,
+        requestedPermission: ObjectPermission.READ,
+      });
+      
+      if (!canAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      await objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "Object not found" });
+      }
+      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
