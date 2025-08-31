@@ -1,8 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
-import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { ObjectPermission } from "./objectAcl";
 
 const app = express();
 app.use(express.json());
@@ -49,32 +47,6 @@ app.use((req, res, next) => {
     throw err;
   });
 
-  // Object storage routes MUST be before Vite to avoid catch-all interference
-  app.get("/objects/*", async (req: any, res) => {
-    console.log("🎯 OBJECT ROUTE HIT! Path:", req.path);
-    console.log("🎯 User:", req.user ? "exists" : "undefined");
-    
-    // Temporarily skip auth to test route
-    // if (!req.user) {
-    //   return res.status(401).json({ error: "Unauthorized" });
-    // }
-    
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
-      // Temporarily skip ACL for testing
-      console.log("🎯 About to download object...");
-      await objectStorageService.downloadObject(objectFile, res);
-      console.log("🎯 Download completed");
-    } catch (error) {
-      console.error("Error serving object:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "Object not found" });
-      }
-      return res.status(500).json({ error: "Internal server error" });
-    }
-  });
 
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route

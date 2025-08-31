@@ -77,42 +77,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
-  // IMPORTANT: Object storage routes MUST be before other routes to avoid Vite catch-all
-  // Simple test route
-  app.get("/objects/test", (req, res) => {
-    console.log("TEST ROUTE HIT!");
-    res.json({ message: "Test route working!" });
-  });
-
-  // Serve objects (images from support tickets)  
+  // CRITICAL: Object storage route FIRST to avoid Vite catch-all
   app.get("/objects/*", isAuthenticated, async (req, res) => {
-    console.log("🎯 OBJECT ROUTE HIT! Path:", req.path);
+    console.log("🎯 FINAL ROUTE HIT! Path:", req.path);
     try {
-      const userId = req.user?.claims?.sub;
-      const user = req.user as any;
       const objectStorageService = new ObjectStorageService();
-      
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       
-      // Admin can access all objects, regular users need ACL check
-      let canAccess = false;
-      if (user.role === "admin") {
-        canAccess = true;
-      } else {
-        canAccess = await objectStorageService.canAccessObjectEntity({
-          objectFile,
-          userId: userId,
-          requestedPermission: ObjectPermission.READ,
-        });
-      }
-      
-      if (!canAccess) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
+      console.log("🎯 Downloading object...");
       await objectStorageService.downloadObject(objectFile, res);
+      console.log("🎯 Download done!");
     } catch (error) {
-      console.error("Error serving object:", error);
+      console.error("❌ Object error:", error);
       if (error instanceof ObjectNotFoundError) {
         return res.status(404).json({ error: "Object not found" });
       }
