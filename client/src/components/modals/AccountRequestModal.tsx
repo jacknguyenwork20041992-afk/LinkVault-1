@@ -159,7 +159,11 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     }
 
     if (!uploadedFile || !uploadedFileUrl) {
-      // Don't show error here, let form validation handle it
+      toast({
+        title: "Thiếu file",
+        description: "Vui lòng upload file danh sách học viên Excel trước khi gửi yêu cầu.",
+        variant: "destructive",
+      });
       return;
     }
 
@@ -195,8 +199,9 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       } else if (file.name) {
         setUploadedFile({ name: file.name });
       }
-      // Update form validation
+      // Update form validation - clear the error
       form.setValue('fileRequired', true);
+      form.clearErrors('fileRequired');
       toast({
         title: "Thành công", 
         description: "File đã được upload thành công",
@@ -378,29 +383,41 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                   </FormLabel>
                   <FormControl>
                     <div className="space-y-3">
-                      <ObjectUploader
-                        maxNumberOfFiles={1}
-                        maxFileSize={10485760} // 10MB
-                        allowedFileTypes={[
-                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                          'application/vnd.ms-excel',
-                          '.xlsx',
-                          '.xls'
-                        ]}
-                        onGetUploadParameters={handleGetUploadParameters}
-                        onComplete={handleUploadComplete}
-                        buttonClassName="w-full"
-                      >
-                        <div className="flex items-center gap-2">
-                          <Upload className="h-4 w-4" />
-                          <span>Chọn file Excel</span>
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50">
+                        <div className="space-y-3">
+                          <Upload className="h-8 w-8 text-gray-400 mx-auto" />
+                          <div>
+                            <ObjectUploader
+                              maxNumberOfFiles={1}
+                              maxFileSize={10485760} // 10MB
+                              allowedFileTypes={[
+                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                                'application/vnd.ms-excel',
+                                '.xlsx',
+                                '.xls'
+                              ]}
+                              onGetUploadParameters={handleGetUploadParameters}
+                              onComplete={handleUploadComplete}
+                              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
+                            >
+                              <span>Chọn file Excel</span>
+                            </ObjectUploader>
+                            <p className="text-sm text-gray-500 mt-2">
+                              Hoặc kéo thả file vào đây
+                            </p>
+                          </div>
                         </div>
-                      </ObjectUploader>
-                      {uploadedFile && (
-                        <p className="text-sm text-green-600 flex items-center gap-2">
-                          <FileText className="h-4 w-4" />
-                          File đã upload: {uploadedFile.name}
+                        <p className="text-xs text-gray-400 mt-3">
+                          Chỉ chấp nhận file .xlsx và .xls (tối đa 10MB)
                         </p>
+                      </div>
+                      {uploadedFile && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <p className="text-sm text-green-700 flex items-center gap-2">
+                            <FileText className="h-4 w-4" />
+                            <span className="font-medium">File đã upload:</span> {uploadedFile.name}
+                          </p>
+                        </div>
                       )}
                     </div>
                   </FormControl>

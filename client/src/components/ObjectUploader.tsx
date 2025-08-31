@@ -73,7 +73,7 @@ export function ObjectUploader({
         getUploadParameters: onGetUploadParameters,
       })
       .on("complete", (result) => {
-        setShowModal(false);
+        setTimeout(() => setShowModal(false), 500); // Small delay for better UX
         onComplete?.(result);
       });
     
