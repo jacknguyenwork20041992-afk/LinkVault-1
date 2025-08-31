@@ -218,7 +218,7 @@ export const supportTickets = pgTable("support_tickets", {
   classLevel: varchar("class_level").notNull(), // Cấp độ lớp học
   description: text("description").notNull(), // Mô tả vấn đề
   documentLink: text("document_link"), // Link tài liệu bị vấn đề
-  imageUrl: text("image_url"), // URL hình ảnh upload
+  imageUrls: text("image_urls").array(), // Array URLs hình ảnh upload (tối đa 5)
   status: varchar("status").notNull().default("open"), // open, in_progress, resolved, closed
   priority: varchar("priority").default("normal"), // low, normal, high, urgent
   createdAt: timestamp("created_at").defaultNow(),
@@ -458,6 +458,7 @@ export const insertSupportTicketSchema = createInsertSchema(supportTickets).omit
   updatedAt: true,
 }).extend({
   issueDate: z.string(), // Force string type
+  imageUrls: z.array(z.string()).max(5, "Tối đa 5 hình ảnh").optional(),
 });
 
 export const insertSupportResponseSchema = createInsertSchema(supportResponses).omit({

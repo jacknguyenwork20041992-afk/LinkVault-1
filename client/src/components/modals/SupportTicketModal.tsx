@@ -91,8 +91,8 @@ export default function SupportTicketModal({
 }: SupportTicketModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedImage, setSelectedImage] = useState<File | null>(null);
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedImages, setSelectedImages] = useState<File[]>([]);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const form = useForm<SupportTicketFormData>({
@@ -103,7 +103,7 @@ export default function SupportTicketModal({
       classLevel: "",
       description: "",
       documentLink: "",
-      imageUrl: "",
+      imageUrls: [],
       status: "open",
       priority: "normal",
     },
@@ -111,48 +111,52 @@ export default function SupportTicketModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: SupportTicketFormData) => {
-      let imageUrl = "";
+      let imageUrls: string[] = [];
       
-      // Upload image if selected
-      if (selectedImage) {
+      // Upload images if selected
+      if (selectedImages.length > 0) {
         try {
-          console.log("Getting upload URL...");
-          // Get upload URL from backend
-          const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-          const responseData = await uploadResponse.json();
-          console.log("Upload response data:", responseData);
-          const { uploadURL } = responseData;
-          console.log("Upload URL received:", uploadURL);
+          console.log(`Uploading ${selectedImages.length} images...`);
           
-          // Upload image to object storage
-          console.log("Uploading image to storage...");
-          const uploadResult = await fetch(uploadURL, {
-            method: "PUT",
-            body: selectedImage,
-            headers: {
-              "Content-Type": selectedImage.type,
-            },
-          });
-          
-          console.log("Upload result status:", uploadResult.status);
-          if (!uploadResult.ok) {
-            const errorText = await uploadResult.text();
-            console.error("Upload failed with:", errorText);
-            throw new Error(`Failed to upload image: ${uploadResult.status}`);
+          for (let i = 0; i < selectedImages.length; i++) {
+            const image = selectedImages[i];
+            console.log(`Getting upload URL for image ${i + 1}...`);
+            
+            // Get upload URL from backend
+            const uploadResponse = await apiRequest("POST", "/api/objects/upload");
+            const responseData = await uploadResponse.json();
+            const { uploadURL } = responseData;
+            
+            // Upload image to object storage
+            console.log(`Uploading image ${i + 1} to storage...`);
+            const uploadResult = await fetch(uploadURL, {
+              method: "PUT",
+              body: image,
+              headers: {
+                "Content-Type": image.type,
+              },
+            });
+            
+            if (!uploadResult.ok) {
+              const errorText = await uploadResult.text();
+              console.error(`Upload failed for image ${i + 1}:`, errorText);
+              throw new Error(`Failed to upload image ${i + 1}: ${uploadResult.status}`);
+            }
+            
+            const imageUrl = uploadURL ? uploadURL.split("?")[0] : "";
+            imageUrls.push(imageUrl);
+            console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
           }
-          
-          imageUrl = uploadURL ? uploadURL.split("?")[0] : ""; // Remove query parameters
-          console.log("Image uploaded successfully, URL:", imageUrl);
         } catch (error) {
-          console.error("Error uploading image:", error);
-          throw error; // Re-throw original error instead of generic one
+          console.error("Error uploading images:", error);
+          throw error;
         }
       }
       
       // Create support ticket
       const requestData = {
         ...data,
-        imageUrl: imageUrl || undefined,
+        imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
       };
       console.log("Creating support ticket with data:", requestData);
       await apiRequest("POST", "/api/support-tickets", requestData);
@@ -192,42 +196,68 @@ export default function SupportTicketModal({
   });
 
   const handleImageSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
+    const files = Array.from(event.target.files || []);
+    
+    // Check maximum 5 images
+    if (selectedImages.length + files.length > 5) {
+      toast({
+        title: "Lỗi",
+        description: "Tối đa 5 hình ảnh được phép upload",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    const validFiles: File[] = [];
+    const newPreviews: string[] = [];
+    
+    for (const file of files) {
       // Check file size (max 10MB)
       if (file.size > 10 * 1024 * 1024) {
         toast({
           title: "Lỗi",
-          description: "Kích thước file không được vượt quá 10MB",
+          description: `File ${file.name} vượt quá 10MB`,
           variant: "destructive",
         });
-        return;
+        continue;
       }
       
       // Check file type
       if (!file.type.startsWith("image/")) {
         toast({
           title: "Lỗi",
-          description: "Vui lòng chọn file hình ảnh",
+          description: `File ${file.name} không phải hình ảnh`,
           variant: "destructive",
         });
-        return;
+        continue;
       }
       
-      setSelectedImage(file);
+      validFiles.push(file);
       
       // Create preview
       const reader = new FileReader();
       reader.onload = (e) => {
-        setImagePreview(e.target?.result as string);
+        newPreviews.push(e.target?.result as string);
+        if (newPreviews.length === validFiles.length) {
+          setImagePreviews(prev => [...prev, ...newPreviews]);
+        }
       };
       reader.readAsDataURL(file);
     }
+    
+    if (validFiles.length > 0) {
+      setSelectedImages(prev => [...prev, ...validFiles]);
+    }
   };
 
-  const removeImage = () => {
-    setSelectedImage(null);
-    setImagePreview(null);
+  const removeImage = (index: number) => {
+    setSelectedImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const removeAllImages = () => {
+    setSelectedImages([]);
+    setImagePreviews([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -235,8 +265,8 @@ export default function SupportTicketModal({
 
   const handleClose = () => {
     form.reset();
-    setSelectedImage(null);
-    setImagePreview(null);
+    setSelectedImages([]);
+    setImagePreviews([]);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -390,32 +420,66 @@ export default function SupportTicketModal({
             <div className="space-y-3">
               <label className="flex items-center gap-2 text-sm font-medium">
                 <FileImage className="h-4 w-4 text-indigo-500" />
-                Upload hình ảnh vấn đề (không bắt buộc)
+                Upload hình ảnh vấn đề (tối đa 5 ảnh)
               </label>
               
-              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
-                {imagePreview ? (
-                  <div className="space-y-3">
-                    <img
-                      src={imagePreview}
-                      alt="Preview"
-                      className="max-w-full max-h-48 mx-auto rounded-lg shadow-md"
-                    />
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-sm text-gray-600">{selectedImage?.name}</span>
+              {imagePreviews.length > 0 ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {imagePreviews.map((preview, index) => (
+                      <div key={index} className="relative">
+                        <img
+                          src={preview}
+                          alt={`Preview ${index + 1}`}
+                          className="w-full h-32 object-cover rounded-lg shadow-md"
+                        />
+                        <Button
+                          type="button"
+                          variant="destructive"
+                          size="sm"
+                          className="absolute top-2 right-2 h-6 w-6 p-0"
+                          onClick={() => removeImage(index)}
+                          data-testid={`button-remove-image-${index}`}
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        <span className="absolute bottom-2 left-2 text-xs bg-black/60 text-white px-2 py-1 rounded">
+                          {selectedImages[index]?.name.substring(0, 15)}...
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">
+                      {selectedImages.length}/5 hình ảnh
+                    </span>
+                    {selectedImages.length < 5 && (
                       <Button
                         type="button"
                         variant="outline"
                         size="sm"
-                        onClick={removeImage}
-                        data-testid="button-remove-image"
+                        onClick={() => fileInputRef.current?.click()}
+                        data-testid="button-add-more-images"
                       >
-                        <X className="h-4 w-4" />
-                        Xóa
+                        <Upload className="h-4 w-4 mr-1" />
+                        Thêm ảnh
                       </Button>
-                    </div>
+                    )}
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={removeAllImages}
+                      data-testid="button-remove-all-images"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Xóa tất cả
+                    </Button>
                   </div>
-                ) : (
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors">
                   <div className="space-y-2">
                     <Upload className="h-12 w-12 text-gray-400 mx-auto" />
                     <div>
@@ -423,21 +487,22 @@ export default function SupportTicketModal({
                         type="button"
                         className="text-blue-600 hover:text-blue-700 font-medium"
                         onClick={() => fileInputRef.current?.click()}
-                        data-testid="button-upload-image"
+                        data-testid="button-upload-images"
                       >
                         Chọn hình ảnh
                       </button>
                       <p className="text-sm text-gray-500">hoặc kéo thả file vào đây</p>
                     </div>
-                    <p className="text-xs text-gray-400">PNG, JPG, GIF tối đa 10MB</p>
+                    <p className="text-xs text-gray-400">PNG, JPG, GIF tối đa 10MB mỗi file - Tối đa 5 ảnh</p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
               
               <input
                 ref={fileInputRef}
                 type="file"
                 accept="image/*"
+                multiple
                 onChange={handleImageSelect}
                 className="hidden"
                 data-testid="input-file-upload"

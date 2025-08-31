@@ -462,27 +462,30 @@ export default function SupportTicketsManagement() {
                         </a>
                       </div>
                     )}
-                    {selectedTicket.imageUrl && (
+                    {(selectedTicket.imageUrls && selectedTicket.imageUrls.length > 0) && (
                       <div>
                         <div className="flex items-center gap-2 mb-2">
                           <Image className="h-4 w-4 text-indigo-500" />
-                          <span className="font-medium">Hình ảnh vấn đề:</span>
+                          <span className="font-medium">Hình ảnh vấn đề ({selectedTicket.imageUrls.length}):</span>
                         </div>
-                        <div className="border rounded-lg p-4 bg-gray-50">
-                          <img 
-                            src={`/api/support-images/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`}
-                            alt="Hình ảnh vấn đề"
-                            className="max-w-full h-auto rounded-md shadow-md"
-                            onError={(e) => {
-                              console.error('Image load error');
-                              e.currentTarget.style.display = 'none';
-                              e.currentTarget.nextElementSibling!.style.display = 'block';
-                            }}
-                          />
-                          <div style={{display: 'none'}} className="text-center text-gray-500 py-4">
-                            <p>❌ Không thể tải hình ảnh</p>
-                            <p className="text-sm">ID: {selectedTicket.imageUrl.split('/').pop()?.split('?')[0]}</p>
-                          </div>
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                          {selectedTicket.imageUrls.map((imageUrl, index) => (
+                            <div key={index} className="border rounded-lg p-2 bg-gray-50">
+                              <img 
+                                src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                                alt={`Hình ảnh vấn đề ${index + 1}`}
+                                className="w-full h-32 object-cover rounded-md shadow-md"
+                                onError={(e) => {
+                                  console.error('Image load error');
+                                  e.currentTarget.style.display = 'none';
+                                  e.currentTarget.nextElementSibling!.style.display = 'block';
+                                }}
+                              />
+                              <div style={{display: 'none'}} className="text-center text-gray-500 py-4">
+                                <p className="text-xs">❌ Không thể tải ảnh {index + 1}</p>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
                     )}
