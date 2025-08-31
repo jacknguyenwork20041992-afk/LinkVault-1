@@ -468,13 +468,17 @@ export default function SupportTicketsManagement() {
                           <Image className="h-4 w-4 text-indigo-500" />
                           <span className="font-medium">Hình ảnh vấn đề:</span>
                         </div>
-                        <img
-                          src={selectedTicket.imageUrl.includes('storage.googleapis.com') 
+                        <a
+                          href={selectedTicket.imageUrl.includes('storage.googleapis.com') 
                             ? `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`
                             : selectedTicket.imageUrl}
-                          alt="Ticket image"
-                          className="max-w-full max-h-64 rounded-lg shadow-md"
-                        />
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-block text-blue-600 hover:underline border rounded-lg px-4 py-2 bg-blue-50 hover:bg-blue-100"
+                          data-testid="link-image"
+                        >
+                          📷 Xem hình ảnh vấn đề
+                        </a>
                       </div>
                     )}
                   </CardContent>
