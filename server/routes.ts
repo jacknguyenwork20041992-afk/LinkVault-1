@@ -1623,6 +1623,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Object storage routes for account requests
+  app.post("/api/account-requests/upload-url", isAuthenticated, async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
+      res.json({ uploadURL });
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      res.status(500).json({ error: "Failed to get upload URL" });
+    }
+  });
+
+  // Serve account request files (admin only)
+  app.get("/objects/:objectPath(*)", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const objectStorageService = new ObjectStorageService();
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving file:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "File not found" });
+      }
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Account request endpoints
   app.get("/api/account-requests", isAuthenticated, async (req: any, res) => {
     try {

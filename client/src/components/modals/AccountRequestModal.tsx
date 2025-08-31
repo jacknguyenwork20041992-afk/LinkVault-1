@@ -35,6 +35,8 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Upload, ExternalLink, FileText, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { ObjectUploader } from "@/components/ObjectUploader";
+import type { UploadResult } from "@uppy/core";
 
 const branchOptions = [
   "Bờ Bao Tân Thắng",
@@ -71,6 +73,8 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileUploading, setFileUploading] = useState(false);
+  const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
 
   const form = useForm<AccountRequestForm>({
     resolver: zodResolver(accountRequestSchema),
@@ -85,7 +89,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
 
   const createAccountRequestMutation = useMutation({
     mutationFn: async (data: AccountRequestForm & { fileName?: string; fileUrl?: string }) => {
-      // For now, we'll handle file upload separately or simulate it
       await apiRequest("POST", "/api/account-requests", data);
     },
     onSuccess: () => {
@@ -97,6 +100,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
       form.reset();
       setUploadedFile(null);
+      setUploadedFileUrl(null);
       onClose();
     },
     onError: (error) => {
@@ -149,7 +153,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       return;
     }
 
-    if (!uploadedFile) {
+    if (!uploadedFile || !uploadedFileUrl) {
       toast({
         title: "Thiếu file",
         description: "Vui lòng upload file danh sách học viên Excel",
@@ -158,12 +162,43 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       return;
     }
 
-    // Simulate file upload - in real implementation, you'd upload to object storage first
+    // Create account request with uploaded file
     createAccountRequestMutation.mutate({
       ...data,
       fileName: uploadedFile.name,
-      fileUrl: undefined, // File will be processed later by admin
+      fileUrl: uploadedFileUrl,
     });
+  };
+
+  const handleGetUploadParameters = async () => {
+    try {
+      const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
+      return {
+        method: "PUT" as const,
+        url: response.uploadURL,
+      };
+    } catch (error) {
+      console.error("Error getting upload URL:", error);
+      throw error;
+    }
+  };
+
+  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
+    if (result.successful && result.successful.length > 0) {
+      const file = result.successful[0];
+      const uploadUrl = file.uploadURL || "";
+      setUploadedFileUrl(uploadUrl);
+      // Set file info from the uploaded result
+      if (file.data && typeof file.data === 'object' && 'name' in file.data) {
+        setUploadedFile(file.data as File);
+      } else if (file.meta && typeof file.meta === 'object' && 'name' in file.meta) {
+        setUploadedFile({ name: (file.meta as any).name } as File);
+      }
+      toast({
+        title: "Thành công",
+        description: "File đã được upload thành công",
+      });
+    }
   };
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -331,25 +366,25 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
 
             {/* File Upload */}
             <div className="space-y-3">
-              <Label htmlFor="file-upload" className="text-sm font-medium">
+              <Label className="text-sm font-medium">
                 Upload file danh sách học viên <span className="text-red-500">*</span>
               </Label>
-              <div className="flex items-center gap-3">
-                <Input
-                  id="file-upload"
-                  type="file"
-                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-                  onChange={handleFileChange}
-                  className="cursor-pointer"
-                  required
-                  data-testid="input-file-upload"
-                />
-                <Upload className="h-5 w-5 text-muted-foreground" />
-              </div>
+              <ObjectUploader
+                maxNumberOfFiles={1}
+                maxFileSize={10485760} // 10MB
+                onGetUploadParameters={handleGetUploadParameters}
+                onComplete={handleUploadComplete}
+                buttonClassName="w-full"
+              >
+                <div className="flex items-center gap-2">
+                  <Upload className="h-4 w-4" />
+                  <span>Chọn file Excel</span>
+                </div>
+              </ObjectUploader>
               {uploadedFile && (
                 <p className="text-sm text-green-600 flex items-center gap-2">
                   <FileText className="h-4 w-4" />
-                  File đã chọn: {uploadedFile.name}
+                  File đã upload: {uploadedFile.name}
                 </p>
               )}
             </div>

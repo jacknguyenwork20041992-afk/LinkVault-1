@@ -296,9 +296,19 @@ export default function AccountRequestsManagement() {
                         <div className="flex items-center gap-2">
                           <FileText className="h-4 w-4 text-muted-foreground" />
                           <span className="text-sm">{request.fileName}</span>
-                          {request.fileUrl && request.fileUrl !== "simulated-url" ? (
+                          {request.fileUrl && request.fileUrl !== "simulated-url" && !request.fileUrl.includes("googleapis.com") ? (
                             <a
                               href={request.fileUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800"
+                              title="Xem file"
+                            >
+                              <ExternalLink className="h-4 w-4" />
+                            </a>
+                          ) : request.fileUrl && request.fileUrl.includes("storage.googleapis.com") ? (
+                            <a
+                              href={`/objects/uploads/${request.fileUrl.split('/').pop()}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="text-blue-600 hover:text-blue-800"
