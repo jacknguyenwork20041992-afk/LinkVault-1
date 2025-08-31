@@ -22,7 +22,7 @@ export default function UsersManagement() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: users = [], isLoading } = useQuery<any[]>({
+  const { data: users = [], isLoading } = useQuery<UserType[]>({
     queryKey: ["/api/users"],
     retry: false,
   });
@@ -251,18 +251,18 @@ export default function UsersManagement() {
                       <td className="py-3 px-6">
                         <div className="flex items-center space-x-3">
                           <div className="flex items-center space-x-2">
-                            {user.isActive ? (
+                            {user.isActive !== false ? (
                               <CheckCircle className="h-4 w-4 text-green-600" />
                             ) : (
                               <XCircle className="h-4 w-4 text-red-600" />
                             )}
-                            <span className={`text-sm font-medium ${user.isActive ? 'text-green-600' : 'text-red-600'}`}>
-                              {user.isActive ? "Hoạt động" : "Vô hiệu hóa"}
+                            <span className={`text-sm font-medium ${user.isActive !== false ? 'text-green-600' : 'text-red-600'}`}>
+                              {user.isActive !== false ? "Hoạt động" : "Vô hiệu hóa"}
                             </span>
                           </div>
                           <Switch
-                            checked={user.isActive}
-                            onCheckedChange={() => handleToggleActive(user.id, user.isActive)}
+                            checked={user.isActive !== false}
+                            onCheckedChange={() => handleToggleActive(user.id, user.isActive !== false)}
                             disabled={toggleActiveMutation.isPending}
                             data-testid={`switch-active-${user.id}`}
                           />
