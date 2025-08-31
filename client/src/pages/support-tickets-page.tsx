@@ -25,6 +25,266 @@ import {
 import FloatingSupportButton from "@/components/FloatingSupportButton";
 import type { SupportTicket } from "@shared/schema";
 
+// Ticket Card Component
+interface TicketCardProps {
+  ticket: SupportTicket;
+  isExpanded: boolean;
+  onToggleExpanded: () => void;
+}
+
+function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
+  // Fetch responses for this ticket when expanded
+  const { data: responses = [] } = useQuery<any[]>({
+    queryKey: ["/api/support-tickets", ticket.id, "responses"],
+    enabled: isExpanded,
+    retry: false,
+  });
+
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "open":
+        return <Clock className="h-4 w-4 text-yellow-600" />;
+      case "in_progress":
+        return <AlertCircle className="h-4 w-4 text-blue-600" />;
+      case "resolved":
+        return <CheckCircle className="h-4 w-4 text-green-600" />;
+      case "closed":
+        return <XCircle className="h-4 w-4 text-gray-600" />;
+      default:
+        return <Clock className="h-4 w-4 text-gray-600" />;
+    }
+  };
+
+  const getStatusText = (status: string) => {
+    switch (status) {
+      case "open":
+        return "Mới";
+      case "in_progress":
+        return "Đang xử lý";
+      case "resolved":
+        return "Đã giải quyết";
+      case "closed":
+        return "Đã đóng";
+      default:
+        return status;
+    }
+  };
+
+  const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (status) {
+      case "open":
+        return "outline";
+      case "in_progress":
+        return "default";
+      case "resolved":
+        return "secondary";
+      case "closed":
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
+
+  const getPriorityVariant = (priority: string): "default" | "secondary" | "destructive" | "outline" => {
+    switch (priority) {
+      case "urgent":
+        return "destructive";
+      case "high":
+        return "default";
+      case "normal":
+        return "secondary";
+      case "low":
+        return "outline";
+      default:
+        return "secondary";
+    }
+  };
+
+  const getPriorityText = (priority: string) => {
+    switch (priority) {
+      case "urgent":
+        return "Khẩn cấp";
+      case "high":
+        return "Cao";
+      case "normal":
+        return "Bình thường";
+      case "low":
+        return "Thấp";
+      default:
+        return priority;
+    }
+  };
+
+  return (
+    <Card className="border border-border hover:border-accent/50 transition-colors">
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            {/* Header with Status and Priority */}
+            <div className="flex items-center gap-2 mb-3">
+              <Badge variant={getStatusVariant(ticket.status)} className="flex items-center gap-1">
+                {getStatusIcon(ticket.status)}
+                {getStatusText(ticket.status)}
+              </Badge>
+              <Badge variant={getPriorityVariant(ticket.priority)}>
+                {getPriorityText(ticket.priority)}
+              </Badge>
+            </div>
+
+            {/* Content */}
+            <div className="space-y-3">
+              {/* Description */}
+              <div>
+                <p className="text-foreground font-medium mb-1">Mô tả vấn đề:</p>
+                <p className="text-muted-foreground">{ticket.description || "Không có mô tả"}</p>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Ngày:</span>
+                  <span className="font-medium">{new Date(ticket.issueDate).toLocaleDateString('vi-VN')}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Chi nhánh:</span>
+                  <span className="font-medium">{ticket.branch}</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Lớp:</span>
+                  <span className="font-medium">{ticket.classLevel}</span>
+                </div>
+              </div>
+
+              {/* Document Link */}
+              {ticket.documentLink && (
+                <div className="flex items-center gap-2 text-sm">
+                  <Link2 className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-muted-foreground">Tài liệu:</span>
+                  <a 
+                    href={ticket.documentLink} 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="text-primary hover:underline font-medium"
+                  >
+                    Xem tài liệu
+                  </a>
+                </div>
+              )}
+
+              {/* Images */}
+              {ticket.imageUrls && Array.isArray(ticket.imageUrls) && ticket.imageUrls.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <Image className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Hình ảnh ({ticket.imageUrls.length}):</span>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                    {ticket.imageUrls.slice(0, 4).map((imageUrl, index) => (
+                      <div key={index} className="relative group">
+                        <img 
+                          src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                          alt={`Hình ảnh ${index + 1}`}
+                          className="w-full h-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => {
+                            window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
+                          }}
+                        />
+                        {ticket.imageUrls && ticket.imageUrls.length > 4 && index === 3 && (
+                          <div className="absolute inset-0 bg-black bg-opacity-50 rounded-md flex items-center justify-center text-white text-xs font-medium">
+                            +{ticket.imageUrls.length - 3}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Toggle Responses Button */}
+              <div className="flex items-center justify-between pt-2 border-t">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={onToggleExpanded}
+                  className="flex items-center gap-2"
+                >
+                  <MessageSquare className="h-4 w-4" />
+                  {isExpanded ? 'Ẩn phản hồi' : 'Xem phản hồi'}
+                  {responses.length > 0 && (
+                    <Badge variant="secondary" className="ml-1">
+                      {responses.length}
+                    </Badge>
+                  )}
+                </Button>
+              </div>
+
+              {/* Responses Section */}
+              {isExpanded && (
+                <div className="space-y-3 pt-3 border-t bg-accent/5 -mx-6 px-6 pb-3">
+                  <h4 className="font-medium text-foreground flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Phản hồi từ hỗ trợ ({responses.length})
+                  </h4>
+                  
+                  {responses.length === 0 ? (
+                    <p className="text-muted-foreground text-sm italic">Chưa có phản hồi nào</p>
+                  ) : (
+                    <div className="space-y-3">
+                      {responses.map((response: any) => (
+                        <div key={response.id} className="bg-background rounded-lg p-4 border">
+                          <div className="flex items-start gap-3">
+                            <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0">
+                              <span className="text-xs font-semibold text-primary-foreground">
+                                {response.responder?.firstName?.charAt(0) || 'A'}
+                              </span>
+                            </div>
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-foreground">
+                                  {response.responder?.firstName && response.responder?.lastName 
+                                    ? `${response.responder.firstName} ${response.responder.lastName}`
+                                    : 'Admin'
+                                  }
+                                </span>
+                                <Badge variant="outline" className="text-xs">
+                                  Hỗ trợ
+                                </Badge>
+                              </div>
+                              <p className="text-muted-foreground text-sm mb-2">
+                                {response.response}
+                              </p>
+                              <span className="text-xs text-muted-foreground">
+                                {formatDateTime(response.createdAt)}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Timestamps */}
+          <div className="text-right text-xs text-muted-foreground space-y-1">
+            <div>Tạo: {formatDateTime(ticket.createdAt || null)}</div>
+            {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
+              <div>Cập nhật: {formatDateTime(ticket.updatedAt || null)}</div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 // Format date time function
 const formatDateTime = (date: string | Date | null) => {
   if (!date) return "Chưa xác định";
@@ -43,12 +303,26 @@ const formatDateTime = (date: string | Date | null) => {
 
 export default function SupportTicketsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [expandedTickets, setExpandedTickets] = useState<Set<string>>(new Set());
 
   // Fetch user's support tickets
   const { data: tickets = [], isLoading } = useQuery<SupportTicket[]>({
     queryKey: ["/api/support-tickets"],
     retry: false,
   });
+
+  // Toggle expanded state for tickets
+  const toggleExpanded = (ticketId: string) => {
+    setExpandedTickets(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(ticketId)) {
+        newSet.delete(ticketId);
+      } else {
+        newSet.add(ticketId);
+      }
+      return newSet;
+    });
+  };
 
   // Filter tickets based on search term
   const filteredTickets = tickets.filter((ticket) => {
@@ -208,109 +482,18 @@ export default function SupportTicketsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredTickets.map((ticket) => (
-                  <Card key={ticket.id} className="border border-border hover:border-accent/50 transition-colors">
-                    <CardContent className="p-6">
-                      <div className="flex items-start justify-between gap-4">
-                        <div className="flex-1">
-                          {/* Header with Status and Priority */}
-                          <div className="flex items-center gap-2 mb-3">
-                            <Badge variant={getStatusVariant(ticket.status)} className="flex items-center gap-1">
-                              {getStatusIcon(ticket.status)}
-                              {getStatusText(ticket.status)}
-                            </Badge>
-                            <Badge variant={getPriorityVariant(ticket.priority)}>
-                              {getPriorityText(ticket.priority)}
-                            </Badge>
-                          </div>
-
-                          {/* Content */}
-                          <div className="space-y-3">
-                            {/* Description */}
-                            <div>
-                              <p className="text-foreground font-medium mb-1">Mô tả vấn đề:</p>
-                              <p className="text-muted-foreground">{ticket.description || "Không có mô tả"}</p>
-                            </div>
-
-                            {/* Details Grid */}
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                              <div className="flex items-center gap-2">
-                                <Calendar className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Ngày:</span>
-                                <span className="font-medium">{new Date(ticket.issueDate).toLocaleDateString('vi-VN')}</span>
-                              </div>
-                              
-                              <div className="flex items-center gap-2">
-                                <MapPin className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Chi nhánh:</span>
-                                <span className="font-medium">{ticket.branch}</span>
-                              </div>
-                              
-                              <div className="flex items-center gap-2">
-                                <GraduationCap className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Lớp:</span>
-                                <span className="font-medium">{ticket.classLevel}</span>
-                              </div>
-                            </div>
-
-                            {/* Document Link */}
-                            {ticket.documentLink && (
-                              <div className="flex items-center gap-2 text-sm">
-                                <Link2 className="h-4 w-4 text-muted-foreground" />
-                                <span className="text-muted-foreground">Tài liệu:</span>
-                                <a 
-                                  href={ticket.documentLink} 
-                                  target="_blank" 
-                                  rel="noopener noreferrer"
-                                  className="text-primary hover:underline font-medium"
-                                >
-                                  Xem tài liệu
-                                </a>
-                              </div>
-                            )}
-
-                            {/* Images */}
-                            {ticket.imageUrls && Array.isArray(ticket.imageUrls) && ticket.imageUrls.length > 0 && (
-                              <div className="space-y-2">
-                                <div className="flex items-center gap-2 text-sm">
-                                  <Image className="h-4 w-4 text-muted-foreground" />
-                                  <span className="text-muted-foreground">Hình ảnh ({ticket.imageUrls.length}):</span>
-                                </div>
-                                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                  {ticket.imageUrls.slice(0, 4).map((imageUrl, index) => (
-                                    <div key={index} className="relative group">
-                                      <img 
-                                        src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
-                                        alt={`Hình ảnh ${index + 1}`}
-                                        className="w-full h-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
-                                        onClick={() => {
-                                          window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
-                                        }}
-                                      />
-                                      {ticket.imageUrls && ticket.imageUrls.length > 4 && index === 3 && (
-                                        <div className="absolute inset-0 bg-black bg-opacity-50 rounded-md flex items-center justify-center text-white text-xs font-medium">
-                                          +{ticket.imageUrls.length - 3}
-                                        </div>
-                                      )}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Timestamps */}
-                        <div className="text-right text-xs text-muted-foreground space-y-1">
-                          <div>Tạo: {formatDateTime(ticket.createdAt || null)}</div>
-                          {ticket.updatedAt && ticket.updatedAt !== ticket.createdAt && (
-                            <div>Cập nhật: {formatDateTime(ticket.updatedAt || null)}</div>
-                          )}
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
+                {filteredTickets.map((ticket) => {
+                  const isExpanded = expandedTickets.has(ticket.id);
+                  
+                  return (
+                  <TicketCard 
+                    key={ticket.id} 
+                    ticket={ticket} 
+                    isExpanded={isExpanded}
+                    onToggleExpanded={() => toggleExpanded(ticket.id)}
+                  />
+                  );
+                })}
               </div>
             )}
           </CardContent>
