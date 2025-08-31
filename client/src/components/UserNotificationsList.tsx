@@ -179,6 +179,8 @@ export default function UserNotificationsList() {
                   const isHighlighted = highlightedIds.has(notification.id);
                   const isUnread = !userNotification.isRead;
                   
+                  const isClickable = notification.title.includes("Phản hồi từ") || notification.title.includes("💬 Phản hồi từ");
+                  
                   return (
                     <div
                       key={userNotification.id}
@@ -188,8 +190,18 @@ export default function UserNotificationsList() {
                           : isUnread 
                           ? "bg-accent/5 border-accent/30" 
                           : "bg-background border-border"
-                      }`}
+                      } ${isClickable ? "cursor-pointer hover:bg-accent/10 hover:shadow-md" : ""}`}
                       data-testid={`notification-${notification.id}`}
+                      onClick={() => {
+                        if (isClickable) {
+                          // Mark as read first
+                          if (isUnread) {
+                            handleMarkAsRead(userNotification.id);
+                          }
+                          // Navigate to support tickets page
+                          window.location.href = "/support-tickets";
+                        }
+                      }}
                     >
                       <div className="flex justify-between items-start gap-4">
                         <div className="flex-1">
@@ -209,9 +221,9 @@ export default function UserNotificationsList() {
                             )}
                           </div>
                           
-                          <p className="text-sm text-muted-foreground mb-2">
+                          <div className="text-sm text-muted-foreground mb-2 whitespace-pre-line">
                             {notification.message}
-                          </p>
+                          </div>
                           
                           <div className="flex items-center justify-between">
                             <span className="text-xs text-muted-foreground">
@@ -222,7 +234,10 @@ export default function UserNotificationsList() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => handleMarkAsRead(notification.id)}
+                                onClick={(e) => {
+                                  e.stopPropagation(); // Prevent notification click
+                                  handleMarkAsRead(userNotification.id);
+                                }}
                                 disabled={markAsReadMutation.isPending}
                                 className="text-xs"
                                 data-testid={`button-mark-read-${notification.id}`}
