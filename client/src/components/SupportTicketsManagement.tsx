@@ -472,8 +472,8 @@ export default function SupportTicketsManagement() {
                           href={selectedTicket.imageUrl.includes('storage.googleapis.com') 
                             ? `/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`
                             : selectedTicket.imageUrl}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                          onClick={(e) => console.log('Clicking on image link:', selectedTicket.imageUrl)}
+                          target="_self"
                           className="inline-block text-blue-600 hover:underline border rounded-lg px-4 py-2 bg-blue-50 hover:bg-blue-100"
                           data-testid="link-image"
                         >

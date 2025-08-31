@@ -984,8 +984,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple test route
+  app.get("/objects/test", (req, res) => {
+    console.log("TEST ROUTE HIT!");
+    res.json({ message: "Test route working!" });
+  });
+
   // Serve objects (images from support tickets)
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
+    console.log("OBJECTS ROUTE HIT!");
     try {
       const userId = req.user?.claims?.sub;
       const user = req.user as any;
