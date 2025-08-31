@@ -236,6 +236,21 @@ export const supportResponses = pgTable("support_responses", {
   createdAt: timestamp("created_at").defaultNow(),
 });
 
+// Account requests table for SWE Program student accounts
+export const accountRequests = pgTable("account_requests", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  branchName: varchar("branch_name").notNull(), // Chi nhánh
+  email: varchar("email").notNull(),
+  requestType: varchar("request_type").notNull(), // "new_account" | "un_tag_account"
+  fileName: varchar("file_name"), // Tên file upload
+  fileUrl: varchar("file_url"), // URL của file upload
+  status: varchar("status").notNull().default("pending"), // pending, processing, completed, rejected
+  adminNotes: text("admin_notes"), // Ghi chú của admin
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -338,6 +353,13 @@ export const supportResponsesRelations = relations(supportResponses, ({ one }) =
   }),
   responder: one(users, {
     fields: [supportResponses.responderId],
+    references: [users.id],
+  }),
+}));
+
+export const accountRequestsRelations = relations(accountRequests, ({ one }) => ({
+  user: one(users, {
+    fields: [accountRequests.userId],
     references: [users.id],
   }),
 }));
@@ -467,6 +489,30 @@ export const insertSupportResponseSchema = createInsertSchema(supportResponses).
   createdAt: true,
 });
 
+export const insertAccountRequestSchema = createInsertSchema(accountRequests).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  requestType: z.enum(["new_account", "un_tag_account"]),
+  status: z.enum(["pending", "processing", "completed", "rejected"]).default("pending"),
+  branchName: z.enum([
+    "Bờ Bao Tân Thắng",
+    "Tỉnh Lộ 10", 
+    "Huỳnh Thiện Lộc",
+    "Gamuda",
+    "Hà Huy Tập",
+    "Nguyễn Văn Lương",
+    "Bùi Đình Túy",
+    "Hồng Hà",
+    "Đại Thanh",
+    "Ocean Park",
+    "Nguyễn Tri Phương",
+    "Phú Đông",
+    "Thủ Dầu Một"
+  ]),
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -510,3 +556,5 @@ export type SupportTicket = typeof supportTickets.$inferSelect;
 export type InsertSupportTicket = z.infer<typeof insertSupportTicketSchema>;
 export type SupportResponse = typeof supportResponses.$inferSelect;
 export type InsertSupportResponse = z.infer<typeof insertSupportResponseSchema>;
+export type AccountRequest = typeof accountRequests.$inferSelect;
+export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;

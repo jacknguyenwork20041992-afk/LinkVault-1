@@ -17,6 +17,7 @@ import {
   trainingFiles,
   supportTickets,
   supportResponses,
+  accountRequests,
   type User,
   type UpsertUser,
   type Program,
@@ -36,6 +37,7 @@ import {
   type TrainingFile,
   type SupportTicket,
   type SupportResponse,
+  type AccountRequest,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -53,6 +55,7 @@ import {
   type InsertTrainingFile,
   type InsertSupportTicket,
   type InsertSupportResponse,
+  type InsertAccountRequest,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -241,6 +244,14 @@ export interface IStorage {
   createSupportTicket(ticketData: InsertSupportTicket): Promise<SupportTicket>;
   updateSupportTicket(id: string, ticketData: Partial<InsertSupportTicket>): Promise<SupportTicket>;
   deleteSupportTicket(id: string): Promise<void>;
+
+  // Account requests
+  getAllAccountRequests(): Promise<(AccountRequest & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]>;
+  getAccountRequestsByUser(userId: string): Promise<AccountRequest[]>;
+  getAccountRequest(id: string): Promise<(AccountRequest & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> }) | undefined>;
+  createAccountRequest(requestData: InsertAccountRequest): Promise<AccountRequest>;
+  updateAccountRequest(id: string, requestData: Partial<InsertAccountRequest>): Promise<AccountRequest>;
+  deleteAccountRequest(id: string): Promise<void>;
   
   // Support response operations
   createSupportResponse(responseData: InsertSupportResponse): Promise<SupportResponse>;
@@ -1359,6 +1370,127 @@ export class DatabaseStorage implements IStorage {
 
   async deleteSupportTicket(id: string): Promise<void> {
     await db.delete(supportTickets).where(eq(supportTickets.id, id));
+  }
+
+  // Account requests
+  async getAllAccountRequests(): Promise<(AccountRequest & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]> {
+    return await db
+      .select({
+        id: accountRequests.id,
+        userId: accountRequests.userId,
+        branchName: accountRequests.branchName,
+        email: accountRequests.email,
+        requestType: accountRequests.requestType,
+        fileName: accountRequests.fileName,
+        fileUrl: accountRequests.fileUrl,
+        status: accountRequests.status,
+        adminNotes: accountRequests.adminNotes,
+        createdAt: accountRequests.createdAt,
+        updatedAt: accountRequests.updatedAt,
+        userEmail: users.email,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userIdJoined: users.id,
+      })
+      .from(accountRequests)
+      .innerJoin(users, eq(accountRequests.userId, users.id))
+      .orderBy(desc(accountRequests.createdAt))
+      .then(results => results.map(row => ({
+        id: row.id,
+        userId: row.userId,
+        branchName: row.branchName,
+        email: row.email,
+        requestType: row.requestType,
+        fileName: row.fileName,
+        fileUrl: row.fileUrl,
+        status: row.status,
+        adminNotes: row.adminNotes,
+        createdAt: row.createdAt,
+        updatedAt: row.updatedAt,
+        user: {
+          id: row.userIdJoined,
+          email: row.userEmail,
+          firstName: row.userFirstName,
+          lastName: row.userLastName,
+        }
+      })));
+  }
+
+  async getAccountRequestsByUser(userId: string): Promise<AccountRequest[]> {
+    return await db
+      .select()
+      .from(accountRequests)
+      .where(eq(accountRequests.userId, userId))
+      .orderBy(desc(accountRequests.createdAt));
+  }
+
+  async getAccountRequest(id: string): Promise<(AccountRequest & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> }) | undefined> {
+    const result = await db
+      .select({
+        id: accountRequests.id,
+        userId: accountRequests.userId,
+        branchName: accountRequests.branchName,
+        email: accountRequests.email,
+        requestType: accountRequests.requestType,
+        fileName: accountRequests.fileName,
+        fileUrl: accountRequests.fileUrl,
+        status: accountRequests.status,
+        adminNotes: accountRequests.adminNotes,
+        createdAt: accountRequests.createdAt,
+        updatedAt: accountRequests.updatedAt,
+        userEmail: users.email,
+        userFirstName: users.firstName,
+        userLastName: users.lastName,
+        userIdJoined: users.id,
+      })
+      .from(accountRequests)
+      .innerJoin(users, eq(accountRequests.userId, users.id))
+      .where(eq(accountRequests.id, id))
+      .limit(1);
+
+    if (result.length === 0) return undefined;
+
+    const row = result[0];
+    return {
+      id: row.id,
+      userId: row.userId,
+      branchName: row.branchName,
+      email: row.email,
+      requestType: row.requestType,
+      fileName: row.fileName,
+      fileUrl: row.fileUrl,
+      status: row.status,
+      adminNotes: row.adminNotes,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      user: {
+        id: row.userIdJoined,
+        email: row.userEmail,
+        firstName: row.userFirstName,
+        lastName: row.userLastName,
+      }
+    };
+  }
+
+  async createAccountRequest(requestData: InsertAccountRequest): Promise<AccountRequest> {
+    const [request] = await db
+      .insert(accountRequests)
+      .values(requestData)
+      .returning();
+    return request;
+  }
+
+  async updateAccountRequest(id: string, requestData: Partial<InsertAccountRequest>): Promise<AccountRequest> {
+    const [request] = await db
+      .update(accountRequests)
+      .set({ ...requestData, updatedAt: new Date() })
+      .where(eq(accountRequests.id, id))
+      .returning();
+    return request;
+  }
+
+  async deleteAccountRequest(id: string): Promise<void> {
+    await db.delete(accountRequests).where(eq(accountRequests.id, id));
   }
 
   // Support response operations

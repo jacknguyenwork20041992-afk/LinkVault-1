@@ -19,6 +19,7 @@ import {
   insertTrainingFileSchema,
   insertSupportTicketSchema,
   insertSupportResponseSchema,
+  insertAccountRequestSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
@@ -1618,6 +1619,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
         res.status(400).json({ message: "Invalid data", errors: error.issues });
       } else {
         res.status(500).json({ message: "Failed to create support response" });
+      }
+    }
+  });
+
+  // Account request endpoints
+  app.get("/api/account-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (user.role === "admin") {
+        // Admin can see all account requests
+        const requests = await storage.getAllAccountRequests();
+        res.json(requests);
+      } else {
+        // Users can only see their own requests
+        const requests = await storage.getAccountRequestsByUser(user.id);
+        res.json(requests);
+      }
+    } catch (error) {
+      console.error("Error fetching account requests:", error);
+      res.status(500).json({ message: "Failed to fetch account requests" });
+    }
+  });
+
+  // Admin endpoint for account requests
+  app.get("/api/admin/account-requests", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const requests = await storage.getAllAccountRequests();
+      res.json(requests);
+    } catch (error) {
+      console.error("Error fetching admin account requests:", error);
+      res.status(500).json({ message: "Failed to fetch account requests" });
+    }
+  });
+
+  app.get("/api/account-requests/:id", isAuthenticated, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      const request = await storage.getAccountRequest(id);
+      
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      // Check permissions - admin can see all, users can only see their own
+      if (user.role !== "admin" && request.userId !== user.id) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+
+      res.json(request);
+    } catch (error) {
+      console.error("Error fetching account request:", error);
+      res.status(500).json({ message: "Failed to fetch account request" });
+    }
+  });
+
+  app.post("/api/account-requests", isAuthenticated, async (req: any, res) => {
+    try {
+      const user = req.user;
+      
+      const requestData = insertAccountRequestSchema.parse({
+        ...req.body,
+        userId: user.id,
+      });
+      
+      const accountRequest = await storage.createAccountRequest(requestData);
+      
+      // Tạo thông báo cho tất cả admin khi có account request mới
+      const adminUsers = await storage.getUsersByRole("admin");
+      const requestTypeText = requestData.requestType === "new_account" 
+        ? "tài khoản mới" 
+        : "reset tài khoản";
+      
+      for (const admin of adminUsers) {
+        await storage.createNotification({
+          title: "Yêu cầu tài khoản SWE mới",
+          message: `${user.firstName} ${user.lastName} đã gửi yêu cầu ${requestTypeText} cho chương trình SWE từ chi nhánh ${requestData.branchName}. Email: ${requestData.email}`,
+          isGlobal: false,
+          recipientId: admin.id,
+        });
+      }
+      
+      res.json(accountRequest);
+    } catch (error) {
+      console.error("Error creating account request:", error);
+      if (error.name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      } else {
+        res.status(500).json({ message: "Failed to create account request" });
+      }
+    }
+  });
+
+  app.put("/api/account-requests/:id", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const user = req.user;
+      
+      // Check if request exists
+      const existingRequest = await storage.getAccountRequest(id);
+      if (!existingRequest) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      const updateData = req.body;
+      const updatedRequest = await storage.updateAccountRequest(id, updateData);
+      
+      // Tạo thông báo cho user khi admin cập nhật status
+      if (updateData.status && updateData.status !== existingRequest.status) {
+        let statusText = "";
+        switch (updateData.status) {
+          case "processing":
+            statusText = "đang được xử lý";
+            break;
+          case "completed":
+            statusText = "đã hoàn thành";
+            break;
+          case "rejected":
+            statusText = "đã bị từ chối";
+            break;
+          default:
+            statusText = updateData.status;
+        }
+        
+        await storage.createNotification({
+          title: "Cập nhật yêu cầu tài khoản SWE",
+          message: `Yêu cầu tài khoản SWE của bạn ${statusText}. ${updateData.adminNotes ? `Ghi chú: ${updateData.adminNotes}` : ''}`,
+          isGlobal: false,
+          recipientId: existingRequest.userId,
+        });
+      }
+      
+      res.json(updatedRequest);
+    } catch (error) {
+      console.error("Error updating account request:", error);
+      if (error.name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      } else {
+        res.status(500).json({ message: "Failed to update account request" });
       }
     }
   });
