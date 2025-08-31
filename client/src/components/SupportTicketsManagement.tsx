@@ -468,15 +468,22 @@ export default function SupportTicketsManagement() {
                           <Image className="h-4 w-4 text-indigo-500" />
                           <span className="font-medium">Hình ảnh vấn đề:</span>
                         </div>
-                        <a
-                          href={`/objects/uploads/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`}
-                          onClick={(e) => console.log('Opening image:', selectedTicket.imageUrl)}
-                          target="_self"
-                          className="inline-block text-blue-600 hover:underline border rounded-lg px-4 py-2 bg-blue-50 hover:bg-blue-100"
-                          data-testid="link-image"
-                        >
-                          📷 Xem hình ảnh vấn đề
-                        </a>
+                        <div className="border rounded-lg p-4 bg-gray-50">
+                          <img 
+                            src={`/api/support-images/${selectedTicket.imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                            alt="Hình ảnh vấn đề"
+                            className="max-w-full h-auto rounded-md shadow-md"
+                            onError={(e) => {
+                              console.error('Image load error');
+                              e.currentTarget.style.display = 'none';
+                              e.currentTarget.nextElementSibling!.style.display = 'block';
+                            }}
+                          />
+                          <div style={{display: 'none'}} className="text-center text-gray-500 py-4">
+                            <p>❌ Không thể tải hình ảnh</p>
+                            <p className="text-sm">ID: {selectedTicket.imageUrl.split('/').pop()?.split('?')[0]}</p>
+                          </div>
+                        </div>
                       </div>
                     )}
                   </CardContent>

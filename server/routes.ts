@@ -77,44 +77,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
-  // DEBUG: Log all requests to see what's being hit
-  app.use((req, res, next) => {
-    if (req.path.includes('/objects/')) {
-      console.log("🔍 DEBUG REQUEST:", req.method, req.path);
-    }
-    next();
-  });
-
-  // Try direct route without auth first
-  app.get("/objects/uploads/*", async (req, res) => {
-    console.log("🎯 DIRECT ROUTE HIT! Path:", req.path);
+  // Serve support ticket images via API endpoint
+  app.get("/api/support-images/:imageId", isAuthenticated, async (req, res) => {
+    console.log("🖼️ IMAGE REQUEST:", req.params.imageId);
     try {
       const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      const imagePath = `/objects/uploads/${req.params.imageId}`;
+      const objectFile = await objectStorageService.getObjectEntityFile(imagePath);
       
-      console.log("🎯 About to download...");
+      console.log("🖼️ Serving image...");
       await objectStorageService.downloadObject(objectFile, res);
-      console.log("🎯 Download success!");
     } catch (error) {
-      console.error("❌ Error:", error);
-      res.status(500).json({ error: "Failed" });
-    }
-  });
-
-  // CRITICAL: Object storage route FIRST to avoid Vite catch-all
-  app.get("/objects/*", isAuthenticated, async (req, res) => {
-    console.log("🎯 AUTH ROUTE HIT! Path:", req.path);
-    try {
-      const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
-      console.log("🎯 Downloading object...");
-      await objectStorageService.downloadObject(objectFile, res);
-      console.log("🎯 Download done!");
-    } catch (error) {
-      console.error("❌ Object error:", error);
+      console.error("❌ Image error:", error);
       if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "Object not found" });
+        return res.status(404).json({ error: "Image not found" });
       }
       return res.status(500).json({ error: "Internal server error" });
     }
