@@ -35,8 +35,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
 import { Upload, ExternalLink, FileText, Info } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ObjectUploader } from "@/components/ObjectUploader";
-import type { UploadResult } from "@uppy/core";
 
 const branchOptions = [
   "Bờ Bao Tân Thắng",
@@ -75,7 +73,7 @@ interface AccountRequestModalProps {
 export default function AccountRequestModal({ isOpen, onClose }: AccountRequestModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [uploadedFile, setUploadedFile] = useState<{ name: string } | null>(null);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [fileUploading, setFileUploading] = useState(false);
   const [uploadedFileUrl, setUploadedFileUrl] = useState<string | null>(null);
 
@@ -175,62 +173,77 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     });
   };
 
-  const handleGetUploadParameters = async () => {
-    try {
-      const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
-      return {
-        method: "PUT" as const,
-        url: response.uploadURL,
-      };
-    } catch (error) {
-      console.error("Error getting upload URL:", error);
-      throw error;
-    }
-  };
-
-  const handleUploadComplete = (result: UploadResult<Record<string, unknown>, Record<string, unknown>>) => {
-    if (result.successful && result.successful.length > 0) {
-      const file = result.successful[0];
-      const uploadUrl = file.uploadURL || "";
-      setUploadedFileUrl(uploadUrl);
-      // Set file info from the uploaded result
-      if (file.meta && typeof file.meta === 'object' && 'name' in file.meta) {
-        setUploadedFile({ name: (file.meta as any).name });
-      } else if (file.name) {
-        setUploadedFile({ name: file.name });
-      }
-      // Update form validation - clear the error
-      form.setValue('fileRequired', true);
-      form.clearErrors('fileRequired');
-      toast({
-        title: "Thành công", 
-        description: "File đã được upload thành công",
-      });
-    }
-  };
-
-  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
-      // Kiểm tra định dạng file Excel
-      const allowedTypes = [
-        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", // .xlsx
-        "application/vnd.ms-excel", // .xls
-      ];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = [
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/vnd.ms-excel'
+    ];
+    
+    if (!allowedTypes.includes(file.type)) {
+      toast({
+        title: "File không hợp lệ",
+        description: "Vui lòng chọn file Excel (.xlsx hoặc .xls)",
+        variant: "destructive",
+      });
+      event.target.value = '';
+      return;
+    }
+
+    // Validate file size (10MB)
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: "File quá lớn",
+        description: "Vui lòng chọn file nhỏ hơn 10MB",
+        variant: "destructive",
+      });
+      event.target.value = '';
+      return;
+    }
+
+    setFileUploading(true);
+    
+    try {
+      // Get upload URL
+      const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
+      const uploadURL = response.uploadURL;
       
-      if (!allowedTypes.includes(file.type)) {
+      // Upload file
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+      
+      if (uploadResponse.ok) {
+        setUploadedFile(file);
+        setUploadedFileUrl(uploadURL);
+        form.setValue('fileRequired', true);
+        form.clearErrors('fileRequired');
         toast({
-          title: "File không hợp lệ",
-          description: "Chỉ được phép upload file Excel (.xlsx, .xls)",
-          variant: "destructive",
+          title: "Thành công",
+          description: "File đã được upload thành công",
         });
-        event.target.value = ""; // Reset input
-        return;
+      } else {
+        throw new Error('Upload failed');
       }
-      
-      setUploadedFile(file);
+    } catch (error) {
+      console.error('Upload error:', error);
+      toast({
+        title: "Lỗi upload",
+        description: "Không thể upload file. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    } finally {
+      setFileUploading(false);
     }
   };
+
 
   const getTemplateLink = () => {
     return watchRequestType === "new_account" 
@@ -383,25 +396,28 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                   </FormLabel>
                   <FormControl>
                     <div className="space-y-3">
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50">
-                        <div className="space-y-4">
+                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50 relative">
+                        <input
+                          type="file"
+                          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                          onChange={handleFileChange}
+                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                          disabled={fileUploading}
+                        />
+                        <div className="space-y-4 pointer-events-none">
                           <Upload className="h-8 w-8 text-gray-400 mx-auto" />
                           <div className="space-y-2">
-                            <ObjectUploader
-                              maxNumberOfFiles={1}
-                              maxFileSize={10485760} // 10MB
-                              allowedFileTypes={[
-                                'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                                'application/vnd.ms-excel',
-                                '.xlsx',
-                                '.xls'
-                              ]}
-                              onGetUploadParameters={handleGetUploadParameters}
-                              onComplete={handleUploadComplete}
-                              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
+                            <button
+                              type="button"
+                              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors pointer-events-auto"
+                              disabled={fileUploading}
+                              onClick={() => {
+                                const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+                                input?.click();
+                              }}
                             >
-                              <span>Chọn file Excel</span>
-                            </ObjectUploader>
+                              {fileUploading ? "Đang upload..." : "Chọn file Excel"}
+                            </button>
                             <p className="text-sm text-gray-500">
                               Hoặc kéo thả file vào đây
                             </p>
