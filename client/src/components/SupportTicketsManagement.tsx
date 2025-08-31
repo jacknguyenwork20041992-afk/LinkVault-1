@@ -295,53 +295,46 @@ export default function SupportTicketsManagement() {
             </div>
           ) : (
             <div className="overflow-x-auto">
-              <table className="w-full" style={{ minWidth: '1200px' }}>
+              <table className="w-full">
                 <thead className="bg-muted/50">
                   <tr>
-                    <th className="text-left py-3 px-3 text-sm font-medium text-foreground w-40">Người gửi</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-foreground w-24">Chi nhánh</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-foreground w-20">Lớp</th>
-                    <th className="text-left py-3 px-3 text-sm font-medium text-foreground">Mô tả</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-foreground w-24">Trạng thái</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-foreground w-24">Độ ưu tiên</th>
-                    <th className="text-left py-3 px-2 text-sm font-medium text-foreground w-24">Ngày tạo</th>
-                    <th className="text-left py-3 px-3 text-sm font-medium text-foreground w-20">Xem</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Người gửi</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Chi nhánh</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Lớp</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Trạng thái</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Ngày tạo</th>
+                    <th className="text-left py-3 px-4 text-sm font-medium text-foreground">Xem</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredTickets.map((ticket) => (
                     <tr key={ticket.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-ticket-${ticket.id}`}>
-                      <td className="py-4 px-3 w-40">
+                      <td className="py-4 px-4">
                         <div>
-                          <div className="font-medium text-foreground text-sm">
+                          <div className="font-medium text-foreground">
                             {ticket.user?.firstName && ticket.user?.lastName 
                               ? `${ticket.user.firstName} ${ticket.user.lastName}` 
                               : ticket.user?.email || "N/A"}
                           </div>
-                          <div className="text-xs text-muted-foreground">{ticket.user?.email}</div>
+                          <div className="text-sm text-muted-foreground">{ticket.user?.email}</div>
                         </div>
                       </td>
-                      <td className="py-4 px-2 text-muted-foreground text-sm w-24">{ticket.branch}</td>
-                      <td className="py-4 px-2 text-muted-foreground text-sm w-20">{ticket.classLevel}</td>
-                      <td className="py-4 px-3">
-                        <div className="max-w-xs truncate text-foreground text-sm" title={ticket.description}>
-                          {ticket.description}
-                        </div>
-                      </td>
-                      <td className="py-4 px-2 w-24">{getStatusBadge(ticket.status)}</td>
-                      <td className="py-4 px-2 w-24">{getPriorityBadge(ticket.priority)}</td>
-                      <td className="py-4 px-2 text-muted-foreground text-sm w-24">
+                      <td className="py-4 px-4 text-muted-foreground">{ticket.branch}</td>
+                      <td className="py-4 px-4 text-muted-foreground">{ticket.classLevel}</td>
+                      <td className="py-4 px-4">{getStatusBadge(ticket.status)}</td>
+                      <td className="py-4 px-4 text-muted-foreground">
                         {new Date(ticket.createdAt).toLocaleDateString("vi-VN")}
                       </td>
-                      <td className="py-4 px-3 w-20">
+                      <td className="py-4 px-4">
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => handleViewTicket(ticket)}
                           data-testid={`button-view-ticket-${ticket.id}`}
-                          className="p-1 h-8 w-8"
+                          className="flex items-center gap-1"
                         >
                           <Eye className="h-4 w-4" />
+                          Xem
                         </Button>
                       </td>
                     </tr>
