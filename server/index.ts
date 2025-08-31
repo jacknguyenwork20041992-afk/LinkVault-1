@@ -1,6 +1,8 @@
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
+import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { ObjectPermission } from "./objectAcl";
 
 const app = express();
 app.use(express.json());
@@ -45,6 +47,48 @@ app.use((req, res, next) => {
 
     res.status(status).json({ message });
     throw err;
+  });
+
+  // Object storage routes MUST be before Vite to avoid catch-all interference
+  app.get("/objects/*", async (req: any, res) => {
+    console.log("🎯 OBJECT ROUTE HIT! Path:", req.path);
+    
+    // Simple session check instead of middleware
+    if (!req.user) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
+    try {
+      const userId = req.user?.claims?.sub;
+      const user = req.user as any;
+      const objectStorageService = new ObjectStorageService();
+      
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Admin can access all objects, regular users need ACL check
+      let canAccess = false;
+      if (user.role === "admin") {
+        canAccess = true;
+      } else {
+        canAccess = await objectStorageService.canAccessObjectEntity({
+          objectFile,
+          userId: userId,
+          requestedPermission: ObjectPermission.READ,
+        });
+      }
+      
+      if (!canAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      await objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "Object not found" });
+      }
+      return res.status(500).json({ error: "Internal server error" });
+    }
   });
 
   // importantly only setup vite in development and after

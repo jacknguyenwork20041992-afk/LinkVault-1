@@ -86,6 +86,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Serve objects (images from support tickets)  
   app.get("/objects/*", isAuthenticated, async (req, res) => {
+    console.log("🎯 OBJECT ROUTE HIT! Path:", req.path);
     try {
       const userId = req.user?.claims?.sub;
       const user = req.user as any;
