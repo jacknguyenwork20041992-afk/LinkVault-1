@@ -60,6 +60,9 @@ const accountRequestSchema = z.object({
   requestType: z.enum(["new_account", "un_tag_account"], {
     required_error: "Vui lòng chọn loại yêu cầu",
   }),
+  fileRequired: z.boolean().refine(val => val === true, {
+    message: "Vui lòng upload file danh sách học viên Excel",
+  }),
 });
 
 type AccountRequestForm = z.infer<typeof accountRequestSchema>;
@@ -82,6 +85,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       branchName: "",
       email: "",
       requestType: "new_account",
+      fileRequired: false,
     },
   });
 
@@ -101,6 +105,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       form.reset();
       setUploadedFile(null);
       setUploadedFileUrl(null);
+      form.setValue('fileRequired', false);
       onClose();
     },
     onError: (error) => {
@@ -154,11 +159,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     }
 
     if (!uploadedFile || !uploadedFileUrl) {
-      toast({
-        title: "Thiếu file",
-        description: "Vui lòng upload file danh sách học viên Excel",
-        variant: "destructive",
-      });
+      // Don't show error here, let form validation handle it
       return;
     }
 
@@ -194,8 +195,10 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       } else if (file.name) {
         setUploadedFile({ name: file.name });
       }
+      // Update form validation
+      form.setValue('fileRequired', true);
       toast({
-        title: "Thành công",
+        title: "Thành công", 
         description: "File đã được upload thành công",
       });
     }
@@ -365,35 +368,46 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
             </Alert>
 
             {/* File Upload */}
-            <div className="space-y-3">
-              <Label className="text-sm font-medium">
-                Upload file danh sách học viên <span className="text-red-500">*</span>
-              </Label>
-              <ObjectUploader
-                maxNumberOfFiles={1}
-                maxFileSize={10485760} // 10MB
-                allowedFileTypes={[
-                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-                  'application/vnd.ms-excel',
-                  '.xlsx',
-                  '.xls'
-                ]}
-                onGetUploadParameters={handleGetUploadParameters}
-                onComplete={handleUploadComplete}
-                buttonClassName="w-full"
-              >
-                <div className="flex items-center gap-2">
-                  <Upload className="h-4 w-4" />
-                  <span>Chọn file Excel</span>
-                </div>
-              </ObjectUploader>
-              {uploadedFile && (
-                <p className="text-sm text-green-600 flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  File đã upload: {uploadedFile.name}
-                </p>
+            <FormField
+              control={form.control}
+              name="fileRequired"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>
+                    Upload file danh sách học viên <span className="text-red-500">*</span>
+                  </FormLabel>
+                  <FormControl>
+                    <div className="space-y-3">
+                      <ObjectUploader
+                        maxNumberOfFiles={1}
+                        maxFileSize={10485760} // 10MB
+                        allowedFileTypes={[
+                          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+                          'application/vnd.ms-excel',
+                          '.xlsx',
+                          '.xls'
+                        ]}
+                        onGetUploadParameters={handleGetUploadParameters}
+                        onComplete={handleUploadComplete}
+                        buttonClassName="w-full"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Upload className="h-4 w-4" />
+                          <span>Chọn file Excel</span>
+                        </div>
+                      </ObjectUploader>
+                      {uploadedFile && (
+                        <p className="text-sm text-green-600 flex items-center gap-2">
+                          <FileText className="h-4 w-4" />
+                          File đã upload: {uploadedFile.name}
+                        </p>
+                      )}
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
               )}
-            </div>
+            />
 
             <DialogFooter className="flex gap-3">
               <Button type="button" variant="outline" onClick={onClose}>

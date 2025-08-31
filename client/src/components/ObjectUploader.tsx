@@ -2,8 +2,6 @@ import { useState } from "react";
 import type { ReactNode } from "react";
 import Uppy from "@uppy/core";
 import { DashboardModal } from "@uppy/react";
-// import "@uppy/core/dist/style.css";
-// import "@uppy/dashboard/dist/style.css";
 import AwsS3 from "@uppy/aws-s3";
 import type { UploadResult } from "@uppy/core";
 import { Button } from "@/components/ui/button";
@@ -61,8 +59,8 @@ export function ObjectUploader({
   children,
 }: ObjectUploaderProps) {
   const [showModal, setShowModal] = useState(false);
-  const [uppy] = useState(() =>
-    new Uppy({
+  const [uppy] = useState(() => {
+    const uppyInstance = new Uppy({
       restrictions: {
         maxNumberOfFiles,
         maxFileSize,
@@ -75,9 +73,12 @@ export function ObjectUploader({
         getUploadParameters: onGetUploadParameters,
       })
       .on("complete", (result) => {
+        setShowModal(false);
         onComplete?.(result);
-      })
-  );
+      });
+    
+    return uppyInstance;
+  });
 
   return (
     <div>
@@ -90,6 +91,7 @@ export function ObjectUploader({
         open={showModal}
         onRequestClose={() => setShowModal(false)}
         proudlyDisplayPoweredByUppy={false}
+        note="Chỉ cho phép file Excel (.xlsx, .xls)"
       />
     </div>
   );
