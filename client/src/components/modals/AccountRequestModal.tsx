@@ -184,10 +184,24 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     setFileUploading(true);
     
     try {
-      // Get upload URL
-      const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
-      console.log('Full API response:', response);
-      const uploadURL = response.uploadURL;
+      // Get upload URL directly with fetch to bypass apiRequest issues
+      const response = await fetch("/api/account-requests/upload-url", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({}),
+      });
+      
+      console.log('Raw response status:', response.status);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      console.log('Full API response:', data);
+      const uploadURL = data.uploadURL;
       
       console.log('Got upload URL:', uploadURL);
       
