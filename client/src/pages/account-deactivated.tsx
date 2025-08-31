@@ -1,7 +1,12 @@
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 export default function AccountDeactivatedPage() {
+  const handleBackToLogin = () => {
+    // Đăng xuất và quay lại trang đăng nhập
+    window.location.href = "/api/logout";
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950 flex items-center justify-center p-4">
@@ -37,10 +42,22 @@ export default function AccountDeactivatedPage() {
             </div>
           </div>
 
-          <div className="text-center">
-            <p className="text-xs text-gray-400 dark:text-gray-500">
-              Vui lòng cung cấp thông tin tài khoản khi liên hệ
-            </p>
+          <div className="space-y-4">
+            <Button 
+              onClick={handleBackToLogin}
+              variant="outline"
+              className="w-full border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
+              data-testid="button-back-to-login"
+            >
+              <LogOut className="w-4 h-4 mr-2" />
+              Quay lại trang đăng nhập
+            </Button>
+            
+            <div className="text-center">
+              <p className="text-xs text-gray-400 dark:text-gray-500">
+                Vui lòng cung cấp thông tin tài khoản khi liên hệ
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>
