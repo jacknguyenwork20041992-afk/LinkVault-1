@@ -149,6 +149,11 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     const file = event.target.files?.[0];
     if (!file) return;
 
+    console.log('Selected file:', file);
+    console.log('File name:', file.name);
+    console.log('File type:', file.type);
+    console.log('File size:', file.size);
+
     // Validate file type
     const allowedTypes = [
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
@@ -183,6 +188,8 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       const response: any = await apiRequest("POST", "/api/account-requests/upload-url", {});
       const uploadURL = response.uploadURL;
       
+      console.log('Got upload URL:', uploadURL);
+      
       // Upload file
       const uploadResponse = await fetch(uploadURL, {
         method: 'PUT',
@@ -192,9 +199,21 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
         },
       });
       
+      console.log('Upload response status:', uploadResponse.status);
+      
       if (uploadResponse.ok) {
+        console.log('Setting uploadedFile to:', file);
+        console.log('Setting uploadedFileUrl to:', uploadURL);
+        
         setUploadedFile(file);
         setUploadedFileUrl(uploadURL);
+        
+        // Verify state was set
+        setTimeout(() => {
+          console.log('After setting - uploadedFile:', uploadedFile);
+          console.log('After setting - uploadedFileUrl:', uploadedFileUrl);
+        }, 100);
+        
         toast({
           title: "Thành công",
           description: "File đã được upload thành công",
