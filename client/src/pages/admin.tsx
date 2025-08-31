@@ -42,8 +42,8 @@ export default function Admin() {
   const handleNotificationBellClick = async () => {
     // Đánh dấu tất cả thông báo support ticket đã đọc
     try {
-      for (const notification of supportTicketNotifications) {
-        await fetch(`/api/notifications/${notification.id}/read`, {
+      for (const item of supportTicketNotifications) {
+        await fetch(`/api/notifications/${item.notification.id}/read`, {
           method: 'PUT',
           credentials: 'include'
         });
