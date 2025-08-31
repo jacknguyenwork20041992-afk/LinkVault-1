@@ -166,7 +166,7 @@ export default function Admin() {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* Admin Notification Bell */}
                 <button 
-                  onClick={() => setActiveView("notifications")}
+                  onClick={() => setActiveView("support-tickets")}
                   className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
                   data-testid="button-admin-notifications"
                 >
