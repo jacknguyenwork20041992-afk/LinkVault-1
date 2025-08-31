@@ -77,6 +77,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
+  // IMPORTANT: Object storage routes MUST be before other routes to avoid Vite catch-all
+  // Simple test route
+  app.get("/objects/test", (req, res) => {
+    console.log("TEST ROUTE HIT!");
+    res.json({ message: "Test route working!" });
+  });
+
+  // Serve objects (images from support tickets)  
+  app.get("/objects/*", isAuthenticated, async (req, res) => {
+    console.log("OBJECTS ROUTE HIT! Path:", req.path);
+    try {
+      const userId = req.user?.claims?.sub;
+      const user = req.user as any;
+      const objectStorageService = new ObjectStorageService();
+      
+      console.log("DEBUG: req.path =", req.path);
+      console.log("DEBUG: req.params.objectPath =", req.params.objectPath);
+      
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
+      
+      // Admin can access all objects, regular users need ACL check
+      let canAccess = false;
+      if (user.role === "admin") {
+        canAccess = true;
+      } else {
+        canAccess = await objectStorageService.canAccessObjectEntity({
+          objectFile,
+          userId: userId,
+          requestedPermission: ObjectPermission.READ,
+        });
+      }
+      
+      if (!canAccess) {
+        return res.status(403).json({ error: "Access denied" });
+      }
+
+      await objectStorageService.downloadObject(objectFile, res);
+    } catch (error) {
+      console.error("Error serving object:", error);
+      if (error instanceof ObjectNotFoundError) {
+        return res.status(404).json({ error: "Object not found" });
+      }
+      return res.status(500).json({ error: "Internal server error" });
+    }
+  });
+
   // Configure multer for file uploads
   const upload = multer({
     storage: multer.memoryStorage(),
@@ -981,51 +1027,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error getting upload URL:", error);
       res.status(500).json({ error: "Internal server error" });
-    }
-  });
-
-  // Simple test route
-  app.get("/objects/test", (req, res) => {
-    console.log("TEST ROUTE HIT!");
-    res.json({ message: "Test route working!" });
-  });
-
-  // Serve objects (images from support tickets)
-  app.get("/objects/:objectPath(*)", isAuthenticated, async (req, res) => {
-    console.log("OBJECTS ROUTE HIT!");
-    try {
-      const userId = req.user?.claims?.sub;
-      const user = req.user as any;
-      const objectStorageService = new ObjectStorageService();
-      
-      console.log("DEBUG: req.path =", req.path);
-      console.log("DEBUG: req.params.objectPath =", req.params.objectPath);
-      
-      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
-      
-      // Admin can access all objects, regular users need ACL check
-      let canAccess = false;
-      if (user.role === "admin") {
-        canAccess = true;
-      } else {
-        canAccess = await objectStorageService.canAccessObjectEntity({
-          objectFile,
-          userId: userId,
-          requestedPermission: ObjectPermission.READ,
-        });
-      }
-      
-      if (!canAccess) {
-        return res.status(403).json({ error: "Access denied" });
-      }
-
-      await objectStorageService.downloadObject(objectFile, res);
-    } catch (error) {
-      console.error("Error serving object:", error);
-      if (error instanceof ObjectNotFoundError) {
-        return res.status(404).json({ error: "Object not found" });
-      }
-      return res.status(500).json({ error: "Internal server error" });
     }
   });
 
