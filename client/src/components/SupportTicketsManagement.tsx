@@ -468,19 +468,35 @@ export default function SupportTicketsManagement() {
                           <Image className="h-4 w-4 text-indigo-500" />
                           <span className="font-medium">Hình ảnh vấn đề ({selectedTicket.imageUrls.length}):</span>
                         </div>
-                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {selectedTicket.imageUrls.map((imageUrl, index) => (
-                            <div key={index} className="border rounded-lg p-2 bg-gray-50">
-                              <img 
-                                src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
-                                alt={`Hình ảnh vấn đề ${index + 1}`}
-                                className="w-full h-32 object-cover rounded-md shadow-md"
-                                onError={(e) => {
-                                  console.error('Image load error');
-                                  e.currentTarget.style.display = 'none';
-                                  e.currentTarget.nextElementSibling!.style.display = 'block';
+                            <div key={index} className="border rounded-lg p-3 bg-gray-50">
+                              <div className="mb-2">
+                                <span className="text-sm font-medium text-gray-600">Hình ảnh {index + 1}</span>
+                              </div>
+                              <div 
+                                className="relative cursor-pointer group"
+                                onClick={() => {
+                                  // Open image in new tab
+                                  window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
                                 }}
-                              />
+                              >
+                                <img 
+                                  src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                                  alt={`Hình ảnh vấn đề ${index + 1}`}
+                                  className="w-full h-48 md:h-64 object-cover rounded-md shadow-md transition-transform group-hover:scale-105"
+                                  onError={(e) => {
+                                    console.error('Image load error');
+                                    e.currentTarget.style.display = 'none';
+                                    e.currentTarget.nextElementSibling!.style.display = 'block';
+                                  }}
+                                />
+                                <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-md flex items-center justify-center">
+                                  <div className="bg-white bg-opacity-90 px-3 py-1 rounded-full text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity">
+                                    🔍 Click để xem lớn
+                                  </div>
+                                </div>
+                              </div>
                               <div style={{display: 'none'}} className="text-center text-gray-500 py-4">
                                 <p className="text-xs">❌ Không thể tải ảnh {index + 1}</p>
                               </div>
