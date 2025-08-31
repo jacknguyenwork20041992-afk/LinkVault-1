@@ -18,13 +18,20 @@ import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Home, Menu } from "lucide-react";
+import { Home, Menu, Bell } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const [activeView, setActiveView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  // Fetch unread notifications for admin
+  const { data: notifications = [] } = useQuery({
+    queryKey: ["/api/notifications/unread"],
+    enabled: isAuthenticated && user?.role === "admin",
+  });
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -157,6 +164,23 @@ export default function Admin() {
                 <h2 className="text-lg sm:text-xl font-semibold text-white">{getTitle()}</h2>
               </div>
               <div className="flex items-center space-x-2 sm:space-x-4">
+                {/* Admin Notification Bell */}
+                <button 
+                  onClick={() => setActiveView("notifications")}
+                  className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
+                  data-testid="button-admin-notifications"
+                >
+                  <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
+                  {notifications.length > 0 && (
+                    <span 
+                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
+                      data-testid="text-admin-notification-count"
+                    >
+                      {notifications.length}
+                    </span>
+                  )}
+                </button>
+                
                 <Link href="/">
                   <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-home">
                     <Home className="h-4 w-4 sm:mr-2" />
