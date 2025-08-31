@@ -1,5 +1,6 @@
 import { X, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 import type { Notification } from "@shared/schema";
 
 interface NotificationCardProps {
@@ -8,6 +9,8 @@ interface NotificationCardProps {
 }
 
 export default function NotificationCard({ notification, onMarkAsRead }: NotificationCardProps) {
+  const [, setLocation] = useLocation();
+  
   // Check if this is a support ticket response notification
   const isSupportResponse = notification.title.includes("Phản hồi từ") || notification.title.includes("💬 Phản hồi từ");
   
@@ -15,8 +18,8 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
   const handleViewDetails = () => {
     // Mark as read
     onMarkAsRead();
-    // Navigate to support tickets page
-    window.location.href = "/support-tickets";
+    // Navigate to support tickets page using wouter (faster than window.location)
+    setLocation("/support-tickets");
   };
 
   // Parse message to make "Nhấn để xem chi tiết" clickable
