@@ -19,11 +19,12 @@ import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Home, Menu, Bell } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeView, setActiveView] = useState("dashboard");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -32,6 +33,24 @@ export default function Admin() {
     queryKey: ["/api/notifications/unread"],
     enabled: isAuthenticated && user?.role === "admin",
   });
+
+  const handleNotificationBellClick = async () => {
+    // Đánh dấu tất cả thông báo support ticket đã đọc
+    try {
+      for (const notification of notifications) {
+        await fetch(`/api/notifications/${notification.id}/read`, {
+          method: 'PUT',
+          credentials: 'include'
+        });
+      }
+      // Invalidate queries để refresh notifications
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+    }
+    // Chuyển đến trang support tickets
+    setActiveView("support-tickets");
+  };
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -166,7 +185,7 @@ export default function Admin() {
               <div className="flex items-center space-x-2 sm:space-x-4">
                 {/* Admin Notification Bell */}
                 <button 
-                  onClick={() => setActiveView("support-tickets")}
+                  onClick={handleNotificationBellClick}
                   className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
                   data-testid="button-admin-notifications"
                 >
