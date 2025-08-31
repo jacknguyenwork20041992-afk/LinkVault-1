@@ -37,15 +37,24 @@ export default function Admin() {
     refetchIntervalInBackground: true,
   });
 
-  // Chỉ lấy thông báo "Yêu cầu hỗ trợ mới" 
+  // Lấy thông báo "Yêu cầu hỗ trợ mới" 
   const supportTicketNotifications = allNotifications.filter((item: any) => 
     item.notification?.title === "Yêu cầu hỗ trợ mới"
   );
 
+  // Lấy thông báo "Yêu cầu tài khoản SWE mới"
+  const accountRequestNotifications = allNotifications.filter((item: any) => 
+    item.notification?.title === "Yêu cầu tài khoản SWE mới"
+  );
+
+  // Tổng số notifications
+  const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
+
   const handleNotificationBellClick = async () => {
-    // Đánh dấu tất cả thông báo support ticket đã đọc
+    // Đánh dấu tất cả thông báo đã đọc
     try {
-      for (const item of supportTicketNotifications) {
+      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications];
+      for (const item of allUnreadNotifications) {
         await fetch(`/api/notifications/${item.notification.id}/read`, {
           method: 'PUT',
           credentials: 'include'
@@ -56,8 +65,14 @@ export default function Admin() {
     } catch (error) {
       console.error('Error marking notifications as read:', error);
     }
-    // Chuyển đến trang support tickets
-    setActiveView("support-tickets");
+
+    // Smart routing: chuyển đến section có nhiều notifications nhất
+    // Nếu bằng nhau thì ưu tiên support tickets
+    if (accountRequestNotifications.length > supportTicketNotifications.length) {
+      setActiveView("account-requests");
+    } else {
+      setActiveView("support-tickets");
+    }
   };
 
   // Redirect if not authenticated or not admin
@@ -202,12 +217,12 @@ export default function Admin() {
                   data-testid="button-admin-notifications"
                 >
                   <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
-                  {supportTicketNotifications.length > 0 && (
+                  {totalNotifications > 0 && (
                     <span 
                       className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
                       data-testid="text-admin-notification-count"
                     >
-                      {supportTicketNotifications.length}
+                      {totalNotifications}
                     </span>
                   )}
                 </button>
