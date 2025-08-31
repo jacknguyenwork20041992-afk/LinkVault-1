@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -215,14 +215,14 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
               {!isExpanded && (
                 <div className="pt-3 border-t">
                   <Button
-                    variant="outline"
+                    variant="default"
                     size="sm"
                     onClick={onToggleExpanded}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white shadow-md hover:shadow-lg transition-all duration-200 border-0"
                     data-testid={`button-expand-ticket-${ticket.id}`}
                   >
                     <MessageSquare className="h-4 w-4" />
-                    Xem phản hồi
+                    <span className="font-medium">💬 Xem phản hồi</span>
                   </Button>
                 </div>
               )}
@@ -341,6 +341,10 @@ export default function SupportTicketsPage() {
   const [selectedSender, setSelectedSender] = useState<string>("all");
   const [dateFrom, setDateFrom] = useState<Date | undefined>();
   const [dateTo, setDateTo] = useState<Date | undefined>();
+  
+  // Pagination states
+  const [currentPage, setCurrentPage] = useState(1);
+  const TICKETS_PER_PAGE = 5;
 
   // Fetch user's support tickets
   const { data: tickets = [], isLoading } = useQuery<SupportTicket[]>({
@@ -381,6 +385,17 @@ export default function SupportTicketsPage() {
     return matchesSearch && matchesBranch && matchesDateFrom && matchesDateTo;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTickets.length / TICKETS_PER_PAGE);
+  const startIndex = (currentPage - 1) * TICKETS_PER_PAGE;
+  const endIndex = startIndex + TICKETS_PER_PAGE;
+  const paginatedTickets = filteredTickets.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  const resetPagination = () => {
+    setCurrentPage(1);
+  };
+
   // Clear filters function
   const clearFilters = () => {
     setSearchTerm("");
@@ -388,10 +403,16 @@ export default function SupportTicketsPage() {
     setSelectedSender("all");
     setDateFrom(undefined);
     setDateTo(undefined);
+    resetPagination();
   };
 
   // Check if any filters are active
   const hasActiveFilters = searchTerm || selectedBranch !== "all" || selectedSender !== "all" || dateFrom || dateTo;
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, selectedBranch, dateFrom, dateTo]);
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -508,6 +529,11 @@ export default function SupportTicketsPage() {
               <div className="flex items-center gap-2">
                 <HelpCircle className="h-5 w-5" />
                 Yêu cầu hỗ trợ của tôi ({filteredTickets.length})
+                {filteredTickets.length > TICKETS_PER_PAGE && (
+                  <span className="text-sm text-muted-foreground font-normal">
+                    - Trang {currentPage}/{totalPages}
+                  </span>
+                )}
               </div>
             </CardTitle>
             
@@ -646,7 +672,7 @@ export default function SupportTicketsPage() {
               </div>
             ) : (
               <div className="space-y-4">
-                {filteredTickets.map((ticket) => {
+                {paginatedTickets.map((ticket) => {
                   const isExpanded = expandedTickets.has(ticket.id);
                   
                   return (
@@ -658,6 +684,42 @@ export default function SupportTicketsPage() {
                   />
                   );
                 })}
+              </div>
+            )}
+            
+            {/* Pagination Controls */}
+            {filteredTickets.length > TICKETS_PER_PAGE && (
+              <div className="flex justify-center items-center gap-4 mt-6 pt-4 border-t">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="flex items-center gap-2"
+                  data-testid="button-prev-page"
+                >
+                  ← Trước
+                </Button>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-muted-foreground">
+                    Trang {currentPage} / {totalPages}
+                  </span>
+                  <span className="text-xs text-muted-foreground bg-muted px-2 py-1 rounded">
+                    {startIndex + 1}-{Math.min(endIndex, filteredTickets.length)} / {filteredTickets.length}
+                  </span>
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="flex items-center gap-2"
+                  data-testid="button-next-page"
+                >
+                  Sau →
+                </Button>
               </div>
             )}
           </CardContent>
