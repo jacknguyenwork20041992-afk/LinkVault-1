@@ -384,9 +384,9 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                   <FormControl>
                     <div className="space-y-3">
                       <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50">
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                           <Upload className="h-8 w-8 text-gray-400 mx-auto" />
-                          <div>
+                          <div className="space-y-2">
                             <ObjectUploader
                               maxNumberOfFiles={1}
                               maxFileSize={10485760} // 10MB
@@ -398,18 +398,18 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                               ]}
                               onGetUploadParameters={handleGetUploadParameters}
                               onComplete={handleUploadComplete}
-                              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium"
+                              buttonClassName="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"
                             >
                               <span>Chọn file Excel</span>
                             </ObjectUploader>
-                            <p className="text-sm text-gray-500 mt-2">
+                            <p className="text-sm text-gray-500">
                               Hoặc kéo thả file vào đây
+                            </p>
+                            <p className="text-xs text-gray-400">
+                              Chỉ chấp nhận file .xlsx và .xls (tối đa 10MB)
                             </p>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-3">
-                          Chỉ chấp nhận file .xlsx và .xls (tối đa 10MB)
-                        </p>
                       </div>
                       {uploadedFile && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3">

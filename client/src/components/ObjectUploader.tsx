@@ -67,14 +67,19 @@ export function ObjectUploader({
         allowedFileTypes,
       },
       autoProceed: false,
+      debug: false,
+      meta: {}
     })
       .use(AwsS3, {
         shouldUseMultipart: false,
         getUploadParameters: onGetUploadParameters,
       })
       .on("complete", (result) => {
-        setTimeout(() => setShowModal(false), 500); // Small delay for better UX
+        setTimeout(() => setShowModal(false), 1000); // Allow user to see success
         onComplete?.(result);
+      })
+      .on("upload-success", () => {
+        // Additional success handling if needed
       });
     
     return uppyInstance;
@@ -91,7 +96,7 @@ export function ObjectUploader({
         open={showModal}
         onRequestClose={() => setShowModal(false)}
         proudlyDisplayPoweredByUppy={false}
-        note="Chỉ cho phép file Excel (.xlsx, .xls)"
+        note="Chỉ chấp nhận file Excel (.xlsx, .xls) - Tối đa 10MB"
       />
     </div>
   );
