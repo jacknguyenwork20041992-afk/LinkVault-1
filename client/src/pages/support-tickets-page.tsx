@@ -211,8 +211,23 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                 </div>
               )}
 
-              {/* Responses Section - Always show */}
-              {responses.length > 0 && (
+              {/* Responses Section */}
+              {!isExpanded && (
+                <div className="pt-3 border-t">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onToggleExpanded}
+                    className="flex items-center gap-2"
+                    data-testid={`button-expand-ticket-${ticket.id}`}
+                  >
+                    <MessageSquare className="h-4 w-4" />
+                    Xem phản hồi
+                  </Button>
+                </div>
+              )}
+              
+              {isExpanded && responses.length > 0 && (
                 <div className="space-y-3 pt-3 border-t bg-green-50 dark:bg-green-950/20 -mx-6 px-6 pb-3">
                   <h4 className="font-medium text-foreground flex items-center gap-2">
                     <MessageSquare className="h-4 w-4 text-green-600" />
@@ -250,6 +265,38 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                         </div>
                       </div>
                     ))}
+                  </div>
+                  
+                  <div className="flex justify-end pt-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onToggleExpanded}
+                      className="flex items-center gap-2"
+                      data-testid={`button-collapse-ticket-${ticket.id}`}
+                    >
+                      Ẩn phản hồi
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {isExpanded && responses.length === 0 && (
+                <div className="space-y-3 pt-3 border-t bg-gray-50 dark:bg-gray-950/20 -mx-6 px-6 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-muted-foreground" />
+                      <span className="text-muted-foreground">Chưa có phản hồi</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onToggleExpanded}
+                      className="flex items-center gap-2"
+                      data-testid={`button-collapse-ticket-${ticket.id}`}
+                    >
+                      Ẩn
+                    </Button>
                   </div>
                 </div>
               )}
