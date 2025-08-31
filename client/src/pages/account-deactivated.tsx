@@ -3,9 +3,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 export default function AccountDeactivatedPage() {
-  const handleBackToLogin = () => {
-    // Đăng xuất và quay lại trang đăng nhập
-    window.location.href = "/api/logout";
+  const handleBackToLogin = async () => {
+    try {
+      // Gọi API logout
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include"
+      });
+      
+      // Clear localStorage nếu có
+      localStorage.clear();
+      
+      // Force reload trang để clear tất cả cache và redirect về login
+      window.location.replace("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+      // Fallback: force reload anyway
+      window.location.replace("/");
+    }
   };
 
   return (
