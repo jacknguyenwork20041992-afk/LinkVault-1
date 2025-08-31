@@ -990,7 +990,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const userId = req.user?.claims?.sub;
       const user = req.user as any;
       const objectStorageService = new ObjectStorageService();
-      const objectFile = await objectStorageService.getObjectEntityFile(`/${req.path}`);
+      
+      console.log("DEBUG: req.path =", req.path);
+      console.log("DEBUG: req.params.objectPath =", req.params.objectPath);
+      
+      const objectFile = await objectStorageService.getObjectEntityFile(req.path);
       
       // Admin can access all objects, regular users need ACL check
       let canAccess = false;
