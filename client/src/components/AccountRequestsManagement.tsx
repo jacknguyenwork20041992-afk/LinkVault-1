@@ -434,8 +434,18 @@ export default function AccountRequestsManagement() {
                 <Button type="button" variant="outline" onClick={() => setIsUpdateModalOpen(false)}>
                   Hủy
                 </Button>
-                <Button type="submit" disabled={updateRequestMutation.isPending}>
-                  {updateRequestMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
+                <Button 
+                  type="submit" 
+                  disabled={updateRequestMutation.isPending}
+                  style={{ 
+                    backgroundColor: '#2563eb', 
+                    color: '#ffffff', 
+                    border: 'none' 
+                  }}
+                >
+                  <span style={{ color: '#ffffff' }}>
+                    {updateRequestMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
+                  </span>
                 </Button>
               </DialogFooter>
             </form>
