@@ -414,7 +414,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               )}
             </div>
 
-            <DialogFooter className="flex gap-3">
+            <DialogFooter className="flex justify-end gap-3 pt-4 border-t">
               <Button 
                 type="button" 
                 variant="outline" 
@@ -428,7 +428,8 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                 type="submit" 
                 disabled={createAccountRequestMutation.isPending}
                 data-testid="button-submit-account-request"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border border-blue-600"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-blue-600 min-w-[120px]"
+                style={{ display: 'block', visibility: 'visible' }}
               >
                 {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
               </Button>
