@@ -19,7 +19,7 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
     // Tránh duplicate email trong to và cc
     const emailData: any = {
       to: params.to,
-      from: 'test@example.com',
+      from: 'via.academic.department@gmail.com',
       subject: params.subject,
       html: params.html
     };
