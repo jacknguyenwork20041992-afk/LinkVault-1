@@ -1,11 +1,18 @@
-import { MailService } from '@sendgrid/mail';
+import nodemailer from 'nodemailer';
 
-if (!process.env.SENDGRID_API_KEY) {
-  throw new Error("SENDGRID_API_KEY environment variable must be set");
+// Check for Gmail credentials
+if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+  console.warn("GMAIL_USER or GMAIL_APP_PASSWORD not set, email functionality will be disabled");
 }
 
-const mailService = new MailService();
-mailService.setApiKey(process.env.SENDGRID_API_KEY);
+// Create Gmail transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: process.env.GMAIL_USER,
+    pass: process.env.GMAIL_APP_PASSWORD,
+  },
+});
 
 interface EmailParams {
   to: string;
@@ -16,10 +23,15 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
+    if (!process.env.GMAIL_USER || !process.env.GMAIL_APP_PASSWORD) {
+      console.error('Gmail credentials not configured');
+      return false;
+    }
+
     // Tránh duplicate email trong to và cc
     const emailData: any = {
+      from: process.env.GMAIL_USER,
       to: params.to,
-      from: 'via.academic.department@gmail.com',
       subject: params.subject,
       html: params.html
     };
@@ -29,21 +41,19 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
       emailData.cc = params.cc;
     }
 
-    console.log('Sending email with data:', JSON.stringify(emailData, null, 2));
-    await mailService.send(emailData);
-    console.log('Email sent successfully');
+    console.log('Sending email with data:', JSON.stringify({
+      ...emailData,
+      html: emailData.html.length > 100 ? emailData.html.substring(0, 100) + '...' : emailData.html
+    }, null, 2));
+    
+    await transporter.sendMail(emailData);
+    console.log('Email sent successfully via Gmail');
     return true;
   } catch (error) {
-    console.error('SendGrid email error:', error);
+    console.error('Gmail email error:', error);
     
     // In chi tiết lỗi
     if (error && typeof error === 'object') {
-      if (error.response && error.response.body) {
-        console.error('SendGrid error response body:', JSON.stringify(error.response.body, null, 2));
-        if (error.response.body.errors) {
-          console.error('SendGrid specific errors:', JSON.stringify(error.response.body.errors, null, 2));
-        }
-      }
       if (error.message) {
         console.error('Error message:', error.message);
       }
@@ -87,7 +97,7 @@ export function generateAccountRequestEmail(requestType: string, branchName: str
                 <strong>Request Details:</strong><br>
                 • Branch Location: ${branchName}<br>
                 • Request Type: New Student Accounts<br>
-                • Program: SWE (Software Engineering)<br>
+                • Program: SWE<br>
                 • Date: ${new Date().toLocaleDateString('vi-VN')}
               </div>
               
@@ -101,8 +111,7 @@ export function generateAccountRequestEmail(requestType: string, branchName: str
               <p>Thank you for your continued support.</p>
               
               <p>Best regards,<br>
-              <strong>VIA English Academy</strong><br>
-              Academic Administration Department</p>
+              <strong>VIA English Academy</strong></p>
             </div>
             <div class="footer">
               <p>This message was sent from the VIA Academy Management System.<br>
@@ -161,8 +170,7 @@ export function generateAccountRequestEmail(requestType: string, branchName: str
               <p>Thank you for your prompt support.</p>
               
               <p>Best regards,<br>
-              <strong>VIA English Academy</strong><br>
-              Academic Administration Department</p>
+              <strong>VIA English Academy</strong></p>
             </div>
             <div class="footer">
               <p>This message was sent from the VIA Academy Management System.<br>
