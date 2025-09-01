@@ -258,13 +258,13 @@ export default function AccountRequestsManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Người gửi</TableHead>
+                  <TableHead>Thao tác</TableHead>
                   <TableHead>Chi nhánh</TableHead>
                   <TableHead>Email</TableHead>
                   <TableHead>Loại yêu cầu</TableHead>
                   <TableHead>File</TableHead>
                   <TableHead>Trạng thái</TableHead>
                   <TableHead>Ngày tạo</TableHead>
-                  <TableHead>Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -281,6 +281,18 @@ export default function AccountRequestsManagement() {
                             {request.user.email}
                           </div>
                         </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleUpdateRequest(request)}
+                          data-testid={`button-edit-request-${request.id}`}
+                        >
+                          <Edit3 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -339,18 +351,6 @@ export default function AccountRequestsManagement() {
                       <div className="flex items-center gap-2">
                         <Calendar className="h-4 w-4 text-muted-foreground" />
                         {format(new Date(request.createdAt), "dd/MM/yyyy HH:mm", { locale: vi })}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleUpdateRequest(request)}
-                          data-testid={`button-edit-request-${request.id}`}
-                        >
-                          <Edit3 className="h-4 w-4" />
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
