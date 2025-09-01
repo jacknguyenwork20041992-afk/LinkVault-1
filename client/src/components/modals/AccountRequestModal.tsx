@@ -414,26 +414,22 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               )}
             </div>
 
-            <DialogFooter className="flex justify-end gap-3 pt-4 border-t">
-              <Button 
+            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+              <button 
                 type="button" 
-                variant="outline" 
                 onClick={onClose}
-                className="border-2 border-gray-400 hover:border-gray-600 text-gray-800 hover:text-gray-900 bg-white hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
-                data-testid="button-cancel"
+                className="border border-gray-400 text-gray-800 bg-white hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg"
               >
                 Hủy
-              </Button>
-              <Button 
+              </button>
+              <button 
                 type="submit" 
                 disabled={createAccountRequestMutation.isPending}
-                data-testid="button-submit-account-request"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-blue-600 min-w-[120px]"
-                style={{ display: 'block', visibility: 'visible' }}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-2 rounded-lg"
               >
                 {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
-              </Button>
-            </DialogFooter>
+              </button>
+            </div>
           </form>
         </Form>
       </DialogContent>
