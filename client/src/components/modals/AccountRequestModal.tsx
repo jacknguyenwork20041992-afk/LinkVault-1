@@ -123,10 +123,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   });
 
   const handleSubmit = (data: AccountRequestForm) => {
-    console.log('Submit data:', data);
-    console.log('uploadedFile:', uploadedFile);
-    console.log('uploadedFileUrl:', uploadedFileUrl);
-
     // Kiểm tra file trước tiên
     if (!uploadedFile || !uploadedFileUrl) {
       toast({
@@ -148,11 +144,6 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
   const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
-
-    console.log('Selected file:', file);
-    console.log('File name:', file.name);
-    console.log('File type:', file.type);
-    console.log('File size:', file.size);
 
     // Validate file type
     const allowedTypes = [
@@ -184,7 +175,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     setFileUploading(true);
     
     try {
-      // Get upload URL directly with fetch to bypass apiRequest issues
+      // Get upload URL
       const response = await fetch("/api/account-requests/upload-url", {
         method: "POST",
         headers: {
@@ -193,17 +184,12 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
         body: JSON.stringify({}),
       });
       
-      console.log('Raw response status:', response.status);
-      
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
       
       const data = await response.json();
-      console.log('Full API response:', data);
       const uploadURL = data.uploadURL;
-      
-      console.log('Got upload URL:', uploadURL);
       
       if (!uploadURL) {
         throw new Error('No upload URL received from server');
@@ -218,22 +204,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
         },
       });
       
-      console.log('Upload response status:', uploadResponse.status);
-      
       if (uploadResponse.ok) {
-        console.log('Upload successful, setting state...');
-        
-        // Store file info in a way that persists
-        const fileInfo = {
-          name: file.name,
-          size: file.size,
-          type: file.type,
-          lastModified: file.lastModified
-        };
-        
-        console.log('Setting uploadedFile to:', fileInfo);
-        console.log('Setting uploadedFileUrl to:', uploadURL);
-        
         setUploadedFile(file);
         setUploadedFileUrl(uploadURL);
         
@@ -398,72 +369,66 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
             </Alert>
 
             {/* File Upload */}
-            <FormField
-              control={form.control}
-              name="fileRequired"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    Upload file danh sách học viên <span className="text-red-500">*</span>
-                  </FormLabel>
-                  <FormControl>
-                    <div className="space-y-3">
-                      <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50 relative">
-                        <input
-                          type="file"
-                          accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
-                          onChange={handleFileChange}
-                          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                          disabled={fileUploading}
-                        />
-                        <div className="space-y-4 pointer-events-none">
-                          <Upload className="h-8 w-8 text-gray-400 mx-auto" />
-                          <div className="space-y-2">
-                            <button
-                              type="button"
-                              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors pointer-events-auto"
-                              disabled={fileUploading}
-                              onClick={() => {
-                                const input = document.querySelector('input[type="file"]') as HTMLInputElement;
-                                input?.click();
-                              }}
-                            >
-                              {fileUploading ? "Đang upload..." : "Chọn file Excel"}
-                            </button>
-                            <p className="text-sm text-gray-500">
-                              Hoặc kéo thả file vào đây
-                            </p>
-                            <p className="text-xs text-gray-400">
-                              Chỉ chấp nhận file .xlsx và .xls (tối đa 10MB)
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                      {uploadedFile && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                          <p className="text-sm text-green-700 flex items-center gap-2">
-                            <FileText className="h-4 w-4" />
-                            <span className="font-medium">File đã upload:</span> {uploadedFile.name}
-                          </p>
-                        </div>
-                      )}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+            <div className="space-y-3">
+              <FormLabel>
+                Upload file danh sách học viên <span className="text-red-500">*</span>
+              </FormLabel>
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-gray-400 transition-colors bg-gray-50/50 relative">
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+                  onChange={handleFileChange}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                  disabled={fileUploading}
+                />
+                <div className="space-y-4 pointer-events-none">
+                  <Upload className="h-8 w-8 text-gray-400 mx-auto" />
+                  <div className="space-y-2">
+                    <button
+                      type="button"
+                      className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg font-medium transition-colors pointer-events-auto"
+                      disabled={fileUploading}
+                      onClick={() => {
+                        const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+                        input?.click();
+                      }}
+                    >
+                      {fileUploading ? "Đang upload..." : "Chọn file Excel"}
+                    </button>
+                    <p className="text-sm text-gray-500">
+                      Hoặc kéo thả file vào đây
+                    </p>
+                    <p className="text-xs text-gray-400">
+                      Chỉ chấp nhận file .xlsx và .xls (tối đa 10MB)
+                    </p>
+                  </div>
+                </div>
+              </div>
+              {uploadedFile && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                  <p className="text-sm text-green-700 flex items-center gap-2">
+                    <FileText className="h-4 w-4" />
+                    <span className="font-medium">File đã upload:</span> {uploadedFile.name}
+                  </p>
+                </div>
               )}
-            />
+            </div>
 
             <DialogFooter className="flex gap-3">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                className="border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all duration-200 px-6 py-2 rounded-lg font-medium"
+                data-testid="button-cancel"
+              >
                 Hủy
               </Button>
               <Button 
                 type="submit" 
-                variant="default"
                 disabled={createAccountRequestMutation.isPending}
                 data-testid="button-submit-account-request"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {createAccountRequestMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu"}
               </Button>
