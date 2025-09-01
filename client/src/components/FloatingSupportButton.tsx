@@ -24,8 +24,8 @@ export default function FloatingSupportButton() {
 
   return (
     <>
-      {/* Floating button cluster - positioned at bottom center */}
-      <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50 flex flex-row gap-4 items-center">
+      {/* Floating button cluster - positioned at bottom right */}
+      <div className="fixed bottom-6 right-6 z-50 flex flex-row gap-4 items-center">
         {/* Support Button */}
         <Button
           onClick={handleSupportClick}
