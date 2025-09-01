@@ -47,7 +47,9 @@ Request Details:
 • Date: ${new Date().toLocaleDateString('vi-VN')}
 
 The complete student enrollment list is available through our secure document system:
-📄 View Student List: ${requestData.fileUrl || '[File URL will be attached]'}
+📄 Download Student List (Excel File): ${requestData.fileUrl || '[File URL will be attached]'}
+
+Note: The file link will expire in 24 hours for security purposes
 
 Please process this request and provide the login credentials at your earliest convenience. Our students are scheduled to begin their coursework soon.
 
@@ -70,7 +72,9 @@ Request Details:
 • Date: ${new Date().toLocaleDateString('vi-VN')}
 
 The affected student accounts are listed in our secure document:
-📄 View Student List: ${requestData.fileUrl || '[File URL will be attached]'}
+📄 Download Student List (Excel File): ${requestData.fileUrl || '[File URL will be attached]'}
+
+Note: The file link will expire in 24 hours for security purposes
 
 Please un-tag these accounts so students can log in with their new devices. Kindly confirm completion when the process is finished.
 
