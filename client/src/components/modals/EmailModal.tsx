@@ -43,7 +43,7 @@ We are submitting a new student account creation request for our academic progra
 Request Details:
 • Branch Location: ${requestData.branchName}
 • Request Type: New Student Accounts
-• Program: SWE (Software Engineering)
+• Program: SWE
 • Date: ${new Date().toLocaleDateString('vi-VN')}
 
 The complete student enrollment list is available through our secure document system:
@@ -54,8 +54,7 @@ Please process this request and provide the login credentials at your earliest c
 Thank you for your continued support.
 
 Best regards,
-VIA English Academy
-Academic Administration Department`
+VIA English Academy`
       };
     } else {
       return {
@@ -78,8 +77,7 @@ Please un-tag these accounts so students can log in with their new devices. Kind
 Thank you for your prompt support.
 
 Best regards,
-VIA English Academy
-Academic Administration Department`
+VIA English Academy`
       };
     }
   };
