@@ -162,6 +162,41 @@ export class ObjectStorageService {
     return signedURL;
   }
 
+  // Gets the upload URL for an object entity with meaningful name.
+  async getObjectEntityUploadURLWithName(requestType: string, branchName: string): Promise<string> {
+    console.log("Starting getObjectEntityUploadURLWithName...");
+    const privateObjectDir = this.getPrivateObjectDir();
+    console.log("Private object dir:", privateObjectDir);
+    if (!privateObjectDir) {
+      throw new Error(
+        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
+          "tool and set PRIVATE_OBJECT_DIR env var."
+      );
+    }
+
+    // Create meaningful filename
+    const date = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+    const typePrefix = requestType === 'new_account' ? 'NewAccounts' : 'UntagAccounts';
+    const safeBranchName = branchName.replace(/[^a-zA-Z0-9]/g, '_'); // Replace special chars with underscore
+    const fileName = `VIA_${typePrefix}_${safeBranchName}_${date}.xlsx`;
+    
+    const fullPath = `${privateObjectDir}/uploads/${fileName}`;
+    console.log("Full path with meaningful name:", fullPath);
+
+    const { bucketName, objectName } = parseObjectPath(fullPath);
+    console.log("Bucket name:", bucketName, "Object name:", objectName);
+
+    // Sign URL for PUT method with TTL (24 hours for longer access)
+    const signedURL = await signObjectURL({
+      bucketName,
+      objectName,
+      method: "PUT",
+      ttlSec: 86400, // 24 hours instead of 15 minutes
+    });
+    console.log("Signed URL result:", signedURL);
+    return signedURL;
+  }
+
   // Gets the object entity file from the object path.
   async getObjectEntityFile(objectPath: string): Promise<File> {
     
