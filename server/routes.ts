@@ -1822,6 +1822,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       if (emailSent) {
+        // Auto update status to completed and add admin notes
+        const updateData = {
+          status: "completed" as const,
+          adminNotes: "Danh sách học viên đã được gửi đến nhà xuất bản, danh sách tài khoản sẽ được gửi đến bạn qua email mà bạn đã nhập trong thời gian sớm nhất."
+        };
+        
+        const updatedRequest = await storage.updateAccountRequest(id, updateData);
+        
+        // Create notification for user (reuse existing logic)
+        await storage.createNotification({
+          title: "Cập nhật yêu cầu tài khoản SWE",
+          message: `Yêu cầu tài khoản SWE của bạn đã hoàn thành. Ghi chú: ${updateData.adminNotes}`,
+          isGlobal: false,
+          recipientId: request.userId,
+        });
+        
         res.json({ 
           success: true, 
           message: "Email đã được gửi thành công"
@@ -1883,6 +1899,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const emailSent = await sendEmail(emailData);
 
       if (emailSent) {
+        // Auto update status to completed and add admin notes
+        const updateData = {
+          status: "completed" as const,
+          adminNotes: "Danh sách học viên đã được gửi đến nhà xuất bản, danh sách tài khoản sẽ được gửi đến bạn qua email mà bạn đã nhập trong thời gian sớm nhất."
+        };
+        
+        const updatedRequest = await storage.updateAccountRequest(id, updateData);
+        
+        // Create notification for user (reuse existing logic)
+        await storage.createNotification({
+          title: "Cập nhật yêu cầu tài khoản SWE",
+          message: `Yêu cầu tài khoản SWE của bạn đã hoàn thành. Ghi chú: ${updateData.adminNotes}`,
+          isGlobal: false,
+          recipientId: request.userId,
+        });
+        
         res.json({ 
           success: true, 
           message: "Email đã được gửi thành công"

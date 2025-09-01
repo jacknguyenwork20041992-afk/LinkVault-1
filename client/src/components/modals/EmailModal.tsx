@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import {
@@ -104,6 +104,10 @@ VIA English Academy`
         title: "Email đã gửi",
         description: "Email đã được gửi thành công đến support team.",
       });
+      // Invalidate cache to refresh the account requests list
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/account-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/account-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
       onClose();
     },
     onError: (error) => {
