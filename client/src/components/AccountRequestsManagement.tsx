@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
+import EmailModal from "@/components/modals/EmailModal";
 
 interface AccountRequest {
   id: string;
@@ -72,6 +73,7 @@ export default function AccountRequestsManagement() {
   const queryClient = useQueryClient();
   const [selectedRequest, setSelectedRequest] = useState<AccountRequest | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isEmailModalOpen, setIsEmailModalOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
 
@@ -125,36 +127,10 @@ export default function AccountRequestsManagement() {
     },
   });
 
-  const sendEmailMutation = useMutation({
-    mutationFn: async (id: string) => {
-      return await apiRequest("POST", `/api/account-requests/${id}/send-email`);
-    },
-    onSuccess: () => {
-      toast({
-        title: "Email đã gửi",
-        description: "Email đã được gửi thành công đến support team.",
-      });
-    },
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Phiên đăng nhập hết hạn",
-          description: "Vui lòng đăng nhập lại để tiếp tục.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-        return;
-      }
-      console.error("Send email error:", error);
-      toast({
-        title: "Lỗi gửi email",
-        description: "Không thể gửi email. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    },
-  });
+  const handleOpenEmailModal = (request: AccountRequest) => {
+    setSelectedRequest(request);
+    setIsEmailModalOpen(true);
+  };
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -463,12 +439,11 @@ export default function AccountRequestsManagement() {
                 <Button 
                   type="button" 
                   variant="outline" 
-                  onClick={() => sendEmailMutation.mutate(selectedRequest.id)}
-                  disabled={sendEmailMutation.isPending}
+                  onClick={() => handleOpenEmailModal(selectedRequest)}
                   className="flex items-center gap-2"
                 >
                   <Send className="h-4 w-4" />
-                  {sendEmailMutation.isPending ? "Đang gửi..." : "Gửi Email"}
+                  Gửi Email
                 </Button>
                 <div className="flex gap-3">
                   <Button type="button" variant="outline" onClick={() => setIsUpdateModalOpen(false)}>
@@ -493,6 +468,23 @@ export default function AccountRequestsManagement() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Email Modal */}
+      {selectedRequest && (
+        <EmailModal
+          isOpen={isEmailModalOpen}
+          onClose={() => {
+            setIsEmailModalOpen(false);
+            setSelectedRequest(null);
+          }}
+          requestData={{
+            id: selectedRequest.id,
+            requestType: selectedRequest.requestType,
+            branchName: selectedRequest.branchName,
+            fileUrl: selectedRequest.fileUrl,
+          }}
+        />
+      )}
     </div>
   );
 }

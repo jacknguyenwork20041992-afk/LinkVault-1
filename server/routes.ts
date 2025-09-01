@@ -1835,6 +1835,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send custom email for account request
+  app.post("/api/account-requests/:id/send-custom-email", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      const { to, cc, subject, content } = req.body;
+
+      if (!to || !subject || !content) {
+        return res.status(400).json({ 
+          message: "Missing required fields: to, subject, content" 
+        });
+      }
+
+      // Get the account request (for validation)
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      // Prepare email data
+      const emailData: any = {
+        to: to.trim(),
+        subject: subject.trim(),
+        html: content.replace(/\n/g, '<br>')
+      };
+
+      if (cc && cc.trim()) {
+        emailData.cc = cc.trim();
+      }
+
+      // Send email
+      const emailSent = await sendEmail(emailData);
+
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Email đã được gửi thành công"
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Không thể gửi email. Vui lòng thử lại."
+        });
+      }
+    } catch (error) {
+      console.error("Error sending custom email:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi khi gửi email"
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
