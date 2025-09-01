@@ -16,14 +16,18 @@ interface EmailParams {
 
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
-    // Sử dụng email sandbox nếu chưa verify domain
-    const emailData = {
+    // Tránh duplicate email trong to và cc
+    const emailData: any = {
       to: params.to,
-      from: 'test@example.com', // Thử với email đơn giản trước
+      from: 'test@example.com',
       subject: params.subject,
-      html: params.html,
-      ...(params.cc && { cc: params.cc })
+      html: params.html
     };
+
+    // Chỉ thêm cc nếu khác với to
+    if (params.cc && params.cc !== params.to) {
+      emailData.cc = params.cc;
+    }
 
     console.log('Sending email with data:', JSON.stringify(emailData, null, 2));
     await mailService.send(emailData);

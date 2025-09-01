@@ -1811,7 +1811,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Send email
       const emailSent = await sendEmail({
         to: "nphuc210@gmail.com",
-        cc: "nphuc210@gmail.com",
         subject,
         html
       });
