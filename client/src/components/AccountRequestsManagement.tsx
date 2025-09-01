@@ -92,10 +92,7 @@ export default function AccountRequestsManagement() {
 
   const updateRequestMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
-      return await apiRequest(`/api/account-requests/${id}`, {
-        method: "PUT",
-        body: JSON.stringify(data),
-      });
+      return await apiRequest("PUT", `/api/account-requests/${id}`, data);
     },
     onSuccess: () => {
       toast({
