@@ -1853,11 +1853,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Account request not found" });
       }
 
+      // Generate fresh viewing URL if file exists
+      let finalContent = content;
+      if (request.fileUrl) {
+        const objectStorageService = new ObjectStorageService();
+        const viewingUrl = await objectStorageService.generateViewingURL(request.fileUrl);
+        // Replace the upload URL with viewing URL in content
+        finalContent = content.replace(request.fileUrl, viewingUrl);
+      }
+
       // Prepare email data
       const emailData: any = {
         to: to.trim(),
         subject: subject.trim(),
-        html: content.replace(/\n/g, '<br>')
+        html: finalContent.replace(/\n/g, '<br>')
       };
 
       if (cc && cc.trim()) {

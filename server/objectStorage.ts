@@ -196,6 +196,32 @@ export class ObjectStorageService {
     return objectFile;
   }
 
+  // Generate a viewing URL (GET) with long TTL from upload URL
+  async generateViewingURL(uploadUrl: string): Promise<string> {
+    try {
+      // Extract object path from upload URL
+      const url = new URL(uploadUrl);
+      const pathParts = url.pathname.split('/');
+      if (pathParts.length < 3) {
+        throw new Error('Invalid upload URL format');
+      }
+      
+      const bucketName = pathParts[1];
+      const objectName = pathParts.slice(2).join('/');
+      
+      // Generate GET URL with 24-hour TTL
+      return await signObjectURL({
+        bucketName,
+        objectName,
+        method: "GET",
+        ttlSec: 86400, // 24 hours
+      });
+    } catch (error) {
+      console.error("Error generating viewing URL:", error);
+      return uploadUrl; // Fallback to original URL
+    }
+  }
+
   normalizeObjectEntityPath(rawPath: string): string {
     if (!rawPath.startsWith("https://storage.googleapis.com/")) {
       return rawPath;
