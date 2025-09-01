@@ -414,18 +414,43 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
               )}
             </div>
 
-            <div className="flex justify-end gap-3 pt-6 mt-6 border-t border-gray-200">
+            <div style={{ 
+              display: 'flex', 
+              justifyContent: 'flex-end', 
+              gap: '12px', 
+              paddingTop: '24px', 
+              marginTop: '24px', 
+              borderTop: '1px solid #e5e5e5' 
+            }}>
               <button 
                 type="button" 
                 onClick={onClose}
-                className="border border-gray-400 text-gray-800 bg-white hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg"
+                style={{
+                  border: '1px solid #9ca3af',
+                  color: '#1f2937',
+                  backgroundColor: 'white',
+                  fontWeight: '600',
+                  padding: '8px 24px',
+                  borderRadius: '8px',
+                  cursor: 'pointer'
+                }}
               >
                 Hủy
               </button>
               <button 
                 type="submit" 
                 disabled={createAccountRequestMutation.isPending}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-bold px-8 py-2 rounded-lg"
+                style={{
+                  backgroundColor: '#2563eb',
+                  color: 'white',
+                  fontWeight: 'bold',
+                  padding: '8px 32px',
+                  borderRadius: '8px',
+                  border: 'none',
+                  cursor: 'pointer',
+                  display: 'block !important',
+                  visibility: 'visible !important'
+                }}
               >
                 {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
               </button>
