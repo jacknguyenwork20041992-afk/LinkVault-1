@@ -419,7 +419,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                 type="button" 
                 variant="outline" 
                 onClick={onClose}
-                className="border border-gray-300 hover:border-gray-400 text-gray-700 hover:text-gray-900 bg-white hover:bg-gray-50 shadow-sm hover:shadow-md transition-all duration-200 px-6 py-2 rounded-lg font-medium"
+                className="border-2 border-gray-400 hover:border-gray-600 text-gray-800 hover:text-gray-900 bg-white hover:bg-gray-100 font-semibold px-6 py-2 rounded-lg shadow-md hover:shadow-lg transition-all duration-200"
                 data-testid="button-cancel"
               >
                 Hủy
@@ -428,9 +428,9 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                 type="submit" 
                 disabled={createAccountRequestMutation.isPending}
                 data-testid="button-submit-account-request"
-                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 border border-blue-600"
               >
-                {createAccountRequestMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu"}
+                {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
               </Button>
             </DialogFooter>
           </form>
