@@ -77,21 +77,21 @@ export default function AccountRequestsManagement() {
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterType, setFilterType] = useState<string>("all");
 
-  const { data: requests = [], isLoading } = useQuery({
+  const { data: requests = [], isLoading, error } = useQuery<AccountRequest[]>({
     queryKey: ["/api/admin/account-requests"],
-    onError: (error) => {
-      if (isUnauthorizedError(error)) {
-        toast({
-          title: "Phiên đăng nhập hết hạn",
-          description: "Vui lòng đăng nhập lại để tiếp tục.",
-          variant: "destructive",
-        });
-        setTimeout(() => {
-          window.location.href = "/api/login";
-        }, 500);
-      }
-    },
   });
+
+  // Handle error separately
+  if (error && isUnauthorizedError(error as Error)) {
+    toast({
+      title: "Phiên đăng nhập hết hạn", 
+      description: "Vui lòng đăng nhập lại để tiếp tục.",
+      variant: "destructive",
+    });
+    setTimeout(() => {
+      window.location.href = "/api/login";
+    }, 500);
+  }
 
   const updateRequestMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: any }) => {
@@ -482,6 +482,7 @@ export default function AccountRequestsManagement() {
             requestType: selectedRequest.requestType,
             branchName: selectedRequest.branchName,
             fileUrl: selectedRequest.fileUrl,
+            email: selectedRequest.email,
           }}
         />
       )}

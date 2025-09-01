@@ -25,6 +25,7 @@ interface EmailModalProps {
     requestType: "new_account" | "un_tag_account";
     branchName: string;
     fileUrl?: string;
+    email: string;
   };
 }
 
@@ -88,9 +89,20 @@ VIA English Academy`
 
   const defaultEmail = generateEmailContent();
   
+  // Tạo danh sách CC bao gồm email của người dùng
+  const defaultCC = [
+    "quoc.le@viaenglish.edu.vn",
+    "dkoay@scholastic.asia", 
+    "rkarppaya@scholastic.asia",
+    "huyen.vu@viaenglish.edu.vn",
+    "anh.nguyen@viaenglish.edu.vn",
+    "trang.nguyen@viaenglish.edu.vn",
+    requestData.email
+  ].join(", ");
+  
   const [emailData, setEmailData] = useState({
-    to: "nphuc210@gmail.com",
-    cc: "",
+    to: "customersupport@scholastic.asia",
+    cc: defaultCC,
     subject: defaultEmail.subject,
     content: defaultEmail.content,
   });
