@@ -459,7 +459,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                 }}
               >
                 <span style={{ color: '#ffffff' }}>
-                  {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
+                  {createAccountRequestMutation.isPending ? "Đang gửi..." : "Gửi yêu cầu"}
                 </span>
               </button>
             </div>
