@@ -186,7 +186,7 @@ export default function Admin() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-blue-950/20">
       <div className="flex h-screen">
         {/* Desktop Sidebar */}
         <div className="hidden lg:flex">
@@ -199,14 +199,18 @@ export default function Admin() {
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden">
-          {/* Header */}
-          <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 border-b border-blue-700 shadow-lg flex-shrink-0">
-            <div className="px-3 sm:px-4 lg:px-6 py-3 sm:py-4 flex justify-between items-center">
-              <div className="flex items-center space-x-3">
+          {/* Modern Professional Header */}
+          <header className="bg-white/90 backdrop-blur-lg border-b border-gray-200/50 shadow-sm sticky top-0 z-50 dark:bg-gray-900/90 dark:border-gray-700/50">
+            <div className="px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+              <div className="flex items-center space-x-4">
                 {/* Mobile Menu Button */}
                 <Sheet open={sidebarOpen} onOpenChange={setSidebarOpen}>
                   <SheetTrigger asChild>
-                    <Button variant="ghost" size="sm" className="lg:hidden text-blue-100 hover:text-white hover:bg-blue-800">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="lg:hidden text-gray-600 hover:text-gray-900 hover:bg-gray-100 dark:text-gray-300 dark:hover:text-white dark:hover:bg-gray-800"
+                    >
                       <Menu className="h-5 w-5" />
                     </Button>
                   </SheetTrigger>
@@ -220,20 +224,33 @@ export default function Admin() {
                     />
                   </SheetContent>
                 </Sheet>
-                <h2 className="text-lg sm:text-xl font-semibold text-white">{getTitle()}</h2>
+                
+                {/* Page Title Section */}
+                <div className="flex items-center space-x-3">
+                  <div className="h-10 w-1 bg-gradient-to-b from-blue-500 to-blue-700 rounded-full"></div>
+                  <div>
+                    <h1 className="text-xl lg:text-2xl font-bold text-gray-900 dark:text-white">
+                      {getTitle()}
+                    </h1>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
+                      VIA Admin Dashboard
+                    </p>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center space-x-2 sm:space-x-4">
-                {/* Admin Notification Dropdown */}
+              
+              <div className="flex items-center space-x-3 lg:space-x-4">
+                {/* Modern Admin Notification Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <button 
-                      className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
+                      className="relative p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-950/30"
                       data-testid="button-admin-notifications"
                     >
-                      <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
+                      <Bell className="h-5 w-5" />
                       {totalNotifications > 0 && (
                         <span 
-                          className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
+                          className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-medium rounded-full h-5 w-5 flex items-center justify-center animate-pulse shadow-sm"
                           data-testid="text-admin-notification-count"
                         >
                           {totalNotifications}
@@ -243,24 +260,30 @@ export default function Admin() {
                   </DropdownMenuTrigger>
                   <DropdownMenuContent 
                     align="end" 
-                    className="w-80 sm:w-96 max-h-96 overflow-y-auto"
+                    className="w-80 sm:w-96 max-h-96 overflow-y-auto bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 shadow-lg rounded-xl"
                     data-testid="dropdown-admin-notifications"
                   >
                     {totalNotifications === 0 ? (
-                      <div className="p-4 text-center text-muted-foreground">
-                        <Bell className="mx-auto h-8 w-8 mb-2 opacity-50" />
-                        <p>Không có thông báo mới</p>
+                      <div className="p-6 text-center text-gray-500 dark:text-gray-400">
+                        <div className="p-3 rounded-lg bg-gray-100 dark:bg-gray-700 w-fit mx-auto mb-3">
+                          <Bell className="h-6 w-6 opacity-50" />
+                        </div>
+                        <p className="font-medium">Không có thông báo mới</p>
+                        <p className="text-sm mt-1">Tất cả thông báo đã được xử lý</p>
                       </div>
                     ) : (
                       <>
-                        <div className="px-4 py-2 border-b">
+                        <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                           <div className="flex items-center justify-between">
-                            <h3 className="font-semibold">Thông báo mới ({totalNotifications})</h3>
+                            <div>
+                              <h3 className="font-semibold text-gray-900 dark:text-white">Thông báo mới</h3>
+                              <p className="text-xs text-gray-500 dark:text-gray-400">{totalNotifications} thông báo chưa đọc</p>
+                            </div>
                             <Button 
                               variant="ghost" 
                               size="sm" 
                               onClick={handleMarkAllAsRead}
-                              className="text-xs"
+                              className="text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/30"
                               data-testid="button-mark-all-read"
                             >
                               <CheckCheck className="h-3 w-3 mr-1" />
@@ -270,78 +293,106 @@ export default function Admin() {
                         </div>
                         
                         {/* Support Ticket Notifications */}
-                        {supportTicketNotifications.map((notification: any) => (
-                          <DropdownMenuItem 
-                            key={notification.notification.id}
-                            onClick={() => handleNotificationClick(notification)}
-                            className="p-4 cursor-pointer hover:bg-muted focus:bg-muted"
-                            data-testid={`notification-support-${notification.notification.id}`}
-                          >
-                            <div className="flex items-start space-x-3 w-full">
-                              <div className="bg-orange-100 p-2 rounded-full flex-shrink-0">
-                                <User className="h-4 w-4 text-orange-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm text-foreground truncate">
-                                  {notification.notification.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {notification.notification.message}
-                                </p>
-                                <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                        <div className="divide-y divide-gray-200 dark:divide-gray-700">
+                          {supportTicketNotifications.map((notification: any) => (
+                            <DropdownMenuItem 
+                              key={notification.notification.id}
+                              onClick={() => handleNotificationClick(notification)}
+                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
+                              data-testid={`notification-support-${notification.notification.id}`}
+                            >
+                              <div className="flex items-start space-x-3 w-full">
+                                <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-lg flex-shrink-0">
+                                  <User className="h-4 w-4 text-orange-600 dark:text-orange-400" />
                                 </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                                    {notification.notification.title}
+                                  </p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                    {notification.notification.message}
+                                  </p>
+                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                  </div>
+                                </div>
+                                <div className="h-2 w-2 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
                               </div>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
+                            </DropdownMenuItem>
+                          ))}
 
-                        {/* Account Request Notifications */}
-                        {accountRequestNotifications.map((notification: any) => (
-                          <DropdownMenuItem 
-                            key={notification.notification.id}
-                            onClick={() => handleNotificationClick(notification)}
-                            className="p-4 cursor-pointer hover:bg-muted focus:bg-muted"
-                            data-testid={`notification-account-${notification.notification.id}`}
-                          >
-                            <div className="flex items-start space-x-3 w-full">
-                              <div className="bg-blue-100 p-2 rounded-full flex-shrink-0">
-                                <User className="h-4 w-4 text-blue-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm text-foreground truncate">
-                                  {notification.notification.title}
-                                </p>
-                                <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                  {notification.notification.message}
-                                </p>
-                                <div className="flex items-center mt-2 text-xs text-muted-foreground">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                          {/* Account Request Notifications */}
+                          {accountRequestNotifications.map((notification: any) => (
+                            <DropdownMenuItem 
+                              key={notification.notification.id}
+                              onClick={() => handleNotificationClick(notification)}
+                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
+                              data-testid={`notification-account-${notification.notification.id}`}
+                            >
+                              <div className="flex items-start space-x-3 w-full">
+                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg flex-shrink-0">
+                                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                                 </div>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                                    {notification.notification.title}
+                                  </p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                    {notification.notification.message}
+                                  </p>
+                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                  </div>
+                                </div>
+                                <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
                               </div>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
+                            </DropdownMenuItem>
+                          ))}
+                        </div>
                       </>
                     )}
                   </DropdownMenuContent>
                 </DropdownMenu>
                 
-                <Link href="/">
-                  <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-home">
-                    <Home className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Trang chủ</span>
-                  </Button>
-                </Link>
+                {/* User Profile Section */}
+                <div className="flex items-center space-x-3 pl-3 border-l border-gray-200 dark:border-gray-700">
+                  <div className="hidden sm:block text-right">
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">
+                      {user?.firstName && user?.lastName 
+                        ? `${user.firstName} ${user.lastName}` 
+                        : user?.email || "Admin"
+                      }
+                    </p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Administrator</p>
+                  </div>
+                  
+                  <Link href="/">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="border-gray-200 text-gray-700 hover:bg-gray-50 hover:border-gray-300 dark:border-gray-600 dark:text-gray-200 dark:hover:bg-gray-800" 
+                      data-testid="link-home"
+                    >
+                      <Home className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Trang chủ</span>
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           </header>
 
-          {/* Main Content */}
-          <main className="flex-1 overflow-auto p-3 sm:p-4 lg:p-6">
-            {renderContent()}
+          {/* Modern Main Content Area */}
+          <main className="flex-1 overflow-auto bg-gray-50/50 dark:bg-gray-900/50">
+            <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm min-h-full">
+                <div className="p-6">
+                  {renderContent()}
+                </div>
+              </div>
+            </div>
           </main>
         </div>
       </div>
