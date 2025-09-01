@@ -47,7 +47,7 @@ Request Details:
 • Date: ${new Date().toLocaleDateString('vi-VN')}
 
 The complete student enrollment list is available through our secure document system:
-${requestData.fileUrl || '[File URL will be attached]'}
+📄 View Student List: ${requestData.fileUrl || '[File URL will be attached]'}
 
 Please process this request and provide the login credentials at your earliest convenience. Our students are scheduled to begin their coursework soon.
 
@@ -70,7 +70,7 @@ Request Details:
 • Date: ${new Date().toLocaleDateString('vi-VN')}
 
 The affected student accounts are listed in our secure document:
-${requestData.fileUrl || '[File URL will be attached]'}
+📄 View Student List: ${requestData.fileUrl || '[File URL will be attached]'}
 
 Please un-tag these accounts so students can log in with their new devices. Kindly confirm completion when the process is finished.
 

@@ -103,7 +103,7 @@ export function generateAccountRequestEmail(requestType: string, branchName: str
               
               <p>The complete student enrollment list is available through our secure document system:</p>
               <p style="text-align: center;">
-                <a href="${fileUrl}" class="button">Access Student List Document</a>
+                <a href="${fileUrl}" class="button" style="display: inline-block; padding: 12px 25px; background: #0066cc; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">📄 View Student List Document</a>
               </p>
               
               <p>Please process this request and provide the login credentials at your earliest convenience. Our students are scheduled to begin their coursework soon.</p>
@@ -162,7 +162,7 @@ export function generateAccountRequestEmail(requestType: string, branchName: str
               
               <p>The affected student accounts are listed in our secure document:</p>
               <p style="text-align: center;">
-                <a href="${fileUrl}" class="button">Access Student List Document</a>
+                <a href="${fileUrl}" class="button" style="display: inline-block; padding: 12px 25px; background: #dc3545; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0;">📄 View Student List Document</a>
               </p>
               
               <p>Please un-tag these accounts so students can log in with their new devices. Kindly confirm completion when the process is finished.</p>
