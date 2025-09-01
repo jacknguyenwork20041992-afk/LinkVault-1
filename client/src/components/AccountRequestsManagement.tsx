@@ -41,7 +41,8 @@ import {
   Mail, 
   MapPin,
   FileText,
-  MessageSquare
+  MessageSquare,
+  Send
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -119,6 +120,37 @@ export default function AccountRequestsManagement() {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật yêu cầu. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const sendEmailMutation = useMutation({
+    mutationFn: async (id: string) => {
+      return await apiRequest("POST", `/api/account-requests/${id}/send-email`);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Email đã gửi",
+        description: "Email đã được gửi thành công đến support team.",
+      });
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Phiên đăng nhập hết hạn",
+          description: "Vui lòng đăng nhập lại để tiếp tục.",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      console.error("Send email error:", error);
+      toast({
+        title: "Lỗi gửi email",
+        description: "Không thể gửi email. Vui lòng thử lại.",
         variant: "destructive",
       });
     },
@@ -427,23 +459,35 @@ export default function AccountRequestsManagement() {
                 />
               </div>
 
-              <DialogFooter>
-                <Button type="button" variant="outline" onClick={() => setIsUpdateModalOpen(false)}>
-                  Hủy
-                </Button>
+              <DialogFooter className="flex justify-between">
                 <Button 
-                  type="submit" 
-                  disabled={updateRequestMutation.isPending}
-                  style={{ 
-                    backgroundColor: '#2563eb', 
-                    color: '#ffffff', 
-                    border: 'none' 
-                  }}
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => sendEmailMutation.mutate(selectedRequest.id)}
+                  disabled={sendEmailMutation.isPending}
+                  className="flex items-center gap-2"
                 >
-                  <span style={{ color: '#ffffff' }}>
-                    {updateRequestMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
-                  </span>
+                  <Send className="h-4 w-4" />
+                  {sendEmailMutation.isPending ? "Đang gửi..." : "Gửi Email"}
                 </Button>
+                <div className="flex gap-3">
+                  <Button type="button" variant="outline" onClick={() => setIsUpdateModalOpen(false)}>
+                    Hủy
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={updateRequestMutation.isPending}
+                    style={{ 
+                      backgroundColor: '#2563eb', 
+                      color: '#ffffff', 
+                      border: 'none' 
+                    }}
+                  >
+                    <span style={{ color: '#ffffff' }}>
+                      {updateRequestMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
+                    </span>
+                  </Button>
+                </div>
               </DialogFooter>
             </form>
           )}

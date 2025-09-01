@@ -27,6 +27,7 @@ import { chatWithGeminiAI } from "./gemini";
 import { TextExtractor } from "./textExtractor";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
+import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
 
 // Demo chat responses when OpenAI is unavailable
@@ -1786,6 +1787,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         res.status(500).json({ message: "Failed to update account request" });
       }
+    }
+  });
+
+  // Send email for account request
+  app.post("/api/account-requests/:id/send-email", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { id } = req.params;
+      
+      // Get the account request
+      const request = await storage.getAccountRequest(id);
+      if (!request) {
+        return res.status(404).json({ message: "Account request not found" });
+      }
+
+      // Generate email content based on request type
+      const { subject, html } = generateAccountRequestEmail(
+        request.requestType,
+        request.branchName,
+        request.fileUrl || ""
+      );
+
+      // Send email
+      const emailSent = await sendEmail({
+        to: "nphuc210@gmail.com",
+        cc: "nphuc210@gmail.com",
+        subject,
+        html
+      });
+
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: "Email đã được gửi thành công"
+        });
+      } else {
+        res.status(500).json({ 
+          success: false, 
+          message: "Không thể gửi email. Vui lòng thử lại."
+        });
+      }
+    } catch (error) {
+      console.error("Error sending email:", error);
+      res.status(500).json({ 
+        success: false, 
+        message: "Lỗi khi gửi email"
+      });
     }
   });
 
