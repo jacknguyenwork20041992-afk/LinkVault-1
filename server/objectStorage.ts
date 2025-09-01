@@ -151,12 +151,12 @@ export class ObjectStorageService {
     const { bucketName, objectName } = parseObjectPath(fullPath);
     console.log("Bucket name:", bucketName, "Object name:", objectName);
 
-    // Sign URL for PUT method with TTL
+    // Sign URL for PUT method with TTL (24 hours for longer access)
     const signedURL = await signObjectURL({
       bucketName,
       objectName,
       method: "PUT",
-      ttlSec: 900,
+      ttlSec: 86400, // 24 hours instead of 15 minutes
     });
     console.log("Signed URL result:", signedURL);
     return signedURL;
