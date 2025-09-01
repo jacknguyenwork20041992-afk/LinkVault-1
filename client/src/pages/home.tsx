@@ -10,7 +10,6 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import NotificationCard from "@/components/NotificationCard";
 import ProgramCard from "@/components/ProgramCard";
-import DocumentTable from "@/components/DocumentTable";
 import FloatingSupportButton from "@/components/FloatingSupportButton";
 import FloatingChatButton from "@/components/FloatingChatButton";
 import { apiRequest } from "@/lib/queryClient";
@@ -196,34 +195,34 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50/30 via-background to-indigo-50/30 dark:from-blue-950/30 dark:via-background dark:to-indigo-950/30">
-      {/* Navigation Header */}
-      <header className="bg-gradient-to-r from-blue-900 via-blue-800 to-blue-900 border-b border-blue-700 shadow-lg">
-        <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8">
-          <div className="flex justify-between items-center h-16 sm:h-20">
-            <div className="flex items-center">
-              <img 
-                src="/via-logo.png" 
-                alt="VIA English Academy" 
-                className="h-10 sm:h-12 w-auto mr-3"
-              />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50/20 dark:from-gray-900 dark:via-gray-900 dark:to-blue-950/20">
+      {/* Enhanced Navigation Header */}
+      <header className="bg-white/80 backdrop-blur-lg border-b border-gray-200/50 shadow-sm sticky top-0 z-50 dark:bg-gray-900/80 dark:border-gray-700/50">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex justify-between items-center h-16 lg:h-18">
+            {/* Logo Section */}
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-600 to-blue-700 shadow-lg">
+                <GraduationCap className="h-6 w-6 text-white" />
+              </div>
               <div>
-                <h1 className="text-xl sm:text-2xl font-bold text-white">VIA ENGLISH ACADEMY</h1>
-                <p className="text-xs sm:text-sm text-blue-100 opacity-90">Learning Pathway</p>
+                <h1 className="text-lg lg:text-xl font-bold text-gray-900 dark:text-white">VIA English Academy</h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400">Learning Management System</p>
               </div>
             </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-4">
+            {/* Navigation Actions */}
+            <div className="flex items-center space-x-3 lg:space-x-4">
               {/* Notification Bell */}
               <Link href="/notifications">
                 <button 
-                  className="relative p-1.5 sm:p-2 text-blue-100 hover:text-white transition-colors"
+                  className="relative p-2 rounded-lg text-gray-600 hover:text-blue-600 hover:bg-blue-50 transition-all duration-200 dark:text-gray-300 dark:hover:text-blue-400 dark:hover:bg-blue-950/30"
                   data-testid="button-notifications"
                 >
-                  <Bell className="text-base sm:text-lg h-5 w-5 sm:h-6 sm:w-6" />
+                  <Bell className="h-5 w-5" />
                   {notifications.length > 0 && (
                     <span 
-                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 sm:h-5 sm:w-5 flex items-center justify-center"
+                      className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-medium rounded-full h-5 w-5 flex items-center justify-center animate-pulse"
                       data-testid="text-notification-count"
                     >
                       {notifications.length}
@@ -232,270 +231,346 @@ export default function Home() {
                 </button>
               </Link>
 
-              {/* User Menu */}
-              <div className="flex items-center space-x-1 sm:space-x-2">
-                <span className="hidden sm:inline text-sm text-blue-100" data-testid="text-user-name">
-                  {user?.firstName && user?.lastName 
-                    ? `${user.firstName} ${user.lastName}` 
-                    : user?.email || "User"
-                  }
-                </span>
-                {user?.role === "admin" && (
-                  <Link href="/admin">
-                    <Button variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-3 border-blue-200 text-white hover:bg-blue-800" data-testid="link-admin">
-                      <span className="hidden sm:inline">Admin Panel</span>
-                      <span className="sm:hidden">Admin</span>
-                    </Button>
-                  </Link>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleLogout}
-                  className="p-1.5 sm:p-2 text-blue-100 hover:text-white hover:bg-blue-800 transition-colors"
-                  data-testid="button-logout"
-                >
-                  <LogOut className="h-4 w-4" />
-                </Button>
+              {/* User Profile Section */}
+              <div className="flex items-center space-x-2 pl-3 border-l border-gray-200 dark:border-gray-700">
+                <div className="hidden sm:block text-right">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white" data-testid="text-user-name">
+                    {user?.firstName && user?.lastName 
+                      ? `${user.firstName} ${user.lastName}` 
+                      : user?.email || "User"
+                    }
+                  </p>
+                  <p className="text-xs text-gray-500 dark:text-gray-400 capitalize">
+                    {user?.role === "admin" ? "Administrator" : "Student"}
+                  </p>
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  {user?.role === "admin" && (
+                    <Link href="/admin">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300 dark:border-blue-700 dark:text-blue-400 dark:hover:bg-blue-950/30" 
+                        data-testid="link-admin"
+                      >
+                        <span className="hidden lg:inline">Admin Panel</span>
+                        <span className="lg:hidden">Admin</span>
+                      </Button>
+                    </Link>
+                  )}
+                  
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleLogout}
+                    className="text-gray-600 hover:text-red-600 hover:bg-red-50 transition-all duration-200 dark:text-gray-300 dark:hover:text-red-400 dark:hover:bg-red-950/30"
+                    data-testid="button-logout"
+                  >
+                    <LogOut className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-8 py-4 sm:py-6 lg:py-8">
-        {/* Notifications Section */}
-        {notifications.length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <div className="flex items-center space-x-3 mb-3 sm:mb-4">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg animate-pulse-glow animate-float">
-                <Bell className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
-                Thông báo mới
-              </h2>
-            </div>
-
-            <div className="space-y-2 sm:space-y-3">
-              {notifications.map((userNotification: any) => (
-                <NotificationCard
-                  key={userNotification.id}
-                  notification={userNotification.notification}
-                  onMarkAsRead={() => handleMarkAsRead(userNotification.notification.id)}
-                />
-              ))}
-            </div>
+      {/* Main Content Container */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Page Header */}
+        <div className="py-6 lg:py-8">
+          <div className="mb-8">
+            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+              Dashboard
+            </h1>
+            <p className="text-gray-600 dark:text-gray-300">
+              Chào mừng bạn trở lại! Theo dõi tiến trình học tập và tài liệu của bạn.
+            </p>
           </div>
-        )}
 
-        {/* Important Documents Section */}
-        {importantDocuments.length > 0 && (
-          <div className="mb-6 sm:mb-8">
-            <div className="flex items-center space-x-3 sm:space-x-4 mb-4 sm:mb-6">
-              <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-red-500 to-orange-500 shadow-lg animate-gradient sparkle-effect">
-                <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-              </div>
-              <div>
-                <h2 className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">Tài liệu quan trọng</h2>
-                <p className="text-sm sm:text-base text-orange-600 font-medium">{importantDocuments.length} tài liệu quan trọng</p>
-              </div>
-            </div>
+          {/* Notifications Section */}
+          {notifications.length > 0 && (
+            <div className="mb-8">
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200/30 dark:border-blue-800/30 p-6">
+                <div className="flex items-center space-x-3 mb-4">
+                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Thông báo mới
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      {notifications.length} thông báo chưa đọc
+                    </p>
+                  </div>
+                </div>
 
-            <div className="vibrant-card rounded-lg shadow-lg border border-border hover-lift">
-              <div className="overflow-x-auto">
-                <table className="w-full min-w-[600px]">
-                  <thead className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-950/20 dark:to-orange-950/20">
-                    <tr>
-                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground">Tài liệu</th>
-                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground hidden sm:table-cell">Mô tả</th>
-                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground hidden md:table-cell">Ngày tạo</th>
-                      <th className="text-left py-2 sm:py-3 px-3 sm:px-6 text-xs sm:text-sm font-medium text-foreground">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {importantDocuments.map((document: any) => (
-                      <tr key={document.id} className="border-t border-border hover:bg-gradient-to-r hover:from-red-50/50 hover:to-orange-50/50 dark:hover:from-red-900/10 dark:hover:to-orange-900/10 transition-all duration-300" data-testid={`row-important-document-${document.id}`}>
-                        <td className="py-4 px-6">
-                          <div className="flex items-center space-x-3">
-                            <div className="p-2 rounded-lg bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/20">
-                              <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                            </div>
-                            <div>
-                              <div className="font-medium text-foreground">{document.title}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="py-4 px-6 text-muted-foreground">
-                          {document.description || "Không có mô tả"}
-                        </td>
-                        <td className="py-4 px-6 text-muted-foreground">
-                          {document.createdAt ? new Date(document.createdAt).toLocaleDateString("vi-VN") : ""}
-                        </td>
-                        <td className="py-4 px-6">
-                          <a
-                            href={document.url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            onClick={() => handleImportantDocumentClick(document)}
-                            className="inline-flex items-center px-3 py-2 bg-gradient-to-r from-red-500 to-orange-500 text-white hover:from-red-600 hover:to-orange-600 rounded-lg text-sm font-medium transition-all duration-300 shadow-md hover:shadow-xl hover:scale-105 animate-gradient"
-                            data-testid={`link-important-document-${document.id}`}
-                          >
-                            <ExternalLink className="h-4 w-4 mr-2" />
-                            Xem tài liệu
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Programs Grid */}
-        <div className="mb-8">
-          <div className="flex justify-between items-center mb-6">
-            <div className="flex items-center space-x-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 shadow-lg animate-float">
-                <Book className="h-6 w-6 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
-                Chương trình học
-              </h2>
-            </div>
-            <div className="flex gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Tìm kiếm..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 w-64"
-                  data-testid="input-search-home"
-                />
-              </div>
-              <Select value={selectedProgram} onValueChange={setSelectedProgram}>
-                <SelectTrigger className="w-[200px] text-foreground" data-testid="select-program-filter-home">
-                  <SelectValue placeholder="Lọc chương trình" className="text-foreground" />
-                </SelectTrigger>
-                <SelectContent className="bg-background border border-border">
-                  <SelectItem value="all" className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">Tất cả chương trình</SelectItem>
-                  {programs.map((program: any) => (
-                    <SelectItem key={program.id} value={program.id} className="text-foreground hover:bg-muted focus:bg-muted focus:text-foreground">
-                      {program.name}
-                    </SelectItem>
+                <div className="space-y-3">
+                  {notifications.map((userNotification: any) => (
+                    <NotificationCard
+                      key={userNotification.id}
+                      notification={userNotification.notification}
+                      onMarkAsRead={() => handleMarkAsRead(userNotification.notification.id)}
+                    />
                   ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {programs.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Book className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Chưa có chương trình học nào</p>
-            </div>
-          ) : filteredPrograms.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Không tìm thấy chương trình nào</p>
-              <Button 
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedProgram("all");
-                }}
-                className="mt-4"
-                variant="outline"
-              >
-                Xóa bộ lọc
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredPrograms.map((program: any) => (
-                <ProgramCard key={program.id} program={program} />
-              ))}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Documents */}
-        <div>
-          <div className="flex items-center space-x-3 mb-6">
-            <div className="p-2 rounded-xl bg-gradient-to-br from-orange-500 to-red-500 shadow-lg">
-              <Clock className="h-6 w-6 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-900 to-blue-700 bg-clip-text text-transparent">
-              Tài liệu gần đây
-            </h2>
-          </div>
-
-          {recentDocuments.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Chưa có tài liệu nào</p>
-            </div>
-          ) : filteredDocuments.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
-              <p>Không tìm thấy tài liệu nào</p>
-              <Button 
-                onClick={() => {
-                  setSearchTerm("");
-                  setSelectedProgram("all");
-                }}
-                className="mt-4"
-                variant="outline"
-              >
-                Xóa bộ lọc
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-card rounded-lg shadow-sm border border-border">
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-muted/50">
-                    <tr>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Tài liệu</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Chương trình</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Khóa học</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
-                      <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredDocuments.map((document: any) => (
-                      <tr key={document.id} className="border-t border-border hover:bg-muted/20" data-testid={`row-document-${document.id}`}>
-                        <td className="py-3 px-6">
-                          <div className="flex items-center">
-                            <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)} mr-3`}></i>
-                            <span className="font-medium text-foreground">{document.title}</span>
-                          </div>
-                        </td>
-                        <td className="py-3 px-6 text-muted-foreground">{document.program?.name || "N/A"}</td>
-                        <td className="py-3 px-6 text-muted-foreground">{document.category?.name || "N/A"}</td>
-                        <td className="py-3 px-6 text-muted-foreground">
-                          {new Date(document.updatedAt).toLocaleDateString("vi-VN")}
-                        </td>
-                        <td className="py-3 px-6">
-                          <a
-                            href={document.googleDriveLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:text-primary/80 transition-colors"
-                            data-testid={`link-document-${document.id}`}
-                          >
-                            <ExternalLink className="h-4 w-4" />
-                          </a>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                </div>
               </div>
             </div>
           )}
+
+          {/* Important Documents Section */}
+          {importantDocuments.length > 0 && (
+            <div className="mb-8">
+              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+                <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-red-100 dark:bg-red-900/30">
+                      <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Tài liệu quan trọng
+                      </h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {importantDocuments.length} tài liệu cần chú ý
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-gray-50 dark:bg-gray-700/50">
+                      <tr>
+                        <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          Tài liệu
+                        </th>
+                        <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden sm:table-cell">
+                          Mô tả
+                        </th>
+                        <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden lg:table-cell">
+                          Ngày tạo
+                        </th>
+                        <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100">
+                          Thao tác
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                      {importantDocuments.map((document: any) => (
+                        <tr 
+                          key={document.id} 
+                          className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150" 
+                          data-testid={`row-important-document-${document.id}`}
+                        >
+                          <td className="py-4 px-6">
+                            <div className="flex items-center space-x-3">
+                              <div className="p-2 rounded-lg bg-red-50 dark:bg-red-900/20">
+                                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                              </div>
+                              <div>
+                                <div className="font-medium text-gray-900 dark:text-white">
+                                  {document.title}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden sm:table-cell">
+                            {document.description || "Không có mô tả"}
+                          </td>
+                          <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden lg:table-cell">
+                            {document.createdAt ? new Date(document.createdAt).toLocaleDateString("vi-VN") : ""}
+                          </td>
+                          <td className="py-4 px-6">
+                            <a
+                              href={document.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              onClick={() => handleImportantDocumentClick(document)}
+                              className="inline-flex items-center px-3 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+                              data-testid={`link-important-document-${document.id}`}
+                            >
+                              <ExternalLink className="h-4 w-4 mr-2" />
+                              Xem tài liệu
+                            </a>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Programs Section */}
+          <div className="mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                      <Book className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                        Chương trình học
+                      </h2>
+                      <p className="text-sm text-gray-600 dark:text-gray-300">
+                        {programs.length} chương trình có sẵn
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                      <Input
+                        placeholder="Tìm kiếm chương trình..."
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-10 w-full sm:w-64 bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600"
+                        data-testid="input-search-home"
+                      />
+                    </div>
+                    <Select value={selectedProgram} onValueChange={setSelectedProgram}>
+                      <SelectTrigger className="w-full sm:w-[200px] bg-gray-50 dark:bg-gray-700 border-gray-200 dark:border-gray-600" data-testid="select-program-filter-home">
+                        <SelectValue placeholder="Lọc chương trình" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                        <SelectItem value="all">Tất cả chương trình</SelectItem>
+                        {programs.map((program: any) => (
+                          <SelectItem key={program.id} value={program.id}>
+                            {program.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-6">
+                {programs.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <Book className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>Chưa có chương trình học nào</p>
+                  </div>
+                ) : filteredPrograms.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>Không tìm thấy chương trình nào</p>
+                    <Button 
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedProgram("all");
+                      }}
+                      className="mt-4"
+                      variant="outline"
+                    >
+                      Xóa bộ lọc
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {filteredPrograms.map((program: any) => (
+                      <ProgramCard key={program.id} program={program} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          {/* Recent Documents Section */}
+          <div className="mb-8">
+            <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 shadow-sm">
+              <div className="p-6 border-b border-gray-200 dark:border-gray-700">
+                <div className="flex items-center space-x-3">
+                  <div className="p-2 rounded-lg bg-orange-100 dark:bg-orange-900/30">
+                    <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                      Tài liệu gần đây
+                    </h2>
+                    <p className="text-sm text-gray-600 dark:text-gray-300">
+                      Các tài liệu được cập nhật gần đây
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                {recentDocuments.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <Clock className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>Chưa có tài liệu nào</p>
+                  </div>
+                ) : filteredDocuments.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                    <Search className="mx-auto h-12 w-12 mb-4 opacity-50" />
+                    <p>Không tìm thấy tài liệu nào</p>
+                    <Button 
+                      onClick={() => {
+                        setSearchTerm("");
+                        setSelectedProgram("all");
+                      }}
+                      className="mt-4"
+                      variant="outline"
+                    >
+                      Xóa bộ lọc
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-gray-700/50">
+                        <tr>
+                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100">Tài liệu</th>
+                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden sm:table-cell">Chương trình</th>
+                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden lg:table-cell">Khóa học</th>
+                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden lg:table-cell">Cập nhật</th>
+                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100">Thao tác</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
+                        {filteredDocuments.map((document: any) => (
+                          <tr key={document.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors duration-150" data-testid={`row-document-${document.id}`}>
+                            <td className="py-4 px-6">
+                              <div className="flex items-center space-x-3">
+                                <i className={`fas ${getFileIcon(document.fileType)} ${getFileIconColor(document.fileType)}`}></i>
+                                <span className="font-medium text-gray-900 dark:text-white">{document.title}</span>
+                              </div>
+                            </td>
+                            <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden sm:table-cell">{document.program?.name || "N/A"}</td>
+                            <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden lg:table-cell">{document.category?.name || "N/A"}</td>
+                            <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden lg:table-cell">
+                              {new Date(document.updatedAt).toLocaleDateString("vi-VN")}
+                            </td>
+                            <td className="py-4 px-6">
+                              <a
+                                href={document.googleDriveLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+                                data-testid={`link-document-${document.id}`}
+                              >
+                                <ExternalLink className="h-4 w-4 mr-2" />
+                                Xem
+                              </a>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </main>
 
