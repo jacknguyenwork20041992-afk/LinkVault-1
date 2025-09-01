@@ -442,17 +442,20 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                 disabled={createAccountRequestMutation.isPending}
                 style={{
                   backgroundColor: '#2563eb',
-                  color: 'white',
+                  color: '#ffffff',
                   fontWeight: 'bold',
                   padding: '8px 32px',
                   borderRadius: '8px',
-                  border: 'none',
+                  border: '2px solid #2563eb',
                   cursor: 'pointer',
                   display: 'block !important',
-                  visibility: 'visible !important'
+                  visibility: 'visible !important',
+                  fontSize: '14px'
                 }}
               >
-                {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
+                <span style={{ color: '#ffffff' }}>
+                  {createAccountRequestMutation.isPending ? "Đang gửi..." : "Cập nhật"}
+                </span>
               </button>
             </div>
           </form>
