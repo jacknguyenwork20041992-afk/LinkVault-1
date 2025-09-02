@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
-import { Plus, Edit, Trash2, FileText, ExternalLink, Search } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, ExternalLink, Search, GraduationCap, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -226,29 +226,48 @@ export default function DocumentsManagement() {
           </Button>
         </div>
       ) : (
-        <div className="space-y-8">
+        <div className="space-y-10">
           {Object.entries(
-            filteredDocuments.reduce((acc: Record<string, (Document & { category: Category | null, program: Program | null })[]>, document) => {
-              const categoryName = document.category?.name || "Chưa phân loại";
-              if (!acc[categoryName]) acc[categoryName] = [];
-              acc[categoryName].push(document);
+            filteredDocuments.reduce((acc: Record<string, Record<string, (Document & { category: Category | null, program: Program | null })[]>>, document) => {
+              const programName = document.program?.name || "Chưa phân loại chương trình";
+              const categoryName = document.category?.name || "Chưa phân loại khóa học";
+              
+              if (!acc[programName]) acc[programName] = {};
+              if (!acc[programName][categoryName]) acc[programName][categoryName] = [];
+              acc[programName][categoryName].push(document);
               return acc;
             }, {})
-          ).map(([categoryName, categoryDocuments]) => (
-            <div key={categoryName} className="space-y-4">
-              <div className="flex items-center border-b border-border pb-2">
-                <FileText className="text-primary mr-2 h-5 w-5" />
-                <h4 className="text-lg font-semibold text-foreground">{categoryName}</h4>
-                <Badge variant="secondary" className="ml-2 text-xs">
-                  {categoryDocuments.length} tài liệu
-                </Badge>
-                {categoryDocuments[0]?.program && (
-                  <Badge variant="outline" className="ml-2 text-xs">
-                    {categoryDocuments[0].program.name}
-                  </Badge>
-                )}
+          ).map(([programName, programCategories]) => (
+            <div key={programName} className="space-y-6">
+              {/* Program Header */}
+              <div className="bg-gradient-to-r from-primary/10 to-primary/5 rounded-lg p-6 border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <div className="p-3 rounded-lg bg-primary/20 mr-4">
+                      <GraduationCap className="h-6 w-6 text-primary" />
+                    </div>
+                    <div>
+                      <h2 className="text-2xl font-bold text-foreground">{programName}</h2>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {Object.values(programCategories).reduce((total, docs) => total + docs.length, 0)} tài liệu trong {Object.keys(programCategories).length} khóa học
+                      </p>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="bg-card rounded-lg shadow-sm border border-border">
+
+              {/* Categories under this program */}
+              <div className="ml-6 space-y-6">
+                {Object.entries(programCategories).map(([categoryName, categoryDocuments]) => (
+                  <div key={categoryName} className="space-y-4">
+                    <div className="flex items-center border-b border-border pb-3">
+                      <FileText className="text-primary mr-3 h-5 w-5" />
+                      <h3 className="text-xl font-semibold text-foreground">{categoryName}</h3>
+                      <Badge variant="secondary" className="ml-3 text-sm">
+                        {categoryDocuments.length} tài liệu
+                      </Badge>
+                    </div>
+                    <div className="bg-card rounded-lg shadow-sm border border-border">
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead className="bg-muted/30">
@@ -277,15 +296,21 @@ export default function DocumentsManagement() {
                           </td>
                           <td className="py-2 px-4">
                             <div className="flex items-center space-x-1">
-                              <a
-                                href={document.googleDriveLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-primary hover:text-primary/80 transition-colors p-1"
-                                data-testid={`link-document-${document.id}`}
-                              >
-                                <ExternalLink className="h-3 w-3" />
-                              </a>
+                              <div className="flex flex-wrap gap-1">
+                                {((document as any).links || []).map((link: any, index: number) => (
+                                  <a
+                                    key={index}
+                                    href={link.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-primary hover:text-primary/80 transition-colors p-1"
+                                    data-testid={`link-document-${document.id}-${index}`}
+                                    title={link.description}
+                                  >
+                                    <Eye className="h-3 w-3" />
+                                  </a>
+                                ))}
+                              </div>
                               <Button 
                                 variant="ghost" 
                                 size="sm"
@@ -310,8 +335,11 @@ export default function DocumentsManagement() {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
-                </div>
+                      </table>
+                    </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           ))}
