@@ -29,11 +29,11 @@ export default function FloatingSupportButton() {
         {/* Support Button */}
         <Button
           onClick={handleSupportClick}
-          className="group h-16 px-6 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white shadow-2xl hover:shadow-blue-500/25 transition-all duration-500 flex items-center justify-center gap-3 animate-gentle-shake transform hover:scale-110 hover:-translate-y-1"
+          className="h-16 px-6 rounded-2xl bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700 hover:from-blue-600 hover:via-blue-700 hover:to-blue-800 text-white shadow-2xl hover:shadow-blue-500/25 transition-colors duration-300 flex items-center justify-center gap-3"
           data-testid="button-floating-support"
           aria-label="Hỗ trợ"
         >
-          <div className="p-1.5 rounded-full bg-white/20 group-hover:bg-white/30 transition-all duration-300">
+          <div className="p-1.5 rounded-full bg-white/20">
             <HelpCircle className="h-5 w-5" />
           </div>
           <span className="text-sm font-semibold tracking-wide">Hỗ trợ</span>
@@ -42,11 +42,11 @@ export default function FloatingSupportButton() {
         {/* Account Request Button */}
         <Button
           onClick={handleAccountRequestClick}
-          className="group h-16 px-6 rounded-2xl bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 text-white shadow-2xl hover:shadow-emerald-500/25 transition-all duration-500 flex items-center justify-center gap-3 transform hover:scale-110 hover:-translate-y-1"
+          className="h-16 px-6 rounded-2xl bg-gradient-to-br from-emerald-500 via-green-600 to-teal-600 hover:from-emerald-600 hover:via-green-700 hover:to-teal-700 text-white shadow-2xl hover:shadow-emerald-500/25 transition-colors duration-300 flex items-center justify-center gap-3"
           data-testid="button-floating-account-request"
           aria-label="Yêu cầu tài khoản"
         >
-          <div className="p-1.5 rounded-full bg-white/20 group-hover:bg-white/30 transition-all duration-300">
+          <div className="p-1.5 rounded-full bg-white/20">
             <UserPlus className="h-5 w-5" />
           </div>
           <span className="text-sm font-semibold tracking-wide text-center leading-tight">
@@ -58,12 +58,13 @@ export default function FloatingSupportButton() {
         {/* AI Chat Button */}
         <Button
           onClick={handleChatClick}
-          className={`group h-16 px-6 rounded-2xl shadow-2xl bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 hover:from-purple-600 hover:via-violet-700 hover:to-indigo-700 hover:shadow-purple-500/25 text-white ${
-            isChatBotOpen ? 'hidden' : 'flex'
-          } items-center justify-center gap-3 transition-all duration-500 transform hover:scale-110 hover:-translate-y-1`}
+          className={`h-16 px-6 rounded-2xl shadow-2xl bg-gradient-to-br from-purple-500 via-violet-600 to-indigo-600 hover:from-purple-600 hover:via-violet-700 hover:to-indigo-700 hover:shadow-purple-500/25 text-white ${
+            isChatBotOpen ? 'opacity-50' : 'opacity-100'
+          } items-center justify-center gap-3 transition-colors duration-300 flex`}
           data-testid="button-floating-chat"
+          disabled={isChatBotOpen}
         >
-          <div className="p-1.5 rounded-full bg-white/20 group-hover:bg-white/30 transition-all duration-300">
+          <div className="p-1.5 rounded-full bg-white/20">
             <MessageCircle className="h-5 w-5" />
           </div>
           <span className="text-sm font-semibold tracking-wide">Trợ lý AI-R&D</span>
