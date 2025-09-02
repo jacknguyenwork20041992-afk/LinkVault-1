@@ -5,9 +5,10 @@ import type { Document, Category, Program } from "@shared/schema";
 
 interface DocumentTableProps {
   documents: (Document & { category: Category | null, program: Program | null })[];
+  showActions?: boolean;
 }
 
-export default function DocumentTable({ documents }: DocumentTableProps) {
+export default function DocumentTable({ documents, showActions = true }: DocumentTableProps) {
   // Activity tracking mutation
   const trackActivityMutation = useMutation({
     mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
@@ -109,7 +110,9 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Chương trình</th>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Khóa học</th>
               <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Cập nhật</th>
-              <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+              {showActions && (
+                <th className="text-left py-3 px-6 text-sm font-medium text-foreground">Thao tác</th>
+              )}
             </tr>
           </thead>
           <tbody>
@@ -131,25 +134,27 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
                 <td className="py-3 px-6 text-muted-foreground">
                   {new Date(document.updatedAt!).toLocaleDateString("vi-VN")}
                 </td>
-                <td className="py-3 px-6">
-                  <div className="flex flex-wrap gap-2">
-                    {((document as any).links || []).map((link: any, index: number) => (
-                      <a
-                        key={index}
-                        href={link.url}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        onClick={(e) => handleDocumentClick(document, link.description, link.url, e)}
-                        className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-md text-xs font-medium transition-all duration-200"
-                        data-testid={`link-document-${document.id}-${index}`}
-                        title={link.description}
-                      >
-                        <ExternalLink className="h-3 w-3 mr-1" />
-                        {link.description}
-                      </a>
-                    ))}
-                  </div>
-                </td>
+                {showActions && (
+                  <td className="py-3 px-6">
+                    <div className="flex flex-wrap gap-2">
+                      {((document as any).links || []).map((link: any, index: number) => (
+                        <a
+                          key={index}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => handleDocumentClick(document, link.description, link.url, e)}
+                          className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-md text-xs font-medium transition-all duration-200"
+                          data-testid={`link-document-${document.id}-${index}`}
+                          title={link.description}
+                        >
+                          <ExternalLink className="h-3 w-3 mr-1" />
+                          {link.description}
+                        </a>
+                      ))}
+                    </div>
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

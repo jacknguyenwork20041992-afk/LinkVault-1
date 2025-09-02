@@ -532,7 +532,6 @@ export default function Home() {
                           <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden sm:table-cell">Chương trình</th>
                           <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden lg:table-cell">Khóa học</th>
                           <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100 hidden lg:table-cell">Cập nhật</th>
-                          <th className="text-left py-3 px-6 text-sm font-medium text-gray-900 dark:text-gray-100">Thao tác</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
@@ -548,18 +547,6 @@ export default function Home() {
                             <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden lg:table-cell">{document.category?.name || "N/A"}</td>
                             <td className="py-4 px-6 text-gray-600 dark:text-gray-300 hidden lg:table-cell">
                               {new Date(document.updatedAt).toLocaleDateString("vi-VN")}
-                            </td>
-                            <td className="py-4 px-6">
-                              <a
-                                href={document.googleDriveLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="inline-flex items-center px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
-                                data-testid={`link-document-${document.id}`}
-                              >
-                                <ExternalLink className="h-4 w-4 mr-2" />
-                                Xem
-                              </a>
                             </td>
                           </tr>
                         ))}
