@@ -62,9 +62,18 @@ export default function UserNotificationsList() {
     mutationFn: async (notificationId: string) => {
       await apiRequest("PUT", `/api/notifications/${notificationId}/read`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications/user"] });
+    onSuccess: (_, notificationId) => {
+      // Invalidate all pages of user notifications
+      queryClient.invalidateQueries({ 
+        queryKey: ["/api/notifications/user"],
+        exact: false 
+      });
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
+      
+      toast({
+        title: "Thành công",
+        description: "Đã đánh dấu thông báo là đã đọc",
+      });
     },
     onError: (error) => {
       if (isUnauthorizedError(error)) {
@@ -267,7 +276,7 @@ export default function UserNotificationsList() {
                                 size="sm"
                                 onClick={(e) => {
                                   e.stopPropagation(); // Prevent notification click
-                                  handleMarkAsRead(userNotification.id);
+                                  handleMarkAsRead(notification.id);
                                 }}
                                 disabled={markAsReadMutation.isPending}
                                 className="text-xs"
