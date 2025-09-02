@@ -104,6 +104,8 @@ export default function CreateDocumentModal({
       });
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
       queryClient.invalidateQueries({ queryKey: ["/api/documents/recent"] });
+      // Invalidate program documents cache to update program details page
+      queryClient.invalidateQueries({ queryKey: ["/api/programs"], refetchType: "all" });
       handleClose();
     },
     onError: (error) => {

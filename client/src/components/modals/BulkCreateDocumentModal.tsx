@@ -189,6 +189,8 @@ function BulkCreateDocumentModal({
       queryClient.invalidateQueries({ queryKey: ["/api/documents"] });
       queryClient.invalidateQueries({ queryKey: ["/api/documents/recent"] });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/stats"] });
+      // Invalidate program documents cache to update program details page
+      queryClient.invalidateQueries({ queryKey: ["/api/programs"], refetchType: "all" });
       handleClose();
     },
     onError: (error) => {
