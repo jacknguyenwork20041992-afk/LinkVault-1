@@ -82,7 +82,8 @@ export const notifications = pgTable("notifications", {
   title: varchar("title").notNull(),
   message: text("message").notNull(),
   isGlobal: boolean("is_global").default(true), // true for all users, false for specific users
-  recipientId: varchar("recipient_id").references(() => users.id), // for specific user notifications
+  recipientId: varchar("recipient_id").references(() => users.id), // for specific user notifications (legacy)
+  targetUserIds: jsonb("target_user_ids"), // Array of user IDs for multiple specific users
   createdAt: timestamp("created_at").defaultNow(),
 });
 
@@ -392,6 +393,8 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
+}).extend({
+  targetUserIds: z.array(z.string()).optional(), // Array of user IDs for targeted notifications
 });
 export const insertUserNotificationSchema = createInsertSchema(userNotifications).omit({
   id: true,

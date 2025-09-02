@@ -580,8 +580,17 @@ export class DatabaseStorage implements IStorage {
       if (userNotificationRecords.length > 0) {
         await db.insert(userNotifications).values(userNotificationRecords);
       }
+    } else if (notificationData.targetUserIds && notificationData.targetUserIds.length > 0) {
+      // Multiple specific users notification
+      const userNotificationRecords = notificationData.targetUserIds.map(userId => ({
+        userId: userId,
+        notificationId: notification.id,
+        isRead: false,
+      }));
+      
+      await db.insert(userNotifications).values(userNotificationRecords);
     } else if (notificationData.recipientId) {
-      // Specific user notification
+      // Single specific user notification (legacy)
       await db.insert(userNotifications).values({
         userId: notificationData.recipientId,
         notificationId: notification.id,
