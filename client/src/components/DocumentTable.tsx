@@ -22,8 +22,22 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
     },
   });
 
-  const handleDocumentClick = (document: Document & { category: Category | null, program: Program | null }, linkDescription: string) => {
+  const handleDocumentClick = (document: Document & { category: Category | null, program: Program | null }, linkDescription: string, url: string, event?: React.MouseEvent) => {
     console.log("Document click tracked:", document.title, linkDescription);
+    
+    // Show a toast notification to user that link is being opened
+    setTimeout(() => {
+      console.log(`📄 Đang mở tài liệu: ${document.title} - ${linkDescription}`);
+      
+      // Check if link opened successfully after a short delay
+      setTimeout(() => {
+        // If user is still on the same page, they might have popup blocked
+        if (window.document.hasFocus && window.document.hasFocus()) {
+          console.log("💡 Mẹo: Nếu không thấy tài liệu mở, hãy kiểm tra popup blocker hoặc sao chép link từ nút phải chuột");
+        }
+      }, 1000);
+    }, 100);
+    
     trackActivityMutation.mutate({
       type: "document_click",
       description: `Đã xem tài liệu: ${document.title} - ${linkDescription}`,
@@ -33,6 +47,7 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
         program: document.program?.name,
         category: document.category?.name,
         linkDescription: linkDescription,
+        url: url,
       }
     });
   };
@@ -124,7 +139,7 @@ export default function DocumentTable({ documents }: DocumentTableProps) {
                         href={link.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        onClick={() => handleDocumentClick(document, link.description)}
+                        onClick={(e) => handleDocumentClick(document, link.description, link.url, e)}
                         className="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30 rounded-md text-xs font-medium transition-all duration-200"
                         data-testid={`link-document-${document.id}-${index}`}
                         title={link.description}
