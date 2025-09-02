@@ -214,6 +214,7 @@ export default function CreateNotificationModal({
                         }
                       }}
                       data-testid="checkbox-notification-global"
+                      className="bg-background border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
