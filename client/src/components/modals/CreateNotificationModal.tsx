@@ -203,7 +203,7 @@ export default function CreateNotificationModal({
               control={form.control}
               name="isGlobal"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                <FormItem className="flex flex-row items-start space-x-3 space-y-0 border border-border rounded-lg p-4">
                   <FormControl>
                     <Checkbox
                       checked={field.value || false}
@@ -214,14 +214,14 @@ export default function CreateNotificationModal({
                         }
                       }}
                       data-testid="checkbox-notification-global"
-                      className="bg-background border-2 border-muted-foreground data-[state=checked]:bg-primary data-[state=checked]:border-primary"
+                      className="border-2 border-gray-400 bg-white data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600 data-[state=checked]:text-white"
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
+                    <FormLabel className="text-sm font-medium">
                       Gửi cho tất cả người dùng
                     </FormLabel>
-                    <p className="text-sm text-muted-foreground">
+                    <p className="text-xs text-muted-foreground">
                       Thông báo sẽ được gửi cho tất cả người dùng trong hệ thống
                     </p>
                   </div>
