@@ -7,7 +7,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, ChevronLeft, ChevronRight, Bell, Home, GraduationCap } from "lucide-react";
+import { Loader2, ChevronLeft, ChevronRight, Bell, Home, GraduationCap, RotateCcw } from "lucide-react";
 import type { UserNotification, Notification } from "@shared/schema";
 
 interface PaginatedNotifications {
@@ -23,7 +23,7 @@ export default function UserNotificationsList() {
   const queryClient = useQueryClient();
   const limit = 10;
 
-  const { data: paginatedData, isLoading } = useQuery({
+  const { data: paginatedData, isLoading, refetch } = useQuery({
     queryKey: ["/api/notifications/user", currentPage],
     queryFn: async (): Promise<PaginatedNotifications> => {
       const response = await fetch(`/api/notifications/user?page=${currentPage}&limit=${limit}`, {
@@ -35,6 +35,8 @@ export default function UserNotificationsList() {
       return response.json();
     },
     retry: false,
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchOnWindowFocus: true, // Refresh when user returns to tab
   });
 
   // Highlight logic - highlight new notifications for 3 seconds
@@ -120,6 +122,22 @@ export default function UserNotificationsList() {
     setCurrentPage(page);
   };
 
+  const handleRefresh = async () => {
+    try {
+      await refetch();
+      toast({
+        title: "Cập nhật thành công",
+        description: "Danh sách thông báo đã được cập nhật mới nhất",
+      });
+    } catch (error) {
+      toast({
+        title: "Lỗi cập nhật",
+        description: "Không thể cập nhật danh sách thông báo",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -160,10 +178,23 @@ export default function UserNotificationsList() {
       <div className="max-w-7xl mx-auto p-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Bell className="h-5 w-5" />
-              Thông báo ({total} thông báo)
-            </CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle className="flex items-center gap-2">
+                <Bell className="h-5 w-5" />
+                Thông báo ({total} thông báo)
+              </CardTitle>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                className="flex items-center gap-2"
+                data-testid="button-refresh-notifications"
+              >
+                <RotateCcw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                Cập nhật
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
           {notifications.length === 0 ? (
