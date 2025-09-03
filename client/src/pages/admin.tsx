@@ -146,7 +146,7 @@ export default function Admin() {
         return <SupportTicketsManagement />;
       case "account-requests":
         return <AccountRequestsManagement />;
-      case "theme-management":
+      case "themes":
         return <ThemeManagement />;
       default:
         return <AdminDashboard onNavigateToView={setActiveView} />;
@@ -183,7 +183,7 @@ export default function Admin() {
         return "Quản lý yêu cầu hỗ trợ";
       case "account-requests":
         return "Request for Account";
-      case "theme-management":
+      case "themes":
         return "Quản lý giao diện";
       default:
         return "Dashboard";
