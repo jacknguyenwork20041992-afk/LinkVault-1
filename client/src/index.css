@@ -390,15 +390,16 @@
 }
 
 .theme-tet .homepage-banner::after {
-  content: '🎇 🎆 🎊 ✨ 🎇 🎆 🎊 ✨ 🎇 🎆 🎊 ✨ 🎇 🎆';
+  content: '🎊 ✨ 🎊';
   position: absolute;
-  bottom: -10px;
-  left: -200px;
-  font-size: 32px;
-  animation: tetFireworkShow 10s linear infinite;
+  bottom: 10px;
+  left: 20px;
+  font-size: 20px;
+  animation: tetGentleFloat 8s ease-in-out infinite;
   white-space: nowrap;
-  filter: drop-shadow(0 0 12px rgba(220, 38, 38, 0.8));
+  filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
   z-index: 1;
+  opacity: 0.7;
 }
 
 .theme-tet .homepage-banner h1 {
@@ -512,17 +513,16 @@
 }
 
 .theme-halloween .homepage-banner::after {
-  content: '🕸️ 🦇 💀 🧙‍♀️ ⚡ 🔮 🕸️ 🦇 💀 🧙‍♀️ ⚡ 🔮 🕸️ 🦇';
+  content: '🦇 🕸️ 🦇';
   position: absolute;
-  bottom: -20px;
-  left: -300px;
-  font-size: 38px;
-  animation: halloweenHaunt 12s linear infinite;
+  bottom: 20px;
+  left: 20px;
+  font-size: 24px;
+  animation: halloweenGentleDrift 6s ease-in-out infinite;
   white-space: nowrap;
-  filter: 
-    drop-shadow(0 0 12px #dc2626) 
-    drop-shadow(0 0 20px #ea580c);
+  filter: drop-shadow(0 0 8px #ea580c);
   z-index: 1;
+  opacity: 0.6;
 }
 
 .theme-halloween .homepage-banner h1 {
@@ -605,17 +605,16 @@
 }
 
 .theme-mid_autumn .homepage-banner::after {
-  content: '⭐ 🌙 ⭐ 🌟 ✨ ⭐ 🌙 ⭐ 🌟 ✨ ⭐ 🌙';
+  content: '⭐ 🌙 ⭐';
   position: absolute;
-  bottom: -15px;
-  left: -250px;
-  font-size: 34px;
-  animation: midAutumnStars 11s linear infinite;
+  bottom: 20px;
+  left: 20px;
+  font-size: 22px;
+  animation: midAutumnGentleTwinkle 7s ease-in-out infinite;
   white-space: nowrap;
-  filter: 
-    drop-shadow(0 0 15px rgba(30, 58, 138, 0.9))
-    drop-shadow(0 0 25px rgba(251, 191, 36, 0.6));
+  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
   z-index: 1;
+  opacity: 0.8;
 }
 
 .theme-mid_autumn .homepage-banner h1 {
@@ -773,36 +772,14 @@
   }
 }
 
-@keyframes tetFireworkShow {
-  0% { 
-    transform: translateX(-200px) scale(0.5) rotate(0deg);
-    opacity: 0;
-    filter: blur(0px);
+@keyframes tetGentleFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    opacity: 0.7;
   }
-  20% { 
-    transform: translateX(50px) scale(1.2) rotate(-10deg);
-    opacity: 1;
-    filter: blur(0px);
-  }
-  40% { 
-    transform: translateX(250px) scale(0.8) rotate(5deg);
-    opacity: 1;
-    filter: blur(1px);
-  }
-  60% { 
-    transform: translateX(450px) scale(1.4) rotate(-15deg);
+  50% { 
+    transform: translateY(-8px) rotate(2deg);
     opacity: 0.9;
-    filter: blur(0px);
-  }
-  80% { 
-    transform: translateX(650px) scale(0.6) rotate(8deg);
-    opacity: 0.6;
-    filter: blur(2px);
-  }
-  100% { 
-    transform: translateX(800px) scale(0.3) rotate(0deg);
-    opacity: 0;
-    filter: blur(3px);
   }
 }
 
@@ -966,36 +943,14 @@
   }
 }
 
-@keyframes halloweenHaunt {
-  0% { 
-    transform: translateX(-400px) scale(0.4) skewX(-10deg);
-    opacity: 0;
-    filter: contrast(1);
+@keyframes halloweenGentleDrift {
+  0%, 100% { 
+    transform: translateX(0px) translateY(0px) rotate(0deg);
+    opacity: 0.6;
   }
-  20% { 
-    transform: translateX(-100px) scale(1.1) skewX(5deg);
-    opacity: 1;
-    filter: contrast(1.3);
-  }
-  40% { 
-    transform: translateX(200px) scale(0.7) skewX(-3deg);
-    opacity: 1;
-    filter: contrast(0.8);
-  }
-  60% { 
-    transform: translateX(500px) scale(1.3) skewX(8deg);
-    opacity: 0.9;
-    filter: contrast(1.2);
-  }
-  80% { 
-    transform: translateX(750px) scale(0.5) skewX(-5deg);
-    opacity: 0.5;
-    filter: contrast(0.9);
-  }
-  100% { 
-    transform: translateX(1000px) scale(0.2) skewX(0deg);
-    opacity: 0;
-    filter: contrast(1);
+  50% { 
+    transform: translateX(-5px) translateY(-6px) rotate(-2deg);
+    opacity: 0.8;
   }
 }
 
@@ -1128,41 +1083,14 @@
   }
 }
 
-@keyframes midAutumnStars {
-  0% { 
-    transform: translateX(-280px) scale(0.6) rotate(0deg);
-    opacity: 0;
-    filter: blur(0px);
+@keyframes midAutumnGentleTwinkle {
+  0%, 100% { 
+    transform: scale(1) rotate(0deg);
+    opacity: 0.8;
   }
-  15% { 
-    transform: translateX(-50px) scale(1.1) rotate(-12deg);
+  50% { 
+    transform: scale(1.05) rotate(1deg);
     opacity: 1;
-    filter: blur(0px);
-  }
-  35% { 
-    transform: translateX(200px) scale(0.8) rotate(8deg);
-    opacity: 1;
-    filter: blur(1px);
-  }
-  55% { 
-    transform: translateX(450px) scale(1.3) rotate(-15deg);
-    opacity: 0.9;
-    filter: blur(0px);
-  }
-  75% { 
-    transform: translateX(700px) scale(0.7) rotate(20deg);
-    opacity: 0.6;
-    filter: blur(2px);
-  }
-  90% { 
-    transform: translateX(950px) scale(1.0) rotate(-8deg);
-    opacity: 0.3;
-    filter: blur(1px);
-  }
-  100% { 
-    transform: translateX(1200px) scale(0.5) rotate(0deg);
-    opacity: 0;
-    filter: blur(3px);
   }
 }
 
