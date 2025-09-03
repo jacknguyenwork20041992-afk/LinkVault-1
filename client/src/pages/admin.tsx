@@ -17,6 +17,7 @@ import KnowledgeBasePage from "@/pages/admin/knowledge-base";
 import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
+import ThemeManagement from "@/components/ThemeManagement";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -145,6 +146,8 @@ export default function Admin() {
         return <SupportTicketsManagement />;
       case "account-requests":
         return <AccountRequestsManagement />;
+      case "theme-management":
+        return <ThemeManagement />;
       default:
         return <AdminDashboard />;
     }
@@ -180,6 +183,8 @@ export default function Admin() {
         return "Quản lý yêu cầu hỗ trợ";
       case "account-requests":
         return "Request for Account";
+      case "theme-management":
+        return "Quản lý giao diện";
       default:
         return "Dashboard";
     }

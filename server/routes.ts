@@ -20,6 +20,7 @@ import {
   insertSupportTicketSchema,
   insertSupportResponseSchema,
   insertAccountRequestSchema,
+  insertThemeSettingSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
@@ -1931,6 +1932,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
         success: false, 
         message: "Lỗi khi gửi email"
       });
+    }
+  });
+
+  // =============== Theme Settings Endpoints ===============
+  
+  // Get all theme settings
+  app.get("/api/themes", async (req, res) => {
+    try {
+      const themes = await storage.getAllThemeSettings();
+      res.json(themes);
+    } catch (error) {
+      console.error("Error getting themes:", error);
+      res.status(500).json({ message: "Lỗi khi tải danh sách giao diện" });
+    }
+  });
+
+  // Get active theme
+  app.get("/api/themes/active", async (req, res) => {
+    try {
+      const activeTheme = await storage.getActiveTheme();
+      res.json(activeTheme || { themeName: "default", displayName: "Mặc định" });
+    } catch (error) {
+      console.error("Error getting active theme:", error);
+      res.status(500).json({ message: "Lỗi khi tải giao diện hiện tại" });
+    }
+  });
+
+  // Set active theme (Admin only)
+  app.post("/api/themes/activate", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { themeName } = req.body;
+      
+      if (!themeName) {
+        return res.status(400).json({ message: "Tên giao diện là bắt buộc" });
+      }
+
+      const theme = await storage.setActiveTheme(themeName);
+      res.json(theme);
+    } catch (error) {
+      console.error("Error setting active theme:", error);
+      res.status(500).json({ message: "Lỗi khi thiết lập giao diện" });
+    }
+  });
+
+  // Create theme setting (Admin only)
+  app.post("/api/themes", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const result = insertThemeSettingSchema.safeParse(req.body);
+      if (!result.success) {
+        return res.status(400).json({ 
+          message: "Dữ liệu không hợp lệ", 
+          errors: result.error.issues 
+        });
+      }
+
+      const theme = await storage.createThemeSetting(result.data);
+      res.status(201).json(theme);
+    } catch (error) {
+      console.error("Error creating theme:", error);
+      res.status(500).json({ message: "Lỗi khi tạo giao diện" });
     }
   });
 

@@ -18,6 +18,7 @@ import {
   supportTickets,
   supportResponses,
   accountRequests,
+  themeSettings,
   type User,
   type UpsertUser,
   type Program,
@@ -38,6 +39,7 @@ import {
   type SupportTicket,
   type SupportResponse,
   type AccountRequest,
+  type ThemeSetting,
   type InsertProgram,
   type InsertCategory,
   type InsertDocument,
@@ -56,6 +58,7 @@ import {
   type InsertSupportTicket,
   type InsertSupportResponse,
   type InsertAccountRequest,
+  type InsertThemeSetting,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -256,6 +259,12 @@ export interface IStorage {
   // Support response operations
   createSupportResponse(responseData: InsertSupportResponse): Promise<SupportResponse>;
   getSupportResponses(ticketId: string): Promise<(SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]>;
+
+  // Theme settings operations
+  getAllThemeSettings(): Promise<ThemeSetting[]>;
+  getActiveTheme(): Promise<ThemeSetting | undefined>;
+  createThemeSetting(themeData: InsertThemeSetting): Promise<ThemeSetting>;
+  setActiveTheme(themeName: string): Promise<ThemeSetting>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -1543,6 +1552,38 @@ export class DatabaseStorage implements IStorage {
           lastName: row.responderLastName,
         }
       })));
+  }
+
+  // Theme settings operations
+  async getAllThemeSettings(): Promise<ThemeSetting[]> {
+    return await db.select().from(themeSettings).orderBy(themeSettings.createdAt);
+  }
+
+  async getActiveTheme(): Promise<ThemeSetting | undefined> {
+    const [theme] = await db.select().from(themeSettings).where(eq(themeSettings.isActive, true));
+    return theme;
+  }
+
+  async createThemeSetting(themeData: InsertThemeSetting): Promise<ThemeSetting> {
+    const [theme] = await db
+      .insert(themeSettings)
+      .values(themeData)
+      .returning();
+    return theme;
+  }
+
+  async setActiveTheme(themeName: string): Promise<ThemeSetting> {
+    // First, deactivate all themes
+    await db.update(themeSettings).set({ isActive: false });
+    
+    // Then activate the selected theme
+    const [theme] = await db
+      .update(themeSettings)
+      .set({ isActive: true, updatedAt: new Date() })
+      .where(eq(themeSettings.themeName, themeName))
+      .returning();
+    
+    return theme;
   }
 }
 

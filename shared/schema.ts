@@ -252,6 +252,18 @@ export const accountRequests = pgTable("account_requests", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Theme settings table for holiday themes
+export const themeSettings = pgTable("theme_settings", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  themeName: varchar("theme_name").notNull(), // "default", "tet", "christmas", "halloween", "mid_autumn", "teachers_day"
+  displayName: varchar("display_name").notNull(), // Display name in Vietnamese
+  description: text("description"), // Mô tả theme
+  isActive: boolean("is_active").default(false), // Only one theme can be active at a time
+  metadata: jsonb("metadata"), // Additional theme data like colors, icons, etc.
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -516,6 +528,18 @@ export const insertAccountRequestSchema = createInsertSchema(accountRequests).om
   ]),
 });
 
+export const insertThemeSettingSchema = createInsertSchema(themeSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  themeName: z.enum(["default", "tet", "christmas", "halloween", "mid_autumn", "teachers_day"]),
+  displayName: z.string().min(1, "Tên hiển thị là bắt buộc"),
+  description: z.string().optional(),
+  isActive: z.boolean().default(false),
+  metadata: z.record(z.any()).optional(),
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -561,3 +585,5 @@ export type SupportResponse = typeof supportResponses.$inferSelect;
 export type InsertSupportResponse = z.infer<typeof insertSupportResponseSchema>;
 export type AccountRequest = typeof accountRequests.$inferSelect;
 export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;
+export type ThemeSetting = typeof themeSettings.$inferSelect;
+export type InsertThemeSetting = z.infer<typeof insertThemeSettingSchema>;

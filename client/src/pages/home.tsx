@@ -3,6 +3,7 @@ import { Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/hooks/useTheme";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { GraduationCap, Bell, LogOut, Clock, Book, ExternalLink, Search, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function Home() {
   const { user, isAuthenticated, isLoading } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { activeTheme, displayName: themeDisplayName } = useTheme();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProgram, setSelectedProgram] = useState<string>("all");
 
@@ -275,14 +277,33 @@ export default function Home() {
         </div>
       </header>
 
+      {/* Hero Banner Section - Theme Applied */}
+      <section className="homepage-banner bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 lg:py-16 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+          <div className="text-center">
+            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
+              VIA R&D Department
+            </h1>
+            <p className="text-xl lg:text-2xl text-blue-100 mb-6">
+              Hệ thống quản lý học tập và nghiên cứu
+            </p>
+            {activeTheme?.themeName !== 'default' && (
+              <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
+                🎉 Giao diện: {themeDisplayName}
+              </div>
+            )}
+          </div>
+        </div>
+      </section>
+
       {/* Main Content Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Page Header */}
         <div className="py-6 lg:py-8">
           <div className="mb-8">
-            <h1 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="text-2xl lg:text-3xl font-bold text-gray-900 dark:text-white mb-2">
               Dashboard
-            </h1>
+            </h2>
             <p className="text-gray-600 dark:text-gray-300">
               Chào mừng bạn trở lại! Theo dõi tiến trình học tập và tài liệu của bạn.
             </p>

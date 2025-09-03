@@ -16,7 +16,8 @@ import {
   Brain,
   Upload,
   HelpCircle,
-  UserPlus
+  UserPlus,
+  Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -92,6 +93,7 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "notifications", label: "Thông báo", icon: Bell },
         { id: "support-tickets", label: "Yêu cầu hỗ trợ", icon: HelpCircle },
         { id: "account-requests", label: "Request for Account", icon: UserPlus },
+        { id: "theme-management", label: "Quản lý giao diện", icon: Palette },
       ]
     }
   ];
