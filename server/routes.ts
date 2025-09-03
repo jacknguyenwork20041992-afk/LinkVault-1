@@ -1964,11 +1964,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { themeName } = req.body;
       
+      console.log("DEBUG: Received theme activation request for:", themeName);
+      
       if (!themeName) {
         return res.status(400).json({ message: "Tên giao diện là bắt buộc" });
       }
 
       const theme = await storage.setActiveTheme(themeName);
+      console.log("DEBUG: Theme set successfully:", theme);
       res.json(theme);
     } catch (error) {
       console.error("Error setting active theme:", error);

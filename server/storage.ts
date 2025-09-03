@@ -1573,6 +1573,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setActiveTheme(themeName: string): Promise<ThemeSetting> {
+    console.log("DEBUG: Setting active theme to:", themeName);
+    
     // Define predefined themes
     const predefinedThemes: Record<string, { displayName: string; description: string }> = {
       default: { displayName: "Mặc định", description: "Giao diện tiêu chuẩn của hệ thống" },
@@ -1584,24 +1586,30 @@ export class DatabaseStorage implements IStorage {
     };
 
     // First, deactivate all themes
+    console.log("DEBUG: Deactivating all themes...");
     await db.update(themeSettings).set({ isActive: false });
     
     // Check if theme exists
+    console.log("DEBUG: Checking if theme exists...");
     const [existingTheme] = await db
       .select()
       .from(themeSettings)
       .where(eq(themeSettings.themeName, themeName));
     
+    console.log("DEBUG: Existing theme found:", existingTheme);
+    
     let theme: ThemeSetting;
     
     if (existingTheme) {
       // Theme exists, just activate it
+      console.log("DEBUG: Activating existing theme...");
       const [updatedTheme] = await db
         .update(themeSettings)
         .set({ isActive: true, updatedAt: new Date() })
         .where(eq(themeSettings.themeName, themeName))
         .returning();
       theme = updatedTheme;
+      console.log("DEBUG: Theme activated:", theme);
     } else {
       // Theme doesn't exist, create it first
       const themeInfo = predefinedThemes[themeName];
@@ -1609,6 +1617,7 @@ export class DatabaseStorage implements IStorage {
         throw new Error(`Unknown theme: ${themeName}`);
       }
       
+      console.log("DEBUG: Creating new theme with info:", themeInfo);
       const [newTheme] = await db
         .insert(themeSettings)
         .values({
@@ -1619,7 +1628,12 @@ export class DatabaseStorage implements IStorage {
         })
         .returning();
       theme = newTheme;
+      console.log("DEBUG: New theme created:", theme);
     }
+    
+    // Double check active theme
+    const [activeCheck] = await db.select().from(themeSettings).where(eq(themeSettings.isActive, true));
+    console.log("DEBUG: Final active theme check:", activeCheck);
     
     return theme;
   }
