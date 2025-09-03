@@ -395,7 +395,6 @@
     3px 3px 6px rgba(0,0,0,0.5),
     0 0 20px rgba(251, 191, 36, 0.8),
     0 0 40px rgba(251, 191, 36, 0.4);
-  animation: tetTitlePulse 3s ease-in-out infinite;
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -409,11 +408,10 @@
     0 0 0 1px rgba(220, 38, 38, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.5) !important;
   transition: all 0.3s ease !important;
-  animation: tetCardFloat 4s ease-in-out infinite !important;
 }
 
 .theme-tet .card:hover, .theme-tet .bg-white:hover {
-  transform: translateY(-5px) scale(1.02) !important;
+  transform: translateY(-4px) !important;
   box-shadow: 
     0 12px 30px rgba(251, 191, 36, 0.4),
     0 0 0 2px rgba(220, 38, 38, 0.3),
@@ -469,14 +467,12 @@
     linear-gradient(180deg, #111827 0%, #1f2937 50%, #111827 100%);
   background-attachment: fixed;
   color: #fed7aa;
-  animation: halloweenAtmosphere 10s ease-in-out infinite;
 }
 
 .theme-halloween .homepage-banner {
   background: 
     linear-gradient(135deg, #1f2937 0%, #ea580c 25%, #dc2626 50%, #ea580c 75%, #1f2937 100%);
   background-size: 300% 300%;
-  animation: halloweenBannerPulse 8s ease-in-out infinite;
   position: relative;
   overflow: hidden;
   border-bottom: 6px solid #ea580c;
@@ -507,7 +503,6 @@
     0 0 25px #ea580c,
     0 0 50px #dc2626,
     0 0 75px #ea580c;
-  animation: halloweenTitleScare 4s ease-in-out infinite;
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -523,11 +518,10 @@
     0 0 0 1px rgba(220, 38, 38, 0.3),
     inset 0 1px 0 rgba(254, 215, 170, 0.1) !important;
   transition: all 0.4s ease !important;
-  animation: halloweenCardBob 5s ease-in-out infinite !important;
 }
 
 .theme-halloween .card:hover, .theme-halloween .bg-white:hover {
-  transform: translateY(-8px) scale(1.03) rotate(1deg) !important;
+  transform: translateY(-5px) !important;
   box-shadow: 
     0 15px 35px rgba(234, 88, 12, 0.6),
     0 0 0 2px rgba(220, 38, 38, 0.5),
@@ -549,14 +543,12 @@
     radial-gradient(circle at 50% 10%, rgba(251, 191, 36, 0.1) 0%, transparent 30%),
     linear-gradient(180deg, #1e3a8a 0%, #2563eb 50%, #1e3a8a 100%);
   background-attachment: fixed;
-  animation: midAutumnNight 12s ease-in-out infinite;
 }
 
 .theme-mid_autumn .homepage-banner {
   background: 
     linear-gradient(135deg, #1e3a8a 0%, #2563eb 25%, #fbbf24 50%, #2563eb 75%, #1e3a8a 100%);
   background-size: 300% 300%;
-  animation: midAutumnMoonrise 9s ease-in-out infinite;
   position: relative;
   overflow: hidden;
   border-bottom: 6px solid #fbbf24;
@@ -587,7 +579,6 @@
     0 0 25px rgba(251, 191, 36, 0.9),
     0 0 50px rgba(30, 58, 138, 0.5),
     0 0 75px rgba(251, 191, 36, 0.3);
-  animation: midAutumnTitleGlow 4s ease-in-out infinite;
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -603,11 +594,10 @@
     0 0 0 1px rgba(30, 58, 138, 0.3),
     inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
   transition: all 0.4s ease !important;
-  animation: midAutumnCardDrift 6s ease-in-out infinite !important;
 }
 
 .theme-mid_autumn .card:hover, .theme-mid_autumn .bg-white:hover {
-  transform: translateY(-6px) scale(1.02) rotate(-0.5deg) !important;
+  transform: translateY(-5px) !important;
   box-shadow: 
     0 14px 32px rgba(251, 191, 36, 0.5),
     0 0 0 2px rgba(30, 58, 138, 0.4),
