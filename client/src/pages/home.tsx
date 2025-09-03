@@ -285,7 +285,7 @@ export default function Home() {
               VIA R&D Department
             </h1>
             <p className="text-xl lg:text-2xl text-blue-100 mb-6">
-              Hệ thống quản lý học tập và nghiên cứu
+              Hệ thống quản lý tài liệu
             </p>
             {activeTheme?.themeName !== 'default' && (
               <div className="inline-block bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 text-sm font-medium">
