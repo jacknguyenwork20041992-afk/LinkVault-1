@@ -389,18 +389,6 @@
   z-index: 1;
 }
 
-.theme-tet .homepage-banner::after {
-  content: '🎊 ✨ 🎊';
-  position: absolute;
-  bottom: 10px;
-  left: 20px;
-  font-size: 20px;
-  animation: tetGentleFloat 8s ease-in-out infinite;
-  white-space: nowrap;
-  filter: drop-shadow(0 0 8px rgba(220, 38, 38, 0.5));
-  z-index: 1;
-  opacity: 0.7;
-}
 
 .theme-tet .homepage-banner h1 {
   text-shadow: 
@@ -512,18 +500,6 @@
   z-index: 1;
 }
 
-.theme-halloween .homepage-banner::after {
-  content: '🦇 🕸️ 🦇';
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 24px;
-  animation: halloweenGentleDrift 6s ease-in-out infinite;
-  white-space: nowrap;
-  filter: drop-shadow(0 0 8px #ea580c);
-  z-index: 1;
-  opacity: 0.6;
-}
 
 .theme-halloween .homepage-banner h1 {
   text-shadow: 
@@ -604,18 +580,6 @@
   z-index: 1;
 }
 
-.theme-mid_autumn .homepage-banner::after {
-  content: '⭐ 🌙 ⭐';
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 22px;
-  animation: midAutumnGentleTwinkle 7s ease-in-out infinite;
-  white-space: nowrap;
-  filter: drop-shadow(0 0 10px rgba(251, 191, 36, 0.6));
-  z-index: 1;
-  opacity: 0.8;
-}
 
 .theme-mid_autumn .homepage-banner h1 {
   text-shadow: 
@@ -676,14 +640,6 @@
   animation: educate 3s ease-in-out infinite;
 }
 
-.theme-teachers_day .homepage-banner::after {
-  content: '🎓 💐 🎓';
-  position: absolute;
-  bottom: 20px;
-  left: 20px;
-  font-size: 20px;
-  animation: honor 4s ease-in-out infinite;
-}
 
 /* Theme Animations */
 @keyframes float {
