@@ -149,7 +149,7 @@ export default function Admin() {
       case "theme-management":
         return <ThemeManagement />;
       default:
-        return <AdminDashboard />;
+        return <AdminDashboard onNavigateToView={setActiveView} />;
     }
   };
 
