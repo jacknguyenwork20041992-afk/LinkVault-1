@@ -1961,20 +1961,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Set active theme (Admin only)
   app.post("/api/themes/activate", isAuthenticated, isAdmin, async (req, res) => {
+    console.log("DEBUG: Route handler called!");
     try {
       const { themeName } = req.body;
       
       console.log("DEBUG: Received theme activation request for:", themeName);
       
       if (!themeName) {
+        console.log("DEBUG: No theme name provided");
         return res.status(400).json({ message: "Tên giao diện là bắt buộc" });
       }
 
+      console.log("DEBUG: About to call storage.setActiveTheme");
       const theme = await storage.setActiveTheme(themeName);
       console.log("DEBUG: Theme set successfully:", theme);
       res.json(theme);
     } catch (error) {
-      console.error("Error setting active theme:", error);
+      console.error("DEBUG: Error in theme activation:", error);
       res.status(500).json({ message: "Lỗi khi thiết lập giao diện" });
     }
   });
