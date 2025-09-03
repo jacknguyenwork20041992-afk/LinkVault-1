@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Palette, Check, Settings, Star, Snowflake, Ghost, Moon, GraduationCap } from "lucide-react";
+import { Palette, Check, Settings, Star, Snowflake, Ghost, Moon, GraduationCap, BookOpen } from "lucide-react";
 
 interface ThemeSetting {
   id: string;
@@ -59,6 +59,13 @@ const predefinedThemes = [
     description: "Giao diện tôn vinh ngày Nhà giáo 20/11",
     icon: GraduationCap,
     color: "bg-blue-100 text-blue-700"
+  },
+  {
+    themeName: "school_opening",
+    displayName: "Ngày khai giảng",
+    description: "Giao diện chào mừng năm học mới với tinh thần khởi đầu tươi mới",
+    icon: BookOpen,
+    color: "bg-emerald-100 text-emerald-700"
   }
 ];
 
