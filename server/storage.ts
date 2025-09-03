@@ -1582,7 +1582,8 @@ export class DatabaseStorage implements IStorage {
       christmas: { displayName: "Giáng sinh", description: "Giao diện trang trí Giáng sinh với màu sắc ấm cúng" },
       halloween: { displayName: "Halloween", description: "Giao diện Halloween với màu cam đen huyền bí" },
       mid_autumn: { displayName: "Trung thu", description: "Giao diện Tết Trung thu với hình ảnh trăng sao" },
-      teachers_day: { displayName: "Ngày Nhà giáo Việt Nam", description: "Giao diện tôn vinh ngày Nhà giáo 20/11" }
+      teachers_day: { displayName: "Ngày Nhà giáo Việt Nam", description: "Giao diện tôn vinh ngày Nhà giáo 20/11" },
+      school_opening: { displayName: "Ngày khai giảng", description: "Giao diện chào mừng năm học mới với tinh thần khởi đầu tươi mới" }
     };
 
     // First, deactivate all themes

@@ -679,6 +679,77 @@
   opacity: 0.9;
 }
 
+/* === SCHOOL OPENING THEME === */
+.theme-school_opening {
+  --theme-primary: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --theme-secondary: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --theme-accent: #d1fae5;
+  --theme-background: linear-gradient(135deg, #ecfdf5 0%, #f0f9ff 100%);
+  --theme-card: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 100%);
+  --theme-border: #10b981;
+}
+
+.theme-school_opening .homepage-banner {
+  background: linear-gradient(135deg, #10b981 0%, #3b82f6 50%, #f59e0b 100%);
+  background-size: 400% 400%;
+  animation: schoolOpeningBannerFlow 8s ease-in-out infinite;
+  position: relative;
+  overflow: hidden;
+}
+
+.theme-school_opening .homepage-banner::before {
+  content: '🎒 📚 ✏️ 📝 🖍️ 📐 📏 🗓️ 🔔 🏫 🎒 📚 ✏️ 📝 🖍️ 📐 📏 🗓️ 🔔';
+  position: absolute;
+  top: -15px;
+  right: -250px;
+  font-size: 38px;
+  animation: schoolParade 12s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 12px rgba(16, 185, 129, 0.7));
+  z-index: 1;
+  opacity: 0.85;
+}
+
+/* SCHOOL OPENING: Hiệu ứng VĂN PHÒNG PHẨM BAY và SÁCH NHẢY */
+.theme-school_opening .homepage-banner::after {
+  content: '🌟 📖 ✨ 🎉 📝 💡 🌟 📚 ✨ 🎊 ✏️ 💫 🌟 📖 ✨ 🎉 📝';
+  position: absolute;
+  bottom: 15px;
+  left: -200px;
+  font-size: 24px;
+  animation: schoolSupplies 9s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 10px rgba(245, 158, 11, 0.8));
+  z-index: 2;
+  opacity: 0.9;
+}
+
+.theme-school_opening .homepage-banner h1 {
+  text-shadow: 
+    3px 3px 6px rgba(0,0,0,0.3),
+    0 0 20px rgba(16, 185, 129, 0.8),
+    0 0 40px rgba(59, 130, 246, 0.6);
+  animation: schoolTitleBounce 4s ease-in-out infinite;
+}
+
+.theme-school_opening .card, .theme-school_opening .bg-white {
+  background: linear-gradient(145deg, #f0f9ff 0%, #e0f2fe 50%, #f0f9ff 100%) !important;
+  border: 3px solid #10b981 !important;
+  box-shadow: 
+    0 6px 20px rgba(16, 185, 129, 0.3),
+    0 0 0 1px rgba(59, 130, 246, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  animation: schoolCardFloat 6s ease-in-out infinite;
+}
+
+.theme-school_opening .card:hover, .theme-school_opening .bg-white:hover {
+  transform: translateY(-4px) !important;
+  box-shadow: 
+    0 12px 30px rgba(16, 185, 129, 0.4),
+    0 0 0 2px rgba(245, 158, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
 /* Theme Animations */
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -1236,6 +1307,103 @@
   }
 }
 
+/* SCHOOL OPENING: Animation năm học mới tươi mới */
+@keyframes schoolOpeningBannerFlow {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes schoolParade {
+  0% { 
+    transform: translateX(-250px) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+  20% { 
+    transform: translateX(-50px) translateY(-8px) rotate(3deg);
+    opacity: 1;
+  }
+  40% { 
+    transform: translateX(calc(30vw)) translateY(5px) rotate(-2deg);
+    opacity: 0.9;
+  }
+  60% { 
+    transform: translateX(calc(60vw)) translateY(-12px) rotate(4deg);
+    opacity: 1;
+  }
+  80% { 
+    transform: translateX(calc(90vw)) translateY(2px) rotate(-1deg);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 200px)) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+@keyframes schoolSupplies {
+  0% { 
+    transform: translateX(-200px) scale(0.8);
+    opacity: 0;
+  }
+  30% { 
+    transform: translateX(calc(25vw)) scale(1.1);
+    opacity: 1;
+  }
+  60% { 
+    transform: translateX(calc(65vw)) scale(0.9);
+    opacity: 0.9;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 150px)) scale(0.7);
+    opacity: 0;
+  }
+}
+
+@keyframes schoolTitleBounce {
+  0% { 
+    transform: perspective(1000px) rotateY(0deg) scale(1);
+    filter: brightness(1);
+  }
+  25% { 
+    transform: perspective(1000px) rotateY(1deg) scale(1.02);
+    filter: brightness(1.1);
+  }
+  50% { 
+    transform: perspective(1000px) rotateY(-1deg) scale(1.04);
+    filter: brightness(1.2);
+  }
+  75% { 
+    transform: perspective(1000px) rotateY(0.5deg) scale(1.02);
+    filter: brightness(1.1);
+  }
+  100% { 
+    transform: perspective(1000px) rotateY(0deg) scale(1);
+    filter: brightness(1);
+  }
+}
+
+@keyframes schoolCardFloat {
+  0%, 100% { 
+    transform: translateY(0px) rotate(0deg);
+    box-shadow: 
+      0 6px 20px rgba(16, 185, 129, 0.3),
+      0 0 0 1px rgba(59, 130, 246, 0.2);
+  }
+  33% { 
+    transform: translateY(-2px) rotate(0.2deg);
+    box-shadow: 
+      0 8px 25px rgba(16, 185, 129, 0.4),
+      0 0 0 1px rgba(245, 158, 11, 0.3);
+  }
+  66% { 
+    transform: translateY(-4px) rotate(-0.3deg);
+    box-shadow: 
+      0 10px 30px rgba(16, 185, 129, 0.5),
+      0 0 0 1px rgba(59, 130, 246, 0.4);
+  }
+}
+
 /* Theme-specific component styling */
 .theme-card {
   background: var(--theme-card, var(--card));
@@ -1258,7 +1426,8 @@
   .theme-christmas .homepage-banner::before,
   .theme-halloween .homepage-banner::before,
   .theme-mid_autumn .homepage-banner::before,
-  .theme-teachers_day .homepage-banner::before {
+  .theme-teachers_day .homepage-banner::before,
+  .theme-school_opening .homepage-banner::before {
     font-size: 18px;
     top: 10px;
     right: 10px;
@@ -1268,7 +1437,8 @@
   .theme-christmas .homepage-banner::after,
   .theme-halloween .homepage-banner::after,
   .theme-mid_autumn .homepage-banner::after,
-  .theme-teachers_day .homepage-banner::after {
+  .theme-teachers_day .homepage-banner::after,
+  .theme-school_opening .homepage-banner::after {
     font-size: 16px;
     bottom: 10px;
     left: 10px;
