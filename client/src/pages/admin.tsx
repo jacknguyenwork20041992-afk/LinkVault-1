@@ -146,7 +146,7 @@ export default function Admin() {
         return <SupportTicketsManagement />;
       case "account-requests":
         return <AccountRequestsManagement />;
-      case "themes":
+      case "theme-management":
         return <ThemeManagement />;
       default:
         return <AdminDashboard onNavigateToView={setActiveView} />;
