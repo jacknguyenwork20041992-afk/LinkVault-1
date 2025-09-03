@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Book, FileText, Users, Bell, Plus, UserPlus, Upload, Clock, Eye } from "lucide-react";
+import { Book, FileText, Users, Bell, Plus, UserPlus, Upload, Clock, Eye, Palette } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
@@ -52,6 +52,14 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
       color: "text-orange-500",
       testId: "button-create-notification",
       action: () => onNavigateToView?.("notifications")
+    },
+    {
+      title: "Quản lý giao diện",
+      description: "Thiết lập theme và màu sắc",
+      icon: Palette,
+      color: "text-purple-500",
+      testId: "button-manage-themes",
+      action: () => onNavigateToView?.("themes")
     }
   ];
 
