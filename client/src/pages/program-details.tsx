@@ -4,12 +4,13 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { ArrowLeft, Book, FileText, ExternalLink, Download, Search, Filter, X } from "lucide-react";
+import { ArrowLeft, Book, FileText, ExternalLink, Download, Search, Filter, X, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import SupportTicketModal from "@/components/modals/SupportTicketModal";
 
 export default function ProgramDetails() {
   const [location] = useLocation();
@@ -19,6 +20,10 @@ export default function ProgramDetails() {
   // Search and filter states
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  
+  // Support modal states
+  const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
+  const [selectedDocumentLink, setSelectedDocumentLink] = useState<string>("");
 
   // Activity tracking mutation
   const trackActivityMutation = useMutation({
@@ -47,6 +52,13 @@ export default function ProgramDetails() {
         linkDescription: linkDescription,
       }
     });
+  };
+
+  const handleReportDocument = (document: any) => {
+    // Get the first link of the document as the problem link
+    const firstLink = document.links && document.links.length > 0 ? document.links[0].url : "";
+    setSelectedDocumentLink(firstLink);
+    setIsSupportModalOpen(true);
   };
   
   // Extract program ID from URL
@@ -342,6 +354,7 @@ export default function ProgramDetails() {
                               <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Tài liệu</th>
                               <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Cập nhật</th>
                               <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Thao tác</th>
+                              <th className="text-left py-4 px-6 text-sm font-medium text-foreground">Report</th>
                             </tr>
                           </thead>
                           <tbody>
@@ -382,6 +395,18 @@ export default function ProgramDetails() {
                                     ))}
                                   </div>
                                 </td>
+                                <td className="py-4 px-6">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => handleReportDocument(document)}
+                                    className="h-8 px-3 text-xs bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100 hover:text-orange-800 hover:border-orange-300 dark:bg-orange-900/20 dark:text-orange-400 dark:border-orange-800 dark:hover:bg-orange-900/30"
+                                    data-testid={`button-report-${document.id}`}
+                                  >
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    Report
+                                  </Button>
+                                </td>
                               </tr>
                             ))}
                           </tbody>
@@ -395,6 +420,16 @@ export default function ProgramDetails() {
           )}
         </div>
       </main>
+
+      {/* Support Modal */}
+      <SupportTicketModal
+        isOpen={isSupportModalOpen}
+        onClose={() => {
+          setIsSupportModalOpen(false);
+          setSelectedDocumentLink("");
+        }}
+        documentLink={selectedDocumentLink}
+      />
     </div>
   );
 }

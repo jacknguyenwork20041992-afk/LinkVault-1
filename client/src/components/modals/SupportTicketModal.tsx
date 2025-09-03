@@ -6,7 +6,7 @@ import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { insertSupportTicketSchema, type InsertSupportTicket } from "@shared/schema";
 import { X, Upload, FileImage, Calendar, MapPin, GraduationCap, FileText, Link } from "lucide-react";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { z } from "zod";
 import {
   Dialog,
@@ -43,6 +43,7 @@ type SupportTicketFormData = z.infer<typeof supportTicketFormSchema>;
 interface SupportTicketModalProps {
   isOpen: boolean;
   onClose: () => void;
+  documentLink?: string;
 }
 
 const branches = [
@@ -88,6 +89,7 @@ const classLevels = [
 export default function SupportTicketModal({
   isOpen,
   onClose,
+  documentLink,
 }: SupportTicketModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -102,12 +104,30 @@ export default function SupportTicketModal({
       branch: "",
       classLevel: "",
       description: "",
-      documentLink: "",
+      documentLink: documentLink || "",
       imageUrls: [],
       status: "open",
       priority: "normal",
     },
   });
+
+  // Reset form when modal opens/closes or documentLink changes
+  useEffect(() => {
+    if (isOpen) {
+      form.reset({
+        issueDate: new Date().toISOString().split('T')[0],
+        branch: "",
+        classLevel: "",
+        description: "",
+        documentLink: documentLink || "",
+        imageUrls: [],
+        status: "open",
+        priority: "normal",
+      });
+      setSelectedImages([]);
+      setImagePreviews([]);
+    }
+  }, [isOpen, documentLink, form]);
 
   const createMutation = useMutation({
     mutationFn: async (data: SupportTicketFormData) => {
