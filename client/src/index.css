@@ -400,7 +400,7 @@
     3px 3px 6px rgba(0,0,0,0.5),
     0 0 20px rgba(251, 191, 36, 0.8),
     0 0 40px rgba(251, 191, 36, 0.4);
-  animation: tetTitlePulse 3s ease-in-out infinite;
+  /* animation: tetTitlePulse 3s ease-in-out infinite; */ /* Đã tắt animation để tránh chóng mặt */
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -522,7 +522,7 @@
     0 0 25px #ea580c,
     0 0 50px #dc2626,
     0 0 75px #ea580c;
-  animation: halloweenTitleScare 4s ease-in-out infinite;
+  /* animation: halloweenTitleScare 4s ease-in-out infinite; */ /* Đã tắt animation để tránh chóng mặt */
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -614,7 +614,7 @@
     0 0 25px rgba(251, 191, 36, 0.9),
     0 0 50px rgba(30, 58, 138, 0.5),
     0 0 75px rgba(251, 191, 36, 0.3);
-  animation: midAutumnTitleGlow 4s ease-in-out infinite;
+  /* animation: midAutumnTitleGlow 4s ease-in-out infinite; */ /* Đã tắt animation để tránh chóng mặt */
   transform: perspective(1000px);
   position: relative;
   z-index: 2;
@@ -729,7 +729,7 @@
     3px 3px 6px rgba(0,0,0,0.3),
     0 0 20px rgba(16, 185, 129, 0.8),
     0 0 40px rgba(59, 130, 246, 0.6);
-  animation: schoolTitleBounce 4s ease-in-out infinite;
+  /* animation: schoolTitleBounce 4s ease-in-out infinite; */ /* Đã tắt animation để tránh chóng mặt */
 }
 
 .theme-school_opening .card, .theme-school_opening .bg-white {
@@ -739,7 +739,7 @@
     0 6px 20px rgba(16, 185, 129, 0.3),
     0 0 0 1px rgba(59, 130, 246, 0.2),
     inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
-  animation: schoolCardFloat 6s ease-in-out infinite;
+  /* animation: schoolCardFloat 6s ease-in-out infinite; */ /* Đã tắt animation để tránh chóng mặt */
 }
 
 .theme-school_opening .card:hover, .theme-school_opening .bg-white:hover {
