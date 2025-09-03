@@ -381,6 +381,19 @@
   z-index: 1;
 }
 
+/* TẾT: Hiệu ứng PHÁO HOA NÂNG TẦM */
+.theme-tet .homepage-banner::after {
+  content: '✨ 🎆 💥 🎇 ✨ 💫 🎆 ✨ 💥 🎇 ✨ 💫 🎆 ✨ 💥 🎇 ✨';
+  position: absolute;
+  top: 20px;
+  left: -300px;
+  font-size: 28px;
+  animation: tetFireworks 8s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 20px rgba(239, 68, 68, 0.9));
+  z-index: 3;
+}
+
 
 .theme-tet .homepage-banner h1 {
   text-shadow: 
@@ -488,6 +501,20 @@
   z-index: 1;
 }
 
+/* HALLOWEEN: Hiệu ứng MA BAY và SƯƠNG MÙ */
+.theme-halloween .homepage-banner::after {
+  content: '🦇 👻 🕷️ 🦇 👻 💀 🦇 👻 🕷️ 🦇 👻 💀 🦇 👻 🕷️ 🦇';
+  position: absolute;
+  bottom: 10px;
+  left: -250px;
+  font-size: 32px;
+  animation: halloweenBats 15s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 15px rgba(0, 0, 0, 0.8));
+  z-index: 2;
+  opacity: 0.9;
+}
+
 
 .theme-halloween .homepage-banner h1 {
   text-shadow: 
@@ -566,6 +593,20 @@
   z-index: 1;
 }
 
+/* MID-AUTUMN: Hiệu ứng SAO BĂNG và ÁNH TRĂNG */
+.theme-mid_autumn .homepage-banner::after {
+  content: '⭐ 💫 🌟 ⭐ 💫 🌟 ⭐ 💫 🌟 ⭐ 💫 🌟 ⭐ 💫 🌟';
+  position: absolute;
+  bottom: 15px;
+  left: -200px;
+  font-size: 24px;
+  animation: midAutumnStars 12s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 20px rgba(251, 191, 36, 0.9));
+  z-index: 2;
+  opacity: 0.95;
+}
+
 
 .theme-mid_autumn .homepage-banner h1 {
   text-shadow: 
@@ -624,6 +665,19 @@
   font-size: 24px;
 }
 
+/* TEACHERS' DAY: Hiệu ứng HOA RỒNG và SÁCH BAY */
+.theme-teachers_day .homepage-banner::after {
+  content: '🌸 📖 🌹 📝 🌸 📚 🌹 ✏️ 🌸 📖 🌹 📝 🌸 📚 🌹';
+  position: absolute;
+  bottom: 20px;
+  left: -180px;
+  font-size: 20px;
+  animation: teachersFlowers 10s linear infinite;
+  white-space: nowrap;
+  filter: drop-shadow(0 0 15px rgba(168, 85, 247, 0.8));
+  z-index: 2;
+  opacity: 0.9;
+}
 
 /* Theme Animations */
 @keyframes float {
@@ -1086,6 +1140,100 @@
   0%, 100% { transform: rotate(0deg); }
   25% { transform: rotate(-2deg); }
   75% { transform: rotate(2deg); }
+}
+
+/* === CÁC ANIMATION MỚI CỰC ĐỈNH === */
+
+/* TẾT: Animation pháo hoa nâng tầm */
+@keyframes tetFireworks {
+  0% { 
+    transform: translateX(-350px) scale(0.5);
+    opacity: 0;
+  }
+  20% { 
+    transform: translateX(-100px) scale(1.2);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateX(calc(50vw - 100px)) scale(1);
+    opacity: 0.9;
+  }
+  80% { 
+    transform: translateX(calc(100vw - 50px)) scale(1.3);
+    opacity: 0.7;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 200px)) scale(0.4);
+    opacity: 0;
+  }
+}
+
+/* HALLOWEEN: Animation ma bay kinh dị */
+@keyframes halloweenBats {
+  0% { 
+    transform: translateX(-300px) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+  25% { 
+    transform: translateX(-100px) translateY(-20px) rotate(-10deg);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: translateX(calc(50vw - 50px)) translateY(10px) rotate(5deg);
+    opacity: 1;
+  }
+  75% { 
+    transform: translateX(calc(100vw - 100px)) translateY(-15px) rotate(-5deg);
+    opacity: 0.6;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 250px)) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+}
+
+/* MID-AUTUMN: Animation sao băng huyền ảo */
+@keyframes midAutumnStars {
+  0% { 
+    transform: translateX(-250px) scale(0.3);
+    opacity: 0;
+  }
+  30% { 
+    transform: translateX(calc(30vw)) scale(1.1);
+    opacity: 1;
+  }
+  60% { 
+    transform: translateX(calc(70vw)) scale(0.8);
+    opacity: 0.8;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 150px)) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* TEACHERS' DAY: Animation hoa rơi thơ mộng */
+@keyframes teachersFlowers {
+  0% { 
+    transform: translateX(-200px) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
+  25% { 
+    transform: translateX(calc(25vw)) translateY(-10px) rotate(15deg);
+    opacity: 1;
+  }
+  50% { 
+    transform: translateX(calc(50vw)) translateY(5px) rotate(-10deg);
+    opacity: 0.9;
+  }
+  75% { 
+    transform: translateX(calc(75vw)) translateY(-5px) rotate(20deg);
+    opacity: 0.7;
+  }
+  100% { 
+    transform: translateX(calc(100vw + 180px)) translateY(0px) rotate(0deg);
+    opacity: 0;
+  }
 }
 
 /* Theme-specific component styling */
