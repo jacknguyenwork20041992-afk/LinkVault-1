@@ -113,11 +113,11 @@ export default function ThemeManagement() {
     },
     onSuccess: () => {
       console.log("DEBUG Frontend: Theme activation successful");
-      // Chỉ hiện toast một lần, tránh spam
-      toast({
-        title: "Thành công",
-        description: "Đã thay đổi giao diện trang chủ",
-      });
+      // Tạm thời tắt toast để fix vấn đề giật
+      // toast({
+      //   title: "Thành công",
+      //   description: "Đã thay đổi giao diện trang chủ",
+      // });
       // Batch invalidate queries để tránh multiple refresh
       queryClient.invalidateQueries({ queryKey: ["/api/themes"] });
       queryClient.invalidateQueries({ queryKey: ["/api/themes/active"] });
