@@ -101,6 +101,7 @@ export default function ThemeManagement() {
   // Activate theme mutation
   const activateThemeMutation = useMutation({
     mutationFn: async (themeName: string) => {
+      console.log("DEBUG Frontend: Making API request for theme:", themeName);
       return apiRequest("POST", "/api/themes/activate", { themeName });
     },
     onSuccess: () => {
@@ -130,7 +131,13 @@ export default function ThemeManagement() {
   };
 
   const handleActivateTheme = async (themeName: string) => {
-    await activateThemeMutation.mutateAsync(themeName);
+    console.log("DEBUG Frontend: Activating theme:", themeName);
+    try {
+      await activateThemeMutation.mutateAsync(themeName);
+      console.log("DEBUG Frontend: Theme activation successful");
+    } catch (error) {
+      console.error("DEBUG Frontend: Theme activation failed:", error);
+    }
   };
 
   const initializePredefinedThemes = async () => {
