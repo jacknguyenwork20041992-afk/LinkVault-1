@@ -1573,15 +1573,53 @@ export class DatabaseStorage implements IStorage {
   }
 
   async setActiveTheme(themeName: string): Promise<ThemeSetting> {
+    // Define predefined themes
+    const predefinedThemes: Record<string, { displayName: string; description: string }> = {
+      default: { displayName: "Mặc định", description: "Giao diện tiêu chuẩn của hệ thống" },
+      tet: { displayName: "Tết Nguyên Đán", description: "Giao diện trang trí Tết truyền thống Việt Nam" },
+      christmas: { displayName: "Giáng sinh", description: "Giao diện trang trí Giáng sinh với màu sắc ấm cúng" },
+      halloween: { displayName: "Halloween", description: "Giao diện Halloween với màu cam đen huyền bí" },
+      mid_autumn: { displayName: "Trung thu", description: "Giao diện Tết Trung thu với hình ảnh trăng sao" },
+      teachers_day: { displayName: "Ngày Nhà giáo Việt Nam", description: "Giao diện tôn vinh ngày Nhà giáo 20/11" }
+    };
+
     // First, deactivate all themes
     await db.update(themeSettings).set({ isActive: false });
     
-    // Then activate the selected theme
-    const [theme] = await db
-      .update(themeSettings)
-      .set({ isActive: true, updatedAt: new Date() })
-      .where(eq(themeSettings.themeName, themeName))
-      .returning();
+    // Check if theme exists
+    const [existingTheme] = await db
+      .select()
+      .from(themeSettings)
+      .where(eq(themeSettings.themeName, themeName));
+    
+    let theme: ThemeSetting;
+    
+    if (existingTheme) {
+      // Theme exists, just activate it
+      const [updatedTheme] = await db
+        .update(themeSettings)
+        .set({ isActive: true, updatedAt: new Date() })
+        .where(eq(themeSettings.themeName, themeName))
+        .returning();
+      theme = updatedTheme;
+    } else {
+      // Theme doesn't exist, create it first
+      const themeInfo = predefinedThemes[themeName];
+      if (!themeInfo) {
+        throw new Error(`Unknown theme: ${themeName}`);
+      }
+      
+      const [newTheme] = await db
+        .insert(themeSettings)
+        .values({
+          themeName,
+          displayName: themeInfo.displayName,
+          description: themeInfo.description,
+          isActive: true,
+        })
+        .returning();
+      theme = newTheme;
+    }
     
     return theme;
   }
