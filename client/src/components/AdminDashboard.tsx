@@ -59,7 +59,7 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
       icon: Palette,
       color: "text-purple-500",
       testId: "button-manage-themes",
-      action: () => onNavigateToView?.("themes")
+      action: () => onNavigateToView?.("theme-management")
     }
   ];
 
