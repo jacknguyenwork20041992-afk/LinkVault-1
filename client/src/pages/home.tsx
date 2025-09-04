@@ -312,17 +312,27 @@ export default function Home() {
           {/* Notifications Section */}
           {notifications.length > 0 && (
             <div className="mb-8">
-              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 rounded-xl border border-blue-200/30 dark:border-blue-800/30 p-6">
-                <div className="flex items-center space-x-3 mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-                    <Bell className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              <div className="bg-gradient-to-r from-amber-50 via-orange-50 to-red-50 dark:from-amber-950/30 dark:via-orange-950/30 dark:to-red-950/30 rounded-xl border-2 border-amber-200 dark:border-amber-700/50 p-6 shadow-lg">
+                <div className="flex items-center space-x-4 mb-4">
+                  <div className="relative">
+                    <div className="p-3 rounded-full bg-gradient-to-br from-red-500 to-orange-600 shadow-lg animate-pulse">
+                      <Bell className="h-7 w-7 text-white animate-bounce" />
+                    </div>
+                    {notifications.length > 0 && (
+                      <div className="absolute -top-2 -right-2 bg-red-600 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-pulse shadow-lg">
+                        {notifications.length}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Thông báo mới
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                      🔔 Thông báo mới
+                      <span className="inline-block px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-sm font-medium rounded-full animate-pulse">
+                        MỊI!
+                      </span>
                     </h2>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">
-                      {notifications.length} thông báo chưa đọc
+                    <p className="text-base font-semibold text-orange-700 dark:text-orange-300">
+                      {notifications.length} thông báo chưa đọc - Hãy kiểm tra ngay! 👆
                     </p>
                   </div>
                 </div>
