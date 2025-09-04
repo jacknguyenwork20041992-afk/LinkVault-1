@@ -1004,7 +1004,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 padding: 12px 16px;
                 border-radius: 15px;
                 font-size: 0.95rem;
-                line-height: 1.4;
+                line-height: 1.6;
+                white-space: pre-wrap;
+                word-wrap: break-word;
             }
             
             .message.user .message-content {
@@ -1204,7 +1206,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                 
                 const messageContent = document.createElement('div');
                 messageContent.className = 'message-content';
-                messageContent.textContent = content;
+                
+                if (isUser) {
+                    messageContent.textContent = content;
+                } else {
+                    // For AI messages, convert line breaks to HTML and preserve formatting
+                    messageContent.innerHTML = content
+                        .replace(/\\n/g, '<br>')
+                        .replace(/\n/g, '<br>')
+                        .replace(/\\r\\n/g, '<br>')
+                        .replace(/\r\n/g, '<br>');
+                }
                 
                 if (isUser) {
                     messageDiv.appendChild(messageContent);
