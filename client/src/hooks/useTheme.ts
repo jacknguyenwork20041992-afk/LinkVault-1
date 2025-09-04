@@ -15,7 +15,8 @@ export function useTheme() {
   const { data: activeTheme, isLoading } = useQuery<ThemeSetting>({
     queryKey: ["/api/themes/active"],
     retry: false,
-    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+    staleTime: 30 * 1000, // Cache for 30 seconds
+    refetchInterval: 30 * 1000, // Refetch every 30 seconds to get theme changes
   });
 
   // Apply theme to document body
