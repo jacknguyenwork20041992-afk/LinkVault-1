@@ -1158,19 +1158,19 @@ export class DatabaseStorage implements IStorage {
     totalUsers: number;
     unreadNotifications: number;
   }> {
-    const [programsCount] = await db.select({ count: sql`count(*)` }).from(programs);
-    const [documentsCount] = await db.select({ count: sql`count(*)` }).from(documents);
-    const [usersCount] = await db.select({ count: sql`count(*)` }).from(users);
-    const [unreadCount] = await db
-      .select({ count: sql`count(*)` })
-      .from(userNotifications)
-      .where(eq(userNotifications.isRead, false));
+    // Use a single query with subqueries for better performance
+    const [stats] = await db.select({
+      totalPrograms: sql<number>`(SELECT COUNT(*) FROM ${programs})`,
+      totalDocuments: sql<number>`(SELECT COUNT(*) FROM ${documents})`,
+      totalUsers: sql<number>`(SELECT COUNT(*) FROM ${users})`,
+      unreadNotifications: sql<number>`(SELECT COUNT(*) FROM ${userNotifications} WHERE ${userNotifications.isRead} = false)`
+    }).from(sql`(SELECT 1) AS dummy`);
 
     return {
-      totalPrograms: Number(programsCount.count),
-      totalDocuments: Number(documentsCount.count),
-      totalUsers: Number(usersCount.count),
-      unreadNotifications: Number(unreadCount.count),
+      totalPrograms: Number(stats.totalPrograms),
+      totalDocuments: Number(stats.totalDocuments),
+      totalUsers: Number(stats.totalUsers),
+      unreadNotifications: Number(stats.unreadNotifications),
     };
   }
 

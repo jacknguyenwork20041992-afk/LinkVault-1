@@ -35,8 +35,9 @@ export default function UserNotificationsList() {
       return response.json();
     },
     retry: false,
-    refetchInterval: 30000, // Auto-refresh every 30 seconds
-    refetchOnWindowFocus: true, // Refresh when user returns to tab
+    refetchInterval: 60000, // Auto-refresh every 60 seconds (reduced from 30s)
+    refetchOnWindowFocus: false, // Disable to reduce server load
+    refetchIntervalInBackground: false, // Don't refresh when tab is not active
   });
 
   // Highlight logic - highlight new notifications for 3 seconds
