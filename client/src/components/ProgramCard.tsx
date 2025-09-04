@@ -25,16 +25,22 @@ export default function ProgramCard({ program }: ProgramCardProps) {
               </div>
               <div className="flex-1">
                 <h3 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors duration-200 text-xl leading-tight">{program.name}</h3>
-                <div className="flex gap-2 mt-2">
+                <div className="mt-3 space-y-2">
                   {program.curriculum && (
-                    <Badge className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 dark:from-blue-900/20 dark:to-blue-800/20 dark:text-blue-400 border-0 font-semibold text-xs">
-                      📚 {program.curriculum}
-                    </Badge>
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[80px]">Giáo trình:</span>
+                      <Badge className="bg-gradient-to-r from-blue-100 to-blue-50 text-blue-700 dark:from-blue-900/20 dark:to-blue-800/20 dark:text-blue-400 border-0 font-bold text-sm px-3 py-1 ml-2">
+                        📚 {program.curriculum}
+                      </Badge>
+                    </div>
                   )}
                   {program.ageRange && (
-                    <Badge className="bg-gradient-to-r from-green-100 to-green-50 text-green-700 dark:from-green-900/20 dark:to-green-800/20 dark:text-green-400 border-0 font-semibold text-xs">
-                      👥 {program.ageRange}
-                    </Badge>
+                    <div className="flex items-center">
+                      <span className="text-sm font-medium text-gray-600 dark:text-gray-400 min-w-[80px]">Độ tuổi:</span>
+                      <Badge className="bg-gradient-to-r from-green-100 to-green-50 text-green-700 dark:from-green-900/20 dark:to-green-800/20 dark:text-green-400 border-0 font-bold text-sm px-3 py-1 ml-2">
+                        👥 {program.ageRange}
+                      </Badge>
+                    </div>
                   )}
                 </div>
               </div>
