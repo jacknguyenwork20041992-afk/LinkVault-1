@@ -155,7 +155,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
             <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
           </div>
           <span className="text-xs sm:text-sm font-semibold tracking-wide">
-            {isAdmin ? "Chat quản lý" : "Chat cùng Admin"}
+            {isAdmin ? "Chat quản lý" : "Chat với Admin"}
           </span>
           {unreadCount > 0 && (
             <Badge 
@@ -177,7 +177,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
         )}>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
             <CardTitle className="text-sm font-medium">
-              {isAdmin ? 'Quản lý Chat' : 'Chat cùng Admin'}
+              {isAdmin ? 'Quản lý Chat' : 'Chat với Admin'}
             </CardTitle>
             <div className="flex items-center gap-1">
               <Button
