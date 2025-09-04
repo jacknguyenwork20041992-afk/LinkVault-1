@@ -855,6 +855,439 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Simple rate limiting store for public chat
+  const publicChatRateLimit = new Map<string, { count: number; lastReset: number }>();
+  const RATE_LIMIT_MAX_REQUESTS = 10; // 10 requests per hour
+  const RATE_LIMIT_WINDOW = 60 * 60 * 1000; // 1 hour in milliseconds
+
+  const checkRateLimit = (ip: string): boolean => {
+    const now = Date.now();
+    const userLimit = publicChatRateLimit.get(ip);
+    
+    if (!userLimit || now - userLimit.lastReset > RATE_LIMIT_WINDOW) {
+      // Reset or create new limit
+      publicChatRateLimit.set(ip, { count: 1, lastReset: now });
+      return true;
+    }
+    
+    if (userLimit.count >= RATE_LIMIT_MAX_REQUESTS) {
+      return false; // Rate limit exceeded
+    }
+    
+    userLimit.count++;
+    return true;
+  };
+
+  // Public AI Chat endpoint (no authentication required)
+  app.post("/api/public-chat", async (req, res) => {
+    try {
+      const clientIP = req.ip || req.connection.remoteAddress || 'unknown';
+      
+      // Check rate limit
+      if (!checkRateLimit(clientIP)) {
+        return res.status(429).json({ 
+          message: "Quá nhiều yêu cầu. Vui lòng thử lại sau 1 giờ.",
+          error: "RATE_LIMIT_EXCEEDED"
+        });
+      }
+
+      const { message } = req.body;
+
+      if (!message || typeof message !== "string") {
+        return res.status(400).json({ message: "Message is required" });
+      }
+
+      if (message.length > 1000) {
+        return res.status(400).json({ message: "Message quá dài. Tối đa 1000 ký tự." });
+      }
+
+      // Get knowledge context
+      const knowledgeContext = await storage.getKnowledgeContext();
+      
+      // For public chat, no conversation history - just single message
+      const conversationHistory: Array<{ role: "user" | "assistant"; content: string }> = [];
+
+      // Get AI response - Try Gemini first, fallback to demo if needed
+      let aiResponse: string;
+      try {
+        aiResponse = await chatWithGeminiAI(message, knowledgeContext, conversationHistory);
+      } catch (error) {
+        console.log("Using demo responses due to Gemini error:", (error as Error).message);
+        aiResponse = getDemoResponse(message, knowledgeContext);
+      }
+
+      res.json({
+        message: aiResponse,
+        timestamp: new Date().toISOString()
+      });
+    } catch (error) {
+      console.error("Error in public chat:", error);
+      res.status(500).json({ message: "Chat failed. Please try again." });
+    }
+  });
+
+  // Serve standalone AI chatbot page for external users
+  app.get("/ai-chat", async (req, res) => {
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="vi">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>AI Trợ lý - VIA English Academy</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                min-height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                padding: 20px;
+            }
+            
+            .chat-container {
+                background: white;
+                border-radius: 15px;
+                box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+                width: 100%;
+                max-width: 600px;
+                height: 80vh;
+                display: flex;
+                flex-direction: column;
+                overflow: hidden;
+            }
+            
+            .chat-header {
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                text-align: center;
+                position: relative;
+            }
+            
+            .chat-header h1 {
+                font-size: 1.5rem;
+                margin-bottom: 5px;
+            }
+            
+            .chat-header p {
+                opacity: 0.9;
+                font-size: 0.9rem;
+            }
+            
+            .chat-messages {
+                flex: 1;
+                padding: 20px;
+                overflow-y: auto;
+                background: #f8f9fa;
+            }
+            
+            .message {
+                margin-bottom: 15px;
+                display: flex;
+                gap: 10px;
+            }
+            
+            .message.user {
+                justify-content: flex-end;
+            }
+            
+            .message-content {
+                max-width: 70%;
+                padding: 12px 16px;
+                border-radius: 15px;
+                font-size: 0.95rem;
+                line-height: 1.4;
+            }
+            
+            .message.user .message-content {
+                background: #667eea;
+                color: white;
+                border-bottom-right-radius: 5px;
+            }
+            
+            .message.ai .message-content {
+                background: white;
+                color: #333;
+                border: 1px solid #e0e0e0;
+                border-bottom-left-radius: 5px;
+            }
+            
+            .message-avatar {
+                width: 32px;
+                height: 32px;
+                border-radius: 50%;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 0.8rem;
+                font-weight: bold;
+                flex-shrink: 0;
+            }
+            
+            .message.user .message-avatar {
+                background: #667eea;
+                color: white;
+            }
+            
+            .message.ai .message-avatar {
+                background: #764ba2;
+                color: white;
+            }
+            
+            .chat-input-container {
+                padding: 20px;
+                background: white;
+                border-top: 1px solid #e0e0e0;
+            }
+            
+            .chat-input-form {
+                display: flex;
+                gap: 10px;
+            }
+            
+            .chat-input {
+                flex: 1;
+                padding: 12px 16px;
+                border: 2px solid #e0e0e0;
+                border-radius: 25px;
+                font-size: 0.95rem;
+                outline: none;
+                transition: border-color 0.3s;
+            }
+            
+            .chat-input:focus {
+                border-color: #667eea;
+            }
+            
+            .send-button {
+                padding: 12px 20px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 25px;
+                cursor: pointer;
+                font-weight: 600;
+                transition: transform 0.2s;
+            }
+            
+            .send-button:hover:not(:disabled) {
+                transform: translateY(-1px);
+            }
+            
+            .send-button:disabled {
+                opacity: 0.6;
+                cursor: not-allowed;
+            }
+            
+            .typing-indicator {
+                display: none;
+                padding: 12px 16px;
+                background: white;
+                border: 1px solid #e0e0e0;
+                border-radius: 15px;
+                border-bottom-left-radius: 5px;
+                max-width: 70%;
+                margin-bottom: 15px;
+            }
+            
+            .typing-dots {
+                display: flex;
+                gap: 4px;
+            }
+            
+            .typing-dots span {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: #ccc;
+                animation: typing 1.4s infinite;
+            }
+            
+            .typing-dots span:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+            
+            .typing-dots span:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+            
+            @keyframes typing {
+                0%, 60%, 100% {
+                    transform: translateY(0);
+                    opacity: 0.5;
+                }
+                30% {
+                    transform: translateY(-10px);
+                    opacity: 1;
+                }
+            }
+            
+            .rate-limit-warning {
+                background: #fff3cd;
+                color: #856404;
+                padding: 10px;
+                border-radius: 8px;
+                margin-bottom: 15px;
+                border: 1px solid #ffeaa7;
+            }
+            
+            .welcome-message {
+                text-align: center;
+                color: #666;
+                margin: 20px 0;
+                font-style: italic;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="chat-container">
+            <div class="chat-header">
+                <h1>🤖 AI Trợ lý</h1>
+                <p>VIA English Academy - Hỗ trợ học tập 24/7</p>
+            </div>
+            
+            <div class="chat-messages" id="chatMessages">
+                <div class="welcome-message">
+                    👋 Xin chào! Tôi là AI trợ lý của VIA English Academy.<br>
+                    Hãy hỏi tôi bất kỳ câu hỏi nào về học tiếng Anh!<br>
+                    <small>(Giới hạn: 10 câu hỏi/giờ)</small>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+            </div>
+            
+            <div class="chat-input-container">
+                <form class="chat-input-form" id="chatForm">
+                    <input 
+                        type="text" 
+                        class="chat-input" 
+                        id="messageInput" 
+                        placeholder="Nhập câu hỏi của bạn..." 
+                        maxlength="1000"
+                        required
+                    />
+                    <button type="submit" class="send-button" id="sendButton">
+                        Gửi
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <script>
+            const chatMessages = document.getElementById('chatMessages');
+            const chatForm = document.getElementById('chatForm');
+            const messageInput = document.getElementById('messageInput');
+            const sendButton = document.getElementById('sendButton');
+            const typingIndicator = document.getElementById('typingIndicator');
+
+            function addMessage(content, isUser = false) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = \`message \${isUser ? 'user' : 'ai'}\`;
+                
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = isUser ? 'U' : 'AI';
+                
+                const messageContent = document.createElement('div');
+                messageContent.className = 'message-content';
+                messageContent.textContent = content;
+                
+                if (isUser) {
+                    messageDiv.appendChild(messageContent);
+                    messageDiv.appendChild(avatar);
+                } else {
+                    messageDiv.appendChild(avatar);
+                    messageDiv.appendChild(messageContent);
+                }
+                
+                chatMessages.appendChild(messageDiv);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function showTyping() {
+                typingIndicator.style.display = 'block';
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            function hideTyping() {
+                typingIndicator.style.display = 'none';
+            }
+
+            function showRateLimitWarning() {
+                const warning = document.createElement('div');
+                warning.className = 'rate-limit-warning';
+                warning.textContent = '⚠️ Bạn đã sử dụng hết số lượt hỏi trong giờ này. Vui lòng thử lại sau.';
+                chatMessages.appendChild(warning);
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            chatForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const message = messageInput.value.trim();
+                if (!message) return;
+                
+                // Add user message
+                addMessage(message, true);
+                messageInput.value = '';
+                
+                // Show typing indicator
+                showTyping();
+                sendButton.disabled = true;
+                
+                try {
+                    const response = await fetch('/api/public-chat', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ message })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    hideTyping();
+                    
+                    if (response.status === 429) {
+                        showRateLimitWarning();
+                    } else if (response.ok) {
+                        addMessage(data.message, false);
+                    } else {
+                        addMessage('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.', false);
+                    }
+                } catch (error) {
+                    hideTyping();
+                    addMessage('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.', false);
+                } finally {
+                    sendButton.disabled = false;
+                }
+            });
+            
+            // Auto-focus input
+            messageInput.focus();
+        </script>
+    </body>
+    </html>
+    `;
+    
+    res.setHeader('Content-Type', 'text/html; charset=utf-8');
+    res.send(htmlContent);
+  });
+
   // Knowledge Base Admin Routes
   // Knowledge Categories
   app.get("/api/knowledge/categories", isAuthenticated, isAdmin, async (req, res) => {
