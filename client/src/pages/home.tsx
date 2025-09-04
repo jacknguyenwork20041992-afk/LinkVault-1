@@ -383,7 +383,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
-                        🚨 Tài liệu quan trọng
+                        🚨 TÀI LIỆU QUAN TRỌNG
                       </h2>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {importantDocuments.length} tài liệu cần chú ý
@@ -468,7 +468,7 @@ export default function Home() {
                     </div>
                     <div>
                       <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
-                        📚 Chương trình học
+                        📚 CHƯƠNG TRÌNH HỌC
                       </h2>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {programs.length} chương trình có sẵn
@@ -546,7 +546,7 @@ export default function Home() {
                   </div>
                   <div>
                     <h2 className="text-2xl font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
-                      📄 Tài liệu gần đây
+                      📄 TÀI LIỆU GẦN ĐÂY
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
                       Các tài liệu được cập nhật gần đây
