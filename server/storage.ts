@@ -71,7 +71,7 @@ import {
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql } from "drizzle-orm";
+import { eq, desc, and, sql, asc } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -849,7 +849,7 @@ export class DatabaseStorage implements IStorage {
   // Real-time admin-user chat operations
   async getOnlineUsers(): Promise<OnlineUser[]> {
     const users = await db.select().from(onlineUsers)
-      .orderBy(desc(onlineUsers.connectedAt));
+      .orderBy(onlineUsers.connectedAt);
     return users;
   }
 

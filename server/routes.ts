@@ -2094,11 +2094,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get chat history between admin and user
-  app.get("/api/chat/:userId", isAuthenticated, async (req, res) => {
+  app.get("/api/chat/:userId", isAuthenticated, async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const currentUserId = req.user.id;
-      const currentUserRole = req.user.role;
+      const currentUserId = req.user?.id;
+      const currentUserRole = req.user?.role;
 
       // Only admin can access any chat, users can only access their own chat with admin
       if (currentUserRole !== "admin" && userId !== currentUserId) {
@@ -2114,12 +2114,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Send message in admin-user chat
-  app.post("/api/chat/:userId/send", isAuthenticated, async (req, res) => {
+  app.post("/api/chat/:userId/send", isAuthenticated, async (req: any, res) => {
     try {
       const { userId } = req.params;
       const { message } = req.body;
-      const senderId = req.user.id;
-      const senderRole = req.user.role;
+      const senderId = req.user?.id;
+      const senderRole = req.user?.role;
 
       if (!message || !message.trim()) {
         return res.status(400).json({ message: "Tin nhắn không được để trống" });
@@ -2145,11 +2145,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Mark messages as read
-  app.post("/api/chat/:userId/mark-read", isAuthenticated, async (req, res) => {
+  app.post("/api/chat/:userId/mark-read", isAuthenticated, async (req: any, res) => {
     try {
       const { userId } = req.params;
-      const currentUserId = req.user.id;
-      const currentUserRole = req.user.role;
+      const currentUserId = req.user?.id;
+      const currentUserRole = req.user?.role;
 
       // Only admin can mark any chat as read, users can only mark their own chat
       if (currentUserRole !== "admin" && userId !== currentUserId) {

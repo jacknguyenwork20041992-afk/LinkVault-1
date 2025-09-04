@@ -143,15 +143,20 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
   if (!user) return null;
 
   return (
-    <div className={cn("fixed bottom-4 right-4 z-50", className)}>
+    <div className={cn("fixed bottom-4 z-50", !isAdmin ? "right-96 sm:right-[380px] md:right-[420px]" : "right-4", className)}>
       {/* Chat Toggle Button */}
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="rounded-full w-14 h-14 shadow-lg relative"
+          className="h-12 px-3 sm:h-14 sm:px-4 md:h-16 md:px-6 rounded-xl md:rounded-2xl bg-gradient-to-br from-orange-500 via-orange-600 to-red-600 hover:from-orange-600 hover:via-orange-700 hover:to-red-700 text-white shadow-2xl hover:shadow-orange-500/25 transition-colors duration-300 flex items-center justify-center gap-2 md:gap-3 relative"
           data-testid="button-open-chat"
         >
-          <MessageCircle className="h-6 w-6" />
+          <div className="p-1 sm:p-1.5 rounded-full bg-white/20">
+            <MessageCircle className="h-4 w-4 sm:h-5 sm:w-5" />
+          </div>
+          <span className="text-xs sm:text-sm font-semibold tracking-wide">
+            {isAdmin ? "Chat quản lý" : "Chat cùng Admin"}
+          </span>
           {unreadCount > 0 && (
             <Badge 
               variant="destructive" 
@@ -172,7 +177,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
         )}>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">
             <CardTitle className="text-sm font-medium">
-              {isAdmin ? 'Quản lý Chat' : 'Hỗ trợ trực tuyến'}
+              {isAdmin ? 'Quản lý Chat' : 'Chat cùng Admin'}
             </CardTitle>
             <div className="flex items-center gap-1">
               <Button
