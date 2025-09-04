@@ -382,8 +382,8 @@ export default function Home() {
                       <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Tài liệu quan trọng
+                      <h2 className="text-2xl font-bold text-red-700 dark:text-red-400 flex items-center gap-2">
+                        🚨 Tài liệu quan trọng
                       </h2>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {importantDocuments.length} tài liệu cần chú ý
@@ -467,8 +467,8 @@ export default function Home() {
                       <Book className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                     </div>
                     <div>
-                      <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                        Chương trình học
+                      <h2 className="text-2xl font-bold text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                        📚 Chương trình học
                       </h2>
                       <p className="text-sm text-gray-600 dark:text-gray-300">
                         {programs.length} chương trình có sẵn
@@ -545,8 +545,8 @@ export default function Home() {
                     <Clock className="h-5 w-5 text-orange-600 dark:text-orange-400" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-                      Tài liệu gần đây
+                    <h2 className="text-2xl font-bold text-green-700 dark:text-green-400 flex items-center gap-2">
+                      📄 Tài liệu gần đây
                     </h2>
                     <p className="text-sm text-gray-600 dark:text-gray-300">
                       Các tài liệu được cập nhật gần đây
