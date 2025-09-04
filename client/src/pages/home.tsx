@@ -105,10 +105,28 @@ export default function Home() {
     mutationFn: async (notificationId: string) => {
       await apiRequest("PUT", `/api/notifications/${notificationId}/read`);
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
+    onMutate: async (notificationId: string) => {
+      // Cancel any outgoing refetches (so they don't overwrite our optimistic update)
+      await queryClient.cancelQueries({ queryKey: ["/api/notifications/unread"] });
+
+      // Snapshot the previous value
+      const previousNotifications = queryClient.getQueryData(["/api/notifications/unread"]);
+
+      // Optimistically update to the new value - remove the notification from UI immediately
+      queryClient.setQueryData(["/api/notifications/unread"], (old: any[]) => {
+        if (!old) return old;
+        return old.filter((userNotification: any) => userNotification.notification.id !== notificationId);
+      });
+
+      // Return a context object with the snapshotted value
+      return { previousNotifications };
     },
-    onError: (error) => {
+    onError: (error, notificationId, context) => {
+      // If the mutation fails, use the context returned from onMutate to roll back
+      if (context?.previousNotifications) {
+        queryClient.setQueryData(["/api/notifications/unread"], context.previousNotifications);
+      }
+      
       if (isUnauthorizedError(error)) {
         toast({
           title: "Unauthorized",
@@ -125,6 +143,10 @@ export default function Home() {
         description: "Failed to mark notification as read",
         variant: "destructive",
       });
+    },
+    onSettled: () => {
+      // Always refetch after error or success to ensure consistency
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
     },
   });
 
