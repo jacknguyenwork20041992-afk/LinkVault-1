@@ -106,7 +106,23 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Lỗi đăng nhập" });
         }
 
-        // Note: Login activity will be logged by the route handler
+        // Track login activity
+        try {
+          await storage.createActivity({
+            userId: user.id,
+            type: "login",
+            description: `Người dùng ${user.firstName} ${user.lastName} đã đăng nhập`,
+            metadata: {
+              email: user.email,
+              role: user.role,
+            },
+            ipAddress: req.ip || req.connection?.remoteAddress || null,
+            userAgent: req.get('User-Agent') || null,
+          });
+        } catch (activityError) {
+          console.error("Error tracking login activity:", activityError);
+          // Don't fail login if activity tracking fails
+        }
 
         return res.json(user);
       });
