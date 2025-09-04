@@ -325,6 +325,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendMessageMutation.isPending || !isConnected}
                     size="sm"
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
                     data-testid="button-send-message"
                   >
                     <Send className="h-4 w-4" />
