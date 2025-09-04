@@ -12,6 +12,7 @@ import ProgramDetails from "@/pages/program-details";
 import NotificationsPage from "@/pages/notifications-page";
 import SupportTicketsPage from "@/pages/support-tickets-page";
 import AccountDeactivatedPage from "@/pages/account-deactivated";
+import PublicChat from "@/pages/PublicChat";
 
 function Router() {
   const { user, isLoading } = useAuth();
@@ -27,6 +28,7 @@ function Router() {
 
   return (
     <Switch>
+      <Route path="/ai-chat" component={PublicChat} />
       {!isAuthenticated ? (
         <>
           <Route path="/" component={AuthPage} />
