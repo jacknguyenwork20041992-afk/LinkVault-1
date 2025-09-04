@@ -1032,7 +1032,8 @@ export class DatabaseStorage implements IStorage {
         programsMap.set(programId, {
           name: row.program.name,
           description: row.program.description,
-          level: row.program.level,
+          curriculum: row.program.curriculum,
+          ageRange: row.program.ageRange,
           categories: new Map()
         });
       }

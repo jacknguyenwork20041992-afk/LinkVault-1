@@ -47,7 +47,8 @@ export const programs = pgTable("programs", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   description: text("description"),
-  level: varchar("level").notNull(), // "Cơ bản", "Trung cấp", "Nâng cao"
+  curriculum: varchar("curriculum").notNull(), // Giáo trình: "Face2Face", "English File", "New Headway", etc.
+  ageRange: varchar("age_range").notNull(), // Độ tuổi: "3-6 tuổi", "7-12 tuổi", "13-17 tuổi", "18+ tuổi", etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

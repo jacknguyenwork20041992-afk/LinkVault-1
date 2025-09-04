@@ -45,7 +45,8 @@ export default function CreateProgramModal({
     defaultValues: {
       name: "",
       description: "",
-      level: "",
+      curriculum: "",
+      ageRange: "",
     },
   });
 
@@ -99,13 +100,15 @@ export default function CreateProgramModal({
       form.reset({
         name: editingProgram.name,
         description: editingProgram.description || "",
-        level: editingProgram.level,
+        curriculum: editingProgram.curriculum,
+        ageRange: editingProgram.ageRange,
       });
     } else {
       form.reset({
         name: "",
         description: "",
-        level: "",
+        curriculum: "",
+        ageRange: "",
       });
     }
   }, [editingProgram, isEditing, form]);
@@ -169,14 +172,32 @@ export default function CreateProgramModal({
 
             <FormField
               control={form.control}
-              name="level"
+              name="curriculum"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Cấp độ</FormLabel>
+                  <FormLabel>Giáo trình</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="Ví dụ: Cơ bản, Trung cấp, Nâng cao..."
-                      data-testid="input-program-level"
+                      placeholder="Ví dụ: Face2Face, English File, New Headway..."
+                      data-testid="input-program-curriculum"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="ageRange"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Độ tuổi</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Ví dụ: 3-6 tuổi, 7-12 tuổi, 13-17 tuổi, 18+ tuổi..."
+                      data-testid="input-program-age-range"
                       {...field}
                     />
                   </FormControl>
