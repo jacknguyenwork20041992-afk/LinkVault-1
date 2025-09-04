@@ -25,13 +25,13 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
   // Parse message to make "Nhấn để xem chi tiết" clickable
   const renderMessage = (message: string) => {
     if (!isSupportResponse || !message.includes("👆 Nhấn để xem chi tiết")) {
-      return <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mt-2">{message}</p>;
+      return <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mt-2 whitespace-pre-line">{message}</p>;
     }
 
     const parts = message.split("👆 Nhấn để xem chi tiết");
     return (
       <div className="text-sm leading-relaxed text-gray-700 dark:text-gray-300 mt-2">
-        <p className="mb-3">{parts[0]}</p>
+        <p className="mb-3 whitespace-pre-line">{parts[0]}</p>
         <button
           onClick={handleViewDetails}
           className="inline-flex items-center gap-2 px-3 py-1.5 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium transition-colors cursor-pointer text-sm bg-blue-50 dark:bg-blue-950/30 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-950/50"
@@ -40,7 +40,7 @@ export default function NotificationCard({ notification, onMarkAsRead }: Notific
           <ExternalLink className="h-3.5 w-3.5" />
           Xem chi tiết
         </button>
-        {parts[1] && <p className="mt-2">{parts[1]}</p>}
+        {parts[1] && <p className="mt-2 whitespace-pre-line">{parts[1]}</p>}
       </div>
     );
   };
