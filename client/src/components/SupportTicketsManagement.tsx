@@ -21,6 +21,7 @@ import {
   Search,
   Filter,
   X,
+  Brain,
 } from "lucide-react";
 import {
   Dialog,
@@ -132,6 +133,40 @@ export default function SupportTicketsManagement() {
       toast({
         title: "Lỗi",
         description: "Không thể cập nhật trạng thái. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Convert support ticket to training data mutation
+  const convertToTrainingMutation = useMutation({
+    mutationFn: async ({ ticketId }: { ticketId: string }) => {
+      await apiRequest("POST", `/api/support-tickets/${ticketId}/convert-to-training`, {});
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Thành công",
+        description: "Đã chuyển đổi yêu cầu hỗ trợ thành dữ liệu học AI",
+      });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/support-tickets"] });
+      setIsViewModalOpen(false);
+    },
+    onError: (error) => {
+      if (isUnauthorizedError(error)) {
+        toast({
+          title: "Chưa đăng nhập",
+          description: "Vui lòng đăng nhập lại...",
+          variant: "destructive",
+        });
+        setTimeout(() => {
+          window.location.href = "/api/login";
+        }, 500);
+        return;
+      }
+      console.error("Convert to training error:", error);
+      toast({
+        title: "Lỗi",
+        description: "Không thể chuyển đổi thành dữ liệu học. Vui lòng thử lại.",
         variant: "destructive",
       });
     },
@@ -610,6 +645,20 @@ export default function SupportTicketsManagement() {
           )}
           
           <DialogFooter>
+            {/* Convert to Training Data button - only show for resolved/closed tickets with responses */}
+            {selectedTicket && 
+             (selectedTicket.status === "resolved" || selectedTicket.status === "closed") &&
+             responses.some((r: any) => !r.isInternal) && (
+              <Button
+                onClick={() => convertToTrainingMutation.mutate({ ticketId: selectedTicket.id })}
+                disabled={convertToTrainingMutation.isPending}
+                data-testid="button-convert-to-training"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                <Brain className="h-4 w-4 mr-2" />
+                {convertToTrainingMutation.isPending ? "Đang chuyển đổi..." : "Chuyển thành dữ liệu học AI"}
+              </Button>
+            )}
             <Button 
               variant="outline" 
               onClick={() => setIsViewModalOpen(false)}

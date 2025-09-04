@@ -260,6 +260,9 @@ export interface IStorage {
   createSupportResponse(responseData: InsertSupportResponse): Promise<SupportResponse>;
   getSupportResponses(ticketId: string): Promise<(SupportResponse & { responder: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> })[]>;
 
+  // AI Learning from support tickets
+  convertSupportTicketToTraining(ticketId: string, categoryId?: string): Promise<{ faqId: string; message: string }>;
+
   // Theme settings operations
   getAllThemeSettings(): Promise<ThemeSetting[]>;
   getActiveTheme(): Promise<ThemeSetting | undefined>;
@@ -1552,6 +1555,107 @@ export class DatabaseStorage implements IStorage {
           lastName: row.responderLastName,
         }
       })));
+  }
+
+  // AI Learning from support tickets
+  async convertSupportTicketToTraining(ticketId: string, categoryId?: string): Promise<{ faqId: string; message: string }> {
+    // Get the support ticket with responses
+    const ticket = await this.getSupportTicket(ticketId);
+    if (!ticket) {
+      throw new Error("Support ticket not found");
+    }
+
+    // Only convert resolved or closed tickets
+    if (ticket.status !== "resolved" && ticket.status !== "closed") {
+      throw new Error("Only resolved or closed tickets can be converted to training data");
+    }
+
+    // Get public responses (not internal)
+    const publicResponses = ticket.responses.filter(r => !r.isInternal);
+    if (publicResponses.length === 0) {
+      throw new Error("No public responses found to create training data");
+    }
+
+    // Create question from ticket description
+    const question = `${ticket.description}${ticket.branch ? ` (Chi nhánh: ${ticket.branch})` : ''}${ticket.classLevel ? ` (Lớp: ${ticket.classLevel})` : ''}`;
+
+    // Combine all public responses into a comprehensive answer
+    const answer = publicResponses
+      .map(response => response.response)
+      .join('\n\n');
+
+    // Auto-generate keywords from question and answer
+    const keywords = this.extractKeywordsFromText(`${question} ${answer}`);
+
+    // If no categoryId provided, try to find or create a "Support Q&A" category
+    let finalCategoryId = categoryId;
+    if (!finalCategoryId) {
+      // Try to find existing "Support Q&A" category
+      const existingCategory = await db
+        .select()
+        .from(knowledgeCategories)
+        .where(eq(knowledgeCategories.name, "Support Q&A"))
+        .limit(1);
+      
+      if (existingCategory.length > 0) {
+        finalCategoryId = existingCategory[0].id;
+      } else {
+        // Create new "Support Q&A" category
+        const [newCategory] = await db
+          .insert(knowledgeCategories)
+          .values({
+            name: "Support Q&A",
+            description: "FAQ được tạo từ các yêu cầu hỗ trợ thực tế",
+          })
+          .returning();
+        finalCategoryId = newCategory.id;
+      }
+    }
+
+    // Create FAQ item
+    const [faqItem] = await db
+      .insert(faqItems)
+      .values({
+        question: question.trim(),
+        answer: answer.trim(),
+        categoryId: finalCategoryId,
+        keywords,
+        isActive: true,
+        priority: 1, // Higher priority for real support cases
+      })
+      .returning();
+
+    // Update ticket to mark as converted to training data
+    await this.updateSupportTicket(ticketId, {
+      status: "closed"
+    });
+
+    return {
+      faqId: faqItem.id,
+      message: `Successfully converted support ticket to FAQ. Question: "${question.substring(0, 100)}..."`
+    };
+  }
+
+  // Helper method to extract keywords from text
+  private extractKeywordsFromText(text: string): string[] {
+    // Convert to lowercase and remove special characters
+    const cleanText = text.toLowerCase()
+      .replace(/[^\wàáâãèéêìíòóôõùúăđĩũơưạảấầẩẫậắằẳẵặẻẽếềểễệỉịọỏốồổỗộớờởỡợụủứừửữựỳỵỷỹ\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    // Common Vietnamese stop words to exclude
+    const stopWords = new Set([
+      'của', 'và', 'có', 'là', 'trong', 'để', 'với', 'được', 'từ', 'trên', 'cho', 'về', 'các', 'này', 'đó', 'không', 'tôi', 'bạn', 'chúng', 'người', 'việc', 'thì', 'sẽ', 'đã', 'như', 'nào', 'gì', 'khi', 'tại', 'theo', 'sau', 'trước', 'giữa', 'ngoài', 'cũng', 'hay', 'hoặc', 'nhưng', 'mà', 'nếu', 'thế', 'rồi', 'đều', 'cả', 'những', 'nhiều', 'ít', 'lại', 'còn', 'chỉ', 'đang', 'đang', 'bằng', 'lên', 'xuống'
+    ]);
+
+    // Extract words of 3+ characters that aren't stop words
+    const words = cleanText.split(' ')
+      .filter(word => word.length >= 3 && !stopWords.has(word))
+      .filter((word, index, arr) => arr.indexOf(word) === index) // Remove duplicates
+      .slice(0, 10); // Take top 10 keywords
+
+    return words;
   }
 
   // Theme settings operations

@@ -1573,6 +1573,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Convert support ticket to AI training data (for admin only)
+  app.post("/api/support-tickets/:ticketId/convert-to-training", isAuthenticated, isAdmin, async (req: any, res) => {
+    try {
+      const { ticketId } = req.params;
+      const { categoryId } = req.body; // Optional category ID
+      
+      // Convert the support ticket to training data
+      const result = await storage.convertSupportTicketToTraining(ticketId, categoryId);
+      
+      res.json({
+        success: true,
+        faqId: result.faqId,
+        message: result.message
+      });
+    } catch (error: any) {
+      console.error("Error converting support ticket to training data:", error);
+      res.status(400).json({ 
+        success: false,
+        message: error.message || "Failed to convert support ticket to training data" 
+      });
+    }
+  });
+
   // Support response routes
   app.post("/api/support-tickets/:ticketId/responses", isAuthenticated, async (req: any, res) => {
     try {
