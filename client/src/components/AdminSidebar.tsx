@@ -87,12 +87,17 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
       ]
     },
     {
+      title: "HỖ TRỢ",
+      items: [
+        { id: "support-tickets", label: "Yêu cầu hỗ trợ", icon: HelpCircle },
+        { id: "account-requests", label: "Request for Account", icon: UserPlus },
+      ]
+    },
+    {
       title: "Hệ thống",
       items: [
         { id: "users", label: "Người dùng", icon: Users },
         { id: "notifications", label: "Thông báo", icon: Bell },
-        { id: "support-tickets", label: "Yêu cầu hỗ trợ", icon: HelpCircle },
-        { id: "account-requests", label: "Request for Account", icon: UserPlus },
         { id: "theme-management", label: "Quản lý giao diện", icon: Palette },
       ]
     }
