@@ -402,6 +402,11 @@ export default function Admin() {
           </main>
         </div>
       </div>
+      
+      {/* Chat Widget for Admin */}
+      <div className="fixed bottom-4 right-4 z-50">
+        <ChatWidget />
+      </div>
     </div>
   );
 }
