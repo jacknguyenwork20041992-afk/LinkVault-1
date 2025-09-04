@@ -63,18 +63,6 @@ export default function ProgramsManagement() {
     }
   };
 
-  const getLevelColor = (level: string) => {
-    switch (level.toLowerCase()) {
-      case "cơ bản":
-        return "bg-accent/10 text-accent";
-      case "trung cấp":
-        return "bg-primary/10 text-primary";
-      case "nâng cao":
-        return "bg-destructive/10 text-destructive";
-      default:
-        return "bg-secondary/10 text-secondary-foreground";
-    }
-  };
 
   const handleModalClose = () => {
     setIsCreateModalOpen(false);
@@ -126,9 +114,18 @@ export default function ProgramsManagement() {
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-foreground">{program.name}</h3>
-                    <Badge className={`text-xs px-2 py-1 rounded-full ${getLevelColor(program.level)}`}>
-                      {program.level}
-                    </Badge>
+                    <div className="flex gap-2 mt-1">
+                      {program.curriculum && (
+                        <Badge className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
+                          📚 {program.curriculum}
+                        </Badge>
+                      )}
+                      {program.ageRange && (
+                        <Badge className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-700 dark:bg-green-900/20 dark:text-green-400">
+                          👥 {program.ageRange}
+                        </Badge>
+                      )}
+                    </div>
                   </div>
                 </div>
 
