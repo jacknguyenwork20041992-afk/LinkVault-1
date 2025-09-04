@@ -265,6 +265,39 @@ export const themeSettings = pgTable("theme_settings", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Real-time chat tables (admin-user communication)
+export const adminUserChats = pgTable("admin_user_chats", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  adminId: varchar("admin_id").references(() => users.id, { onDelete: "cascade" }),
+  lastMessageAt: timestamp("last_message_at").defaultNow(),
+  userUnreadCount: integer("user_unread_count").default(0), // Unread messages for user
+  adminUnreadCount: integer("admin_unread_count").default(0), // Unread messages for admin
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const adminUserMessages = pgTable("admin_user_messages", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  chatId: varchar("chat_id").references(() => adminUserChats.id, { onDelete: "cascade" }).notNull(),
+  senderId: varchar("sender_id").references(() => users.id, { onDelete: "cascade" }).notNull(),
+  senderRole: varchar("sender_role").notNull(), // "admin" or "user"
+  message: text("message").notNull(),
+  isRead: boolean("is_read").default(false),
+  readAt: timestamp("read_at"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+export const onlineUsers = pgTable("online_users", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: varchar("user_id").references(() => users.id, { onDelete: "cascade" }).notNull().unique(),
+  socketId: varchar("socket_id").notNull(),
+  lastSeen: timestamp("last_seen").defaultNow(),
+  userAgent: text("user_agent"),
+  ipAddress: varchar("ip_address"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
@@ -374,6 +407,36 @@ export const supportResponsesRelations = relations(supportResponses, ({ one }) =
 export const accountRequestsRelations = relations(accountRequests, ({ one }) => ({
   user: one(users, {
     fields: [accountRequests.userId],
+    references: [users.id],
+  }),
+}));
+
+export const adminUserChatsRelations = relations(adminUserChats, ({ one, many }) => ({
+  user: one(users, {
+    fields: [adminUserChats.userId],
+    references: [users.id],
+  }),
+  admin: one(users, {
+    fields: [adminUserChats.adminId],
+    references: [users.id],
+  }),
+  messages: many(adminUserMessages),
+}));
+
+export const adminUserMessagesRelations = relations(adminUserMessages, ({ one }) => ({
+  chat: one(adminUserChats, {
+    fields: [adminUserMessages.chatId],
+    references: [adminUserChats.id],
+  }),
+  sender: one(users, {
+    fields: [adminUserMessages.senderId],
+    references: [users.id],
+  }),
+}));
+
+export const onlineUsersRelations = relations(onlineUsers, ({ one }) => ({
+  user: one(users, {
+    fields: [onlineUsers.userId],
     references: [users.id],
   }),
 }));
@@ -541,6 +604,28 @@ export const insertThemeSettingSchema = createInsertSchema(themeSettings).omit({
   metadata: z.record(z.any()).optional(),
 });
 
+export const insertAdminUserChatSchema = createInsertSchema(adminUserChats).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  lastMessageAt: true,
+});
+
+export const insertAdminUserMessageSchema = createInsertSchema(adminUserMessages).omit({
+  id: true,
+  createdAt: true,
+  readAt: true,
+}).extend({
+  senderRole: z.enum(["admin", "user"]),
+  message: z.string().min(1, "Tin nhắn không được để trống"),
+});
+
+export const insertOnlineUserSchema = createInsertSchema(onlineUsers).omit({
+  id: true,
+  createdAt: true,
+  lastSeen: true,
+});
+
 export const bulkCreateDocumentsSchema = z.object({
   documents: z.array(insertDocumentSchema).min(1, "Phải có ít nhất 1 tài liệu"),
 });
@@ -588,3 +673,9 @@ export type AccountRequest = typeof accountRequests.$inferSelect;
 export type InsertAccountRequest = z.infer<typeof insertAccountRequestSchema>;
 export type ThemeSetting = typeof themeSettings.$inferSelect;
 export type InsertThemeSetting = z.infer<typeof insertThemeSettingSchema>;
+export type AdminUserChat = typeof adminUserChats.$inferSelect;
+export type InsertAdminUserChat = z.infer<typeof insertAdminUserChatSchema>;
+export type AdminUserMessage = typeof adminUserMessages.$inferSelect;
+export type InsertAdminUserMessage = z.infer<typeof insertAdminUserMessageSchema>;
+export type OnlineUser = typeof onlineUsers.$inferSelect;
+export type InsertOnlineUser = z.infer<typeof insertOnlineUserSchema>;

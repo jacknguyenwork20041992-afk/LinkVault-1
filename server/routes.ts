@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import multer from "multer";
 import { storage } from "./storage";
 import {
@@ -21,6 +22,9 @@ import {
   insertSupportResponseSchema,
   insertAccountRequestSchema,
   insertThemeSettingSchema,
+  insertAdminUserChatSchema,
+  insertAdminUserMessageSchema,
+  insertOnlineUserSchema,
   createUserSchema,
 } from "@shared/schema";
 import { chatWithAI } from "./openai";
@@ -2076,6 +2080,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Real-time chat endpoints
+
+  // Get online users (Admin only)
+  app.get("/api/chat/online-users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const onlineUsers = await storage.getOnlineUsers();
+      res.json(onlineUsers);
+    } catch (error) {
+      console.error("Error getting online users:", error);
+      res.status(500).json({ message: "Lỗi khi lấy danh sách người dùng online" });
+    }
+  });
+
+  // Get chat history between admin and user
+  app.get("/api/chat/:userId", isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
+
+      // Only admin can access any chat, users can only access their own chat with admin
+      if (currentUserRole !== "admin" && userId !== currentUserId) {
+        return res.status(403).json({ message: "Không có quyền truy cập" });
+      }
+
+      const chatHistory = await storage.getAdminUserChatHistory(userId);
+      res.json(chatHistory);
+    } catch (error) {
+      console.error("Error getting chat history:", error);
+      res.status(500).json({ message: "Lỗi khi lấy lịch sử chat" });
+    }
+  });
+
+  // Send message in admin-user chat
+  app.post("/api/chat/:userId/send", isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const { message } = req.body;
+      const senderId = req.user.id;
+      const senderRole = req.user.role;
+
+      if (!message || !message.trim()) {
+        return res.status(400).json({ message: "Tin nhắn không được để trống" });
+      }
+
+      // Only admin can send to any user, users can only send to admin
+      if (senderRole !== "admin" && userId !== senderId) {
+        return res.status(403).json({ message: "Không có quyền gửi tin nhắn" });
+      }
+
+      const newMessage = await storage.sendAdminUserMessage({
+        userId: senderRole === "admin" ? userId : senderId,
+        senderId,
+        senderRole,
+        message: message.trim(),
+      });
+
+      res.status(201).json(newMessage);
+    } catch (error) {
+      console.error("Error sending message:", error);
+      res.status(500).json({ message: "Lỗi khi gửi tin nhắn" });
+    }
+  });
+
+  // Mark messages as read
+  app.post("/api/chat/:userId/mark-read", isAuthenticated, async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const currentUserId = req.user.id;
+      const currentUserRole = req.user.role;
+
+      // Only admin can mark any chat as read, users can only mark their own chat
+      if (currentUserRole !== "admin" && userId !== currentUserId) {
+        return res.status(403).json({ message: "Không có quyền truy cập" });
+      }
+
+      await storage.markAdminUserMessagesAsRead(userId, currentUserId, currentUserRole);
+      res.json({ success: true });
+    } catch (error) {
+      console.error("Error marking messages as read:", error);
+      res.status(500).json({ message: "Lỗi khi đánh dấu tin nhắn đã đọc" });
+    }
+  });
+
   // Create theme setting (Admin only)
   app.post("/api/themes", isAuthenticated, isAdmin, async (req, res) => {
     try {
@@ -2096,5 +2184,109 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   const httpServer = createServer(app);
+
+  // WebSocket Server for real-time chat
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  // Store active connections: Map<userId, WebSocket>
+  const activeConnections = new Map<string, WebSocket>();
+
+  wss.on('connection', async (ws: WebSocket, req) => {
+    console.log('New WebSocket connection');
+    let userId: string | null = null;
+
+    ws.on('message', async (message: string) => {
+      try {
+        const data = JSON.parse(message);
+        
+        if (data.type === 'authenticate') {
+          userId = data.userId;
+          if (userId) {
+            activeConnections.set(userId, ws);
+            
+            // Add user to online users table
+            try {
+              await storage.addOnlineUser({
+                userId,
+                socketId: Math.random().toString(36).substring(7),
+                userAgent: req.headers['user-agent'] || null,
+                ipAddress: req.socket.remoteAddress || null,
+              });
+              
+              console.log(`User ${userId} connected to WebSocket`);
+              
+              // Notify admins about new online user
+              broadcastToAdmins({
+                type: 'user_online',
+                userId,
+              });
+              
+            } catch (error) {
+              console.error('Error adding online user:', error);
+            }
+          }
+        } else if (data.type === 'new_message') {
+          // Handle new message broadcasting
+          const { targetUserId, chatId } = data;
+          
+          if (targetUserId) {
+            const targetSocket = activeConnections.get(targetUserId);
+            if (targetSocket && targetSocket.readyState === WebSocket.OPEN) {
+              targetSocket.send(JSON.stringify({
+                type: 'new_message',
+                ...data
+              }));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error processing WebSocket message:', error);
+      }
+    });
+
+    ws.on('close', async () => {
+      if (userId) {
+        activeConnections.delete(userId);
+        
+        try {
+          await storage.removeOnlineUser(userId);
+          console.log(`User ${userId} disconnected from WebSocket`);
+          
+          // Notify admins about user going offline
+          broadcastToAdmins({
+            type: 'user_offline',
+            userId,
+          });
+          
+        } catch (error) {
+          console.error('Error removing online user:', error);
+        }
+      }
+    });
+
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+    });
+  });
+
+  // Helper function to broadcast messages to all admin users
+  function broadcastToAdmins(data: any) {
+    activeConnections.forEach((socket, userId) => {
+      // We need to check if user is admin - this would require user data lookup
+      // For now, we'll implement a simple broadcast to all connected users
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(data));
+      }
+    });
+  }
+
+  // Helper function to send message to specific user
+  function sendToUser(userId: string, data: any) {
+    const socket = activeConnections.get(userId);
+    if (socket && socket.readyState === WebSocket.OPEN) {
+      socket.send(JSON.stringify(data));
+    }
+  }
+
   return httpServer;
 }

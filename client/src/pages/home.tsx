@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import NotificationCard from "@/components/NotificationCard";
 import ProgramCard from "@/components/ProgramCard";
 import FloatingSupportButton from "@/components/FloatingSupportButton";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Home() {
@@ -615,6 +616,9 @@ export default function Home() {
 
       {/* Floating Support Button */}
       <FloatingSupportButton />
+      
+      {/* Real-time Chat Widget */}
+      <ChatWidget />
     </div>
   );
 }

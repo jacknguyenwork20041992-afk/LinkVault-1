@@ -18,6 +18,7 @@ import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
 import ThemeManagement from "@/components/ThemeManagement";
+import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
@@ -401,6 +402,9 @@ export default function Admin() {
           </main>
         </div>
       </div>
+      
+      {/* Real-time Chat Widget for Admin */}
+      <ChatWidget />
     </div>
   );
 }

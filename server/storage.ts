@@ -19,6 +19,9 @@ import {
   supportResponses,
   accountRequests,
   themeSettings,
+  adminUserChats,
+  adminUserMessages,
+  onlineUsers,
   type User,
   type UpsertUser,
   type Program,
@@ -59,6 +62,12 @@ import {
   type InsertSupportResponse,
   type InsertAccountRequest,
   type InsertThemeSetting,
+  type AdminUserChat,
+  type AdminUserMessage,
+  type OnlineUser,
+  type InsertAdminUserChat,
+  type InsertAdminUserMessage,
+  type InsertOnlineUser,
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
@@ -268,6 +277,14 @@ export interface IStorage {
   getActiveTheme(): Promise<ThemeSetting | undefined>;
   createThemeSetting(themeData: InsertThemeSetting): Promise<ThemeSetting>;
   setActiveTheme(themeName: string): Promise<ThemeSetting>;
+
+  // Real-time chat operations
+  getOnlineUsers(): Promise<OnlineUser[]>;
+  addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser>;
+  removeOnlineUser(userId: string): Promise<void>;
+  getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]>;
+  sendAdminUserMessage(messageData: { userId: string; senderId: string; senderRole: string; message: string }): Promise<AdminUserMessage>;
+  markAdminUserMessagesAsRead(userId: string, currentUserId: string, currentUserRole: string): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -827,6 +844,94 @@ export class DatabaseStorage implements IStorage {
   async deleteChatConversation(id: string, userId: string): Promise<void> {
     await db.delete(chatConversations)
       .where(and(eq(chatConversations.id, id), eq(chatConversations.userId, userId)));
+  }
+
+  // Real-time admin-user chat operations
+  async getOnlineUsers(): Promise<OnlineUser[]> {
+    const users = await db.select().from(onlineUsers)
+      .orderBy(desc(onlineUsers.connectedAt));
+    return users;
+  }
+
+  async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser> {
+    // Remove any existing entry for this user first
+    await db.delete(onlineUsers).where(eq(onlineUsers.userId, userData.userId));
+    
+    const [user] = await db.insert(onlineUsers)
+      .values(userData)
+      .returning();
+    return user;
+  }
+
+  async removeOnlineUser(userId: string): Promise<void> {
+    await db.delete(onlineUsers)
+      .where(eq(onlineUsers.userId, userId));
+  }
+
+  async getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]> {
+    const messages = await db.select().from(adminUserMessages)
+      .where(eq(adminUserMessages.userId, userId))
+      .orderBy(adminUserMessages.createdAt);
+    return messages;
+  }
+
+  async sendAdminUserMessage(messageData: { userId: string; senderId: string; senderRole: string; message: string }): Promise<AdminUserMessage> {
+    // First, ensure chat exists
+    const existingChat = await db.select().from(adminUserChats)
+      .where(eq(adminUserChats.userId, messageData.userId));
+    
+    if (existingChat.length === 0) {
+      await db.insert(adminUserChats)
+        .values({
+          userId: messageData.userId,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        });
+    } else {
+      // Update the chat's updatedAt timestamp
+      await db.update(adminUserChats)
+        .set({ updatedAt: new Date() })
+        .where(eq(adminUserChats.userId, messageData.userId));
+    }
+
+    // Insert the message
+    const [message] = await db.insert(adminUserMessages)
+      .values({
+        userId: messageData.userId,
+        senderId: messageData.senderId,
+        senderRole: messageData.senderRole,
+        message: messageData.message,
+        isRead: false,
+        createdAt: new Date(),
+      })
+      .returning();
+    
+    return message;
+  }
+
+  async markAdminUserMessagesAsRead(userId: string, currentUserId: string, currentUserRole: string): Promise<void> {
+    // Mark messages as read based on the role
+    if (currentUserRole === "admin") {
+      // Admin is reading messages from user
+      await db.update(adminUserMessages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(adminUserMessages.userId, userId),
+            eq(adminUserMessages.senderRole, "user")
+          )
+        );
+    } else {
+      // User is reading messages from admin
+      await db.update(adminUserMessages)
+        .set({ isRead: true })
+        .where(
+          and(
+            eq(adminUserMessages.userId, userId),
+            eq(adminUserMessages.senderRole, "admin")
+          )
+        );
+    }
   }
 
   // Knowledge Base operations for AI training
