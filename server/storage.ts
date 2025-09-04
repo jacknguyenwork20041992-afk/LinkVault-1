@@ -849,7 +849,7 @@ export class DatabaseStorage implements IStorage {
   // Real-time admin-user chat operations
   async getOnlineUsers(): Promise<OnlineUser[]> {
     const users = await db.select().from(onlineUsers)
-      .orderBy(onlineUsers.connectedAt);
+      .orderBy(onlineUsers.createdAt);
     return users;
   }
 
@@ -869,40 +869,45 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]> {
+    // First find the chat for this user
+    const [chat] = await db.select().from(adminUserChats)
+      .where(eq(adminUserChats.userId, userId));
+    
+    if (!chat) return [];
+    
     const messages = await db.select().from(adminUserMessages)
-      .where(eq(adminUserMessages.userId, userId))
+      .where(eq(adminUserMessages.chatId, chat.id))
       .orderBy(adminUserMessages.createdAt);
     return messages;
   }
 
   async sendAdminUserMessage(messageData: { userId: string; senderId: string; senderRole: string; message: string }): Promise<AdminUserMessage> {
     // First, ensure chat exists
-    const existingChat = await db.select().from(adminUserChats)
+    let chat = await db.select().from(adminUserChats)
       .where(eq(adminUserChats.userId, messageData.userId));
     
-    if (existingChat.length === 0) {
-      await db.insert(adminUserChats)
+    if (chat.length === 0) {
+      const [newChat] = await db.insert(adminUserChats)
         .values({
           userId: messageData.userId,
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        });
+          lastMessageAt: new Date(),
+        })
+        .returning();
+      chat = [newChat];
     } else {
-      // Update the chat's updatedAt timestamp
+      // Update the chat's lastMessageAt timestamp
       await db.update(adminUserChats)
-        .set({ updatedAt: new Date() })
+        .set({ lastMessageAt: new Date() })
         .where(eq(adminUserChats.userId, messageData.userId));
     }
 
-    // Insert the message
+    // Insert the message using chatId
     const [message] = await db.insert(adminUserMessages)
       .values({
-        userId: messageData.userId,
+        chatId: chat[0].id,
         senderId: messageData.senderId,
         senderRole: messageData.senderRole,
         message: messageData.message,
-        isRead: false,
-        createdAt: new Date(),
       })
       .returning();
     
@@ -910,24 +915,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async markAdminUserMessagesAsRead(userId: string, currentUserId: string, currentUserRole: string): Promise<void> {
+    // First find the chat for this user
+    const [chat] = await db.select().from(adminUserChats)
+      .where(eq(adminUserChats.userId, userId));
+    
+    if (!chat) return;
+
     // Mark messages as read based on the role
     if (currentUserRole === "admin") {
       // Admin is reading messages from user
       await db.update(adminUserMessages)
-        .set({ isRead: true })
+        .set({ isRead: true, readAt: new Date() })
         .where(
           and(
-            eq(adminUserMessages.userId, userId),
+            eq(adminUserMessages.chatId, chat.id),
             eq(adminUserMessages.senderRole, "user")
           )
         );
     } else {
       // User is reading messages from admin
       await db.update(adminUserMessages)
-        .set({ isRead: true })
+        .set({ isRead: true, readAt: new Date() })
         .where(
           and(
-            eq(adminUserMessages.userId, userId),
+            eq(adminUserMessages.chatId, chat.id),
             eq(adminUserMessages.senderRole, "admin")
           )
         );
