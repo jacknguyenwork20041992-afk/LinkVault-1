@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import SupportTicketModal from "@/components/modals/SupportTicketModal";
 import AccountRequestModal from "@/components/modals/AccountRequestModal";
 import ChatBot from "./ChatBot";
+import { ChatWidget } from "@/components/chat/ChatWidget";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function FloatingSupportButton() {
+  const { user } = useAuth();
   const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
   const [isAccountRequestModalOpen, setIsAccountRequestModalOpen] = useState(false);
   const [isChatBotOpen, setIsChatBotOpen] = useState(false);
@@ -26,6 +29,13 @@ export default function FloatingSupportButton() {
     <>
       {/* Floating button cluster - responsive positioning */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-stretch sm:flex-row sm:gap-3 sm:items-center md:bottom-6 md:right-6 md:gap-4">
+        {/* Chat Widget - For both admin and users */}
+        {user && (
+          <div className="relative">
+            <ChatWidget />
+          </div>
+        )}
+        
         {/* Support Button */}
         <Button
           onClick={handleSupportClick}

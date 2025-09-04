@@ -143,7 +143,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
   if (!user) return null;
 
   return (
-    <div className={cn("fixed bottom-4 z-50", !isAdmin ? "right-[460px] sm:right-[500px] md:right-[560px]" : "right-4", className)}>
+    <div className={cn("relative", className)}>
       {/* Chat Toggle Button */}
       {!isOpen && (
         <Button
@@ -172,7 +172,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
       {/* Chat Window */}
       {isOpen && (
         <Card className={cn(
-          "w-96 transition-all duration-200",
+          "fixed bottom-20 right-4 w-96 transition-all duration-200 z-50",
           isMinimized ? "h-14" : "h-[500px]"
         )}>
           <CardHeader className="flex flex-row items-center justify-between p-4 pb-2">

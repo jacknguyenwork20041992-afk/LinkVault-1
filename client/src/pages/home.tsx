@@ -616,9 +616,6 @@ export default function Home() {
 
       {/* Floating Support Button */}
       <FloatingSupportButton />
-      
-      {/* Real-time Chat Widget */}
-      <ChatWidget />
     </div>
   );
 }

@@ -402,9 +402,6 @@ export default function Admin() {
           </main>
         </div>
       </div>
-      
-      {/* Real-time Chat Widget for Admin */}
-      <ChatWidget />
     </div>
   );
 }
