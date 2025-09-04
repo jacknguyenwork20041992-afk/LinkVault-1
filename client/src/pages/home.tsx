@@ -278,13 +278,13 @@ export default function Home() {
       </header>
 
       {/* Hero Banner Section - Theme Applied */}
-      <section className="homepage-banner bg-gradient-to-r from-blue-600 to-blue-700 text-white py-12 lg:py-16 relative overflow-hidden">
+      <section className="homepage-banner bg-gradient-to-r from-blue-600 to-blue-700 text-white py-6 lg:py-8 relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="text-center">
-            <h1 className="text-3xl lg:text-5xl font-bold mb-4">
+            <h1 className="text-2xl lg:text-3xl font-bold mb-3">
               VIA R&D Department
             </h1>
-            <p className="text-xl lg:text-2xl text-blue-100 mb-6">
+            <p className="text-lg lg:text-xl text-blue-100 mb-4">
               Hệ thống quản lý tài liệu
             </p>
             {activeTheme?.themeName !== 'default' && (
