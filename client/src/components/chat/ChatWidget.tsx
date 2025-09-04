@@ -51,7 +51,7 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
   const chatUserId = isAdmin ? selectedUserId : user?.id;
 
   // Get online users (admin only)
-  const { data: onlineUsers = [] } = useQuery<OnlineUser[]>({
+  const { data: onlineUsers = [] } = useQuery<Array<OnlineUser & { email?: string; firstName?: string; lastName?: string; unreadCount?: number }>>({
     queryKey: ['/api/chat/online-users'],
     enabled: isAdmin && isOpen,
     refetchInterval: 5000, // Refresh every 5 seconds
@@ -209,17 +209,26 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
                   <h4 className="text-sm font-medium mb-2">Người dùng đang online</h4>
                   <div className="space-y-1 max-h-20 overflow-y-auto">
                     {onlineUsers?.length > 0 ? (
-                      onlineUsers.map((onlineUser: OnlineUser) => (
+                      onlineUsers.map((onlineUser) => (
                         <Button
                           key={onlineUser.userId}
                           variant={selectedUserId === onlineUser.userId ? "default" : "ghost"}
                           size="sm"
                           onClick={() => setSelectedUserId(onlineUser.userId)}
-                          className="w-full justify-start text-xs h-8"
+                          className="w-full justify-between text-xs h-8 pr-2"
                           data-testid={`button-select-user-${onlineUser.userId}`}
                         >
-                          <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-                          User {onlineUser.userId.slice(0, 8)}...
+                          <div className="flex items-center">
+                            <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                            <span className="truncate max-w-[180px]">
+                              {onlineUser.email || `User ${onlineUser.userId.slice(0, 8)}...`}
+                            </span>
+                          </div>
+                          {onlineUser.unreadCount && onlineUser.unreadCount > 0 && (
+                            <Badge variant="destructive" className="text-xs px-1 py-0 h-5 min-w-[20px]">
+                              {onlineUser.unreadCount}
+                            </Badge>
+                          )}
                         </Button>
                       ))
                     ) : (
@@ -325,7 +334,8 @@ export function ChatWidget({ targetUserId, className }: ChatWidgetProps) {
                     onClick={handleSendMessage}
                     disabled={!newMessage.trim() || sendMessageMutation.isPending || !isConnected}
                     size="sm"
-                    className="bg-primary hover:bg-primary/90 text-primary-foreground"
+                    variant="default"
+                    className="bg-blue-600 hover:bg-blue-700 text-white border-0 shadow-sm"
                     data-testid="button-send-message"
                   >
                     <Send className="h-4 w-4" />

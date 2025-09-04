@@ -71,7 +71,7 @@ import {
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, asc } from "drizzle-orm";
+import { eq, desc, and, sql, asc, ilike, or, not, inArray } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -847,10 +847,56 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Real-time admin-user chat operations
-  async getOnlineUsers(): Promise<OnlineUser[]> {
-    const users = await db.select().from(onlineUsers)
-      .orderBy(onlineUsers.createdAt);
-    return users;
+  async getOnlineUsers(): Promise<Array<OnlineUser & { email?: string; firstName?: string; lastName?: string; unreadCount?: number }>> {
+    const results = await db.select({
+      id: onlineUsers.id,
+      userId: onlineUsers.userId,
+      socketId: onlineUsers.socketId,
+      lastSeen: onlineUsers.lastSeen,
+      userAgent: onlineUsers.userAgent,
+      ipAddress: onlineUsers.ipAddress,
+      createdAt: onlineUsers.createdAt,
+      email: users.email,
+      firstName: users.firstName,
+      lastName: users.lastName,
+    })
+    .from(onlineUsers)
+    .leftJoin(users, eq(onlineUsers.userId, users.id))
+    .orderBy(onlineUsers.createdAt);
+
+    // Count unread messages for each user
+    const usersWithUnread = await Promise.all(
+      results.map(async (user) => {
+        // Get chat for this user
+        const [chat] = await db.select().from(adminUserChats)
+          .where(eq(adminUserChats.userId, user.userId));
+        
+        let unreadCount = 0;
+        if (chat) {
+          // Count unread messages from user to admin
+          const unreadMessages = await db.select({ count: sql<number>`count(*)` })
+            .from(adminUserMessages)
+            .where(
+              and(
+                eq(adminUserMessages.chatId, chat.id),
+                eq(adminUserMessages.senderRole, "user"),
+                eq(adminUserMessages.isRead, false)
+              )
+            );
+          unreadCount = Number(unreadMessages[0]?.count || 0);
+        }
+
+        return {
+          ...user,
+          email: user.email || undefined,
+          firstName: user.firstName || undefined,
+          lastName: user.lastName || undefined,
+          unreadCount
+        };
+      })
+    );
+
+    return usersWithUnread;
   }
 
   async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser> {
