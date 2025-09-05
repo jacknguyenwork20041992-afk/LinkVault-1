@@ -35,9 +35,9 @@ export default function UserNotificationsList() {
       return response.json();
     },
     retry: false,
-    refetchInterval: 60000, // Auto-refresh every 60 seconds (reduced from 30s)
-    refetchOnWindowFocus: false, // Disable to reduce server load
-    refetchIntervalInBackground: false, // Don't refresh when tab is not active
+    refetchInterval: 15000, // Auto-refresh every 15 seconds for faster notification updates
+    refetchOnWindowFocus: true, // Enable refresh on window focus for better UX
+    refetchIntervalInBackground: true, // Continue refreshing to catch admin responses
   });
 
   // Highlight logic - highlight new notifications for 3 seconds
