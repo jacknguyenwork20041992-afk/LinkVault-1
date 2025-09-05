@@ -516,7 +516,7 @@ export default function SupportTicketsManagement() {
               </Card>
 
               {/* Document Link & Image */}
-              {(selectedTicket.documentLink || selectedTicket.imageUrl) && (
+              {(selectedTicket.documentLink || (selectedTicket.imageUrls && selectedTicket.imageUrls.length > 0)) && (
                 <Card>
                   <CardHeader>
                     <CardTitle>Tài liệu đính kèm</CardTitle>
@@ -552,15 +552,16 @@ export default function SupportTicketsManagement() {
                                 className="relative cursor-pointer group"
                                 onClick={() => {
                                   // Open image in new tab
-                                  window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
+                                  const imageId = imageUrl.split('uploads/')[1]?.split('?')[0] || '';
+                                  window.open(`/api/support-images/${imageId}`, '_blank');
                                 }}
                               >
                                 <img 
-                                  src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                                  src={`/api/support-images/${imageUrl.split('uploads/')[1]?.split('?')[0] || ''}`}
                                   alt={`Hình ảnh vấn đề ${index + 1}`}
                                   className="w-full h-48 md:h-64 object-cover rounded-md shadow-md transition-transform group-hover:scale-105"
                                   onError={(e) => {
-                                    console.error('Image load error');
+                                    console.error('Image load error for:', imageUrl);
                                     e.currentTarget.style.display = 'none';
                                     e.currentTarget.nextElementSibling!.style.display = 'block';
                                   }}
