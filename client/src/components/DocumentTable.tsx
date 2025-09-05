@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ExternalLink } from "lucide-react";
 import type { Document, Category, Program } from "@shared/schema";
 
@@ -17,6 +17,8 @@ export default function DocumentTable({ documents, showActions = true }: Documen
     },
     onSuccess: (data) => {
       console.log("Activity tracked successfully:", data);
+      // Invalidate activity queries to update admin panels immediately
+      queryClient.invalidateQueries({ queryKey: ["/api/activities"] });
     },
     onError: (error) => {
       console.error("Activity tracking failed:", error);

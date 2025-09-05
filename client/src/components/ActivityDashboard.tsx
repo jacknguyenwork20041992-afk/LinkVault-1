@@ -86,6 +86,8 @@ export default function ActivityDashboard() {
       const response = await apiRequest("GET", `/api/activities?limit=${limit}`);
       return response.json();
     },
+    refetchInterval: 30000, // Auto-refresh every 30 seconds
+    refetchIntervalInBackground: true, // Continue refreshing even when tab is not active
   });
 
   const trackActivityMutation = useMutation({
