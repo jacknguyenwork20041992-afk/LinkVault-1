@@ -54,10 +54,9 @@ export class ObjectStorageService {
       )
     );
     if (paths.length === 0) {
-      throw new Error(
-        "PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' " +
-          "tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths)."
-      );
+      console.warn("⚠️  PUBLIC_OBJECT_SEARCH_PATHS not set. Public object search will not be available.");
+      console.warn("   Create a bucket in 'Object Storage' tool and set PUBLIC_OBJECT_SEARCH_PATHS env var.");
+      return []; // Return empty array instead of throwing
     }
     return paths;
   }
@@ -151,8 +150,10 @@ export class ObjectStorageService {
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
+      console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
+      console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
       throw new Error(
-        "Object storage not configured"
+        "Object storage not configured. Please contact administrator to set up object storage."
       );
     }
 
@@ -180,8 +181,10 @@ export class ObjectStorageService {
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
+      console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
+      console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
       throw new Error(
-        "Object storage not configured"
+        "Object storage not configured. Please contact administrator to set up object storage."
       );
     }
 
