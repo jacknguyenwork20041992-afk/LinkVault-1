@@ -103,10 +103,24 @@ export class ObjectStorageService {
       const aclPolicy = await getObjectAclPolicy(file);
       const isPublic = aclPolicy?.visibility === "public";
       
+      // Extract meaningful filename from object path
+      const objectName = file.name;
+      let downloadFilename = objectName.split('/').pop() || 'download';
+      
+      // If filename looks like UUID, try to create meaningful name
+      if (downloadFilename.match(/^[0-9a-f-]{36}/i)) {
+        // For account request files, create meaningful name from current date
+        if (objectName.includes('uploads/')) {
+          const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          downloadFilename = `DanhSach_HocVien_${date}.xlsx`;
+        }
+      }
+      
       // Set appropriate headers
       res.set({
         "Content-Type": metadata.contentType || "application/octet-stream",
         "Content-Length": metadata.size,
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
         "Cache-Control": `${
           isPublic ? "public" : "private"
         }, max-age=${cacheTtlSec}`,
