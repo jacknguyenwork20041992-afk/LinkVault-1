@@ -66,10 +66,9 @@ export class ObjectStorageService {
   getPrivateObjectDir(): string {
     const dir = process.env.PRIVATE_OBJECT_DIR || "";
     if (!dir) {
-      throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
-      );
+      // Return a default directory instead of throwing an error
+      console.warn("PRIVATE_OBJECT_DIR not set, using default directory");
+      return "/default-bucket/uploads";
     }
     return dir;
   }

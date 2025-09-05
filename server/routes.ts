@@ -1086,6 +1086,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("Getting upload URL for object storage...");
+      
+      // Check if object storage is properly configured
+      if (!process.env.PRIVATE_OBJECT_DIR) {
+        console.log("Object storage not configured, returning error");
+        return res.status(503).json({ 
+          error: "File upload not available", 
+          message: "Object storage is not configured. Please contact administrator." 
+        });
+      }
+      
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       console.log("Upload URL generated:", uploadURL);
@@ -1094,7 +1104,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(503).json({ 
+        error: "File upload not available", 
+        message: "Object storage service is temporarily unavailable" 
+      });
     }
   });
 
