@@ -1155,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             extractedContent: extractedText.content,
             status: "completed",
             metadata: {
-              ...trainingFile.metadata,
+              ...(trainingFile.metadata || {}),
               extractionMetadata: extractedText.metadata,
               processedAt: new Date().toISOString(),
             },
@@ -1170,7 +1170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Auto-converted training file to knowledge article: ${knowledgeArticle.title}`);
             }
           } catch (conversionError) {
-            console.log(`Note: Could not auto-convert to knowledge base: ${conversionError.message}`);
+            const errorMessage = conversionError instanceof Error ? conversionError.message : 'Unknown error';
+            console.log(`Note: Could not auto-convert to knowledge base: ${errorMessage}`);
             // Don't fail the whole process, just log the conversion error
           }
         } catch (error) {
@@ -1180,8 +1181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateTrainingFile(trainingFile.id, {
             status: "failed",
             metadata: {
-              ...trainingFile.metadata,
-              error: error.message,
+              ...(trainingFile.metadata || {}),
+              error: error instanceof Error ? error.message : 'Unknown error',
               failedAt: new Date().toISOString(),
             },
           });
@@ -1478,21 +1479,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const ticket = await storage.createSupportTicket(ticketData);
       
-      // Set ACL policy for uploaded image if exists
-      if (ticketData.imageUrl) {
-        try {
-          const objectStorageService = new ObjectStorageService();
-          await objectStorageService.trySetObjectEntityAclPolicy(
-            ticketData.imageUrl,
-            {
-              owner: user.id,
-              visibility: "private", // Support ticket images should be private
-              aclRules: []
-            }
-          );
-        } catch (error) {
-          console.error("Error setting ACL policy for image:", error);
-          // Don't fail the ticket creation if ACL setting fails
+      // Set ACL policy for uploaded images if they exist
+      if (ticketData.imageUrls && Array.isArray(ticketData.imageUrls)) {
+        for (const imageUrl of ticketData.imageUrls) {
+          try {
+            const objectStorageService = new ObjectStorageService();
+            await objectStorageService.trySetObjectEntityAclPolicy(
+              imageUrl,
+              {
+                owner: user.id,
+                visibility: "private", // Support ticket images should be private
+                aclRules: []
+              }
+            );
+          } catch (error) {
+            console.error("Error setting ACL policy for image:", error);
+            // Don't fail the ticket creation if ACL setting fails
+          }
         }
       }
       
