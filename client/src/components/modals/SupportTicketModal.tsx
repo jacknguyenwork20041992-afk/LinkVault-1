@@ -184,11 +184,12 @@ export default function SupportTicketModal({
             imageUrls.push(imageUrl);
             console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("Error uploading images:", error);
           
           // Only throw error for critical failures, not for object storage unavailability
-          if (error.message && error.message.includes("503")) {
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes("503") || errorMessage.includes("Object storage not configured")) {
             // Object storage unavailable - continue without images
             console.warn("Continuing without image upload due to service unavailability");
           } else {

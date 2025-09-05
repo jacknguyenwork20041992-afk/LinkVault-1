@@ -136,10 +136,9 @@ export class ObjectStorageService {
     console.log("Starting getObjectEntityUploadURL...");
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
-    if (!privateObjectDir) {
+    if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
       throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
+        "Object storage not configured"
       );
     }
 
@@ -166,10 +165,9 @@ export class ObjectStorageService {
     console.log("Starting getObjectEntityUploadURLWithName...");
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
-    if (!privateObjectDir) {
+    if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
       throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
+        "Object storage not configured"
       );
     }
 
