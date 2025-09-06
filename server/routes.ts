@@ -1163,15 +1163,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin route to get Google Drive info
+  app.get("/api/admin/google-drive-info", isAuthenticated, isAdmin, (req, res) => {
+    const clientId = process.env.GOOGLE_CLIENT_ID;
+    const hasGoogleDrive = !!(clientId && process.env.GOOGLE_CLIENT_SECRET);
+    
+    res.json({
+      isConfigured: hasGoogleDrive,
+      clientId: clientId ? clientId.substring(0, 20) + '...' : 'Not configured',
+      driveAccount: clientId ? 'Tài khoản liên kết với Google OAuth Client ID' : 'Chưa cấu hình',
+      folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'root (Google Drive gốc)',
+      currentUploadMethod: process.env.PRIVATE_OBJECT_DIR ? 'Google Cloud Storage' : 'Google Drive'
+    });
+  });
+
+  // Admin route to toggle upload method
+  app.post("/api/admin/toggle-upload-method", isAuthenticated, isAdmin, (req, res) => {
+    const { useGoogleDrive } = req.body;
+    
+    // This is a temporary toggle - in production you'd want to store this in database
+    if (useGoogleDrive) {
+      // Temporarily disable object storage to force Google Drive
+      process.env.TEMP_DISABLE_OBJECT_STORAGE = 'true';
+    } else {
+      delete process.env.TEMP_DISABLE_OBJECT_STORAGE;
+    }
+    
+    res.json({ 
+      success: true, 
+      currentMethod: useGoogleDrive ? 'Google Drive' : 'Google Cloud Storage' 
+    });
+  });
+
   // Object Storage Routes (Legacy - with Google Drive fallback)
   // Upload URL endpoint
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("Getting upload URL for object storage...");
       
-      // Check if object storage is properly configured
-      if (!process.env.PRIVATE_OBJECT_DIR) {
-        console.log("Object storage not configured, falling back to Google Drive approach");
+      // Check if object storage is properly configured or temporarily disabled
+      if (!process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true') {
+        console.log("📁 Using Google Drive for file uploads (object storage disabled)");
         return res.status(200).json({ 
           useGoogleDrive: true,
           message: "Using Google Drive for file uploads",
@@ -1187,7 +1219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      console.log("Falling back to Google Drive approach");
+      console.log("📁 Falling back to Google Drive approach");
       res.status(200).json({ 
         useGoogleDrive: true,
         message: "Using Google Drive for file uploads",
@@ -1827,9 +1859,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Object storage routes for account requests
   app.post("/api/account-requests/upload-url", isAuthenticated, async (req, res) => {
     try {
-      // Check if object storage is properly configured
-      if (!process.env.PRIVATE_OBJECT_DIR) {
-        console.log("Object storage not configured, using Google Drive for account requests");
+      // Check if object storage is properly configured or temporarily disabled
+      if (!process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true') {
+        console.log("📁 Using Google Drive for account request uploads");
         return res.status(200).json({ 
           useGoogleDrive: true,
           message: "Using Google Drive for file uploads",
@@ -1848,7 +1880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      console.log("Falling back to Google Drive for account requests");
+      console.log("📁 Falling back to Google Drive for account requests");
       res.status(200).json({ 
         useGoogleDrive: true,
         message: "Using Google Drive for file uploads",
