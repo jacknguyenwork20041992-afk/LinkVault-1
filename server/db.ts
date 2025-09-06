@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { Pool } from 'pg';
+import { drizzle } from 'drizzle-orm/node-postgres';
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 let pool: Pool | null = null;
 let db: any = null;
@@ -15,8 +12,11 @@ try {
     console.warn("⚠️  DATABASE_URL not found. Database functionality will be limited.");
     console.warn("   Some features may not work properly without a database connection.");
   } else {
-    pool = new Pool({ connectionString: process.env.DATABASE_URL });
-    db = drizzle({ client: pool, schema });
+    pool = new Pool({ 
+      connectionString: process.env.DATABASE_URL,
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+    });
+    db = drizzle(pool, { schema });
     isDbConnected = true;
     console.log("✅ Database connection initialized successfully");
   }
