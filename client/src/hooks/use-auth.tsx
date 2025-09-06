@@ -4,7 +4,7 @@ import {
   useMutation,
   UseMutationResult,
 } from "@tanstack/react-query";
-import { createUserSchema, User as SelectUser } from "@shared/schema";
+import { createUserSchema, User as SelectUser } from "@/types";
 import { getQueryFn, apiRequest, queryClient } from "../lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { z } from "zod";
@@ -23,7 +23,7 @@ type LoginData = {
   password: string;
 };
 
-type RegisterData = z.infer<typeof createUserSchema>;
+type RegisterData = { email: string; firstName?: string; lastName?: string; password?: string; role?: string; authProvider?: string; };
 
 export const AuthContext = createContext<AuthContextType | null>(null);
 

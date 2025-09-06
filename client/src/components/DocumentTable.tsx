@@ -1,7 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { ExternalLink } from "lucide-react";
-import type { Document, Category, Program } from "@shared/schema";
+import type { Document, Category, Program } from "@/types";
 
 interface DocumentTableProps {
   documents: (Document & { category: Category | null, program: Program | null })[];

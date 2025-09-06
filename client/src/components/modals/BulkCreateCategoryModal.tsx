@@ -9,7 +9,7 @@ import {
   insertCategorySchema,
   type InsertCategory,
   type Program,
-} from "@shared/schema";
+} from "@/types";
 import { z } from "zod";
 import {
   Dialog,

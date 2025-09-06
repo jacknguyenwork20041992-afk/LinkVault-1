@@ -11,7 +11,7 @@ import {
   type BulkCreateDocuments,
   type Program,
   type Category,
-} from "@shared/schema";
+} from "@/types";
 import {
   Dialog,
   DialogContent,

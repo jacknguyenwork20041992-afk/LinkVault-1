@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { createUserSchema, type CreateUser } from "@shared/schema";
+import { createUserSchema, type CreateUser } from "@/types";
 import { X } from "lucide-react";
 import {
   Dialog,

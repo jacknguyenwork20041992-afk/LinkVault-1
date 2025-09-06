@@ -1,7 +1,7 @@
 import { X, ExternalLink, Bell, MessageSquare } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useLocation } from "wouter";
-import type { Notification } from "@shared/schema";
+import type { Notification } from "@/types";
 
 interface NotificationCardProps {
   notification: Notification;
