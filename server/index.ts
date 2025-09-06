@@ -17,12 +17,15 @@ function log(message: string, source = "express") {
 const app = express();
 
 // CORS configuration - Cho phép frontend kết nối
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'http://localhost:5173',  // Dev frontend
+      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
+    ];
+
 app.use(cors({
-  origin: [
-    'http://localhost:5173',  // Dev frontend
-    'https://rd-support.vercel.app',  // YOUR_VERCEL_URL_HERE - CẬP NHẬT URL VERCEL CỦA BẠN TẠI ĐÂY
-    /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
-  ],
+  origin: allowedOrigins,
   credentials: true,  // Cho phép gửi cookies
 }));
 
