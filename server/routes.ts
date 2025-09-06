@@ -2336,6 +2336,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Development image proxy for mock Google Drive URLs
+  app.get('/api/image-proxy/:fileId', (req, res) => {
+    const { fileId } = req.params;
+    
+    // For development, return a placeholder image
+    const svg = `
+      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#f0f0f0"/>
+        <text x="50%" y="40%" text-anchor="middle" fill="#666" font-family="Arial" font-size="16">
+          📁 Google Drive File
+        </text>
+        <text x="50%" y="60%" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">
+          ID: ${fileId.substring(0, 20)}...
+        </text>
+        <text x="50%" y="75%" text-anchor="middle" fill="#999" font-family="Arial" font-size="10">
+          (Development Mode)
+        </text>
+      </svg>
+    `;
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(svg);
+  });
+
   const httpServer = createServer(app);
 
   // WebSocket Server for real-time chat
