@@ -1168,12 +1168,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const clientId = process.env.GOOGLE_CLIENT_ID;
     const hasGoogleDrive = !!(clientId && process.env.GOOGLE_CLIENT_SECRET);
     
+    // Check if Google Drive is being used (either no object storage config or explicitly disabled)
+    const isUsingGoogleDrive = !process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true';
+    
     res.json({
       isConfigured: hasGoogleDrive,
       clientId: clientId ? clientId.substring(0, 20) + '...' : 'Not configured',
       driveAccount: clientId ? 'Tài khoản liên kết với Google OAuth Client ID' : 'Chưa cấu hình',
       folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'root (Google Drive gốc)',
-      currentUploadMethod: process.env.PRIVATE_OBJECT_DIR ? 'Google Cloud Storage' : 'Google Drive'
+      currentUploadMethod: isUsingGoogleDrive ? 'Google Drive' : 'Google Cloud Storage'
     });
   });
 
@@ -1185,8 +1188,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     if (useGoogleDrive) {
       // Temporarily disable object storage to force Google Drive
       process.env.TEMP_DISABLE_OBJECT_STORAGE = 'true';
+      console.log('🔄 Switched to Google Drive upload method');
     } else {
       delete process.env.TEMP_DISABLE_OBJECT_STORAGE;
+      console.log('🔄 Switched to Google Cloud Storage upload method');
     }
     
     res.json({ 
