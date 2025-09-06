@@ -38,11 +38,12 @@ export default function UploadMethodManager() {
   // Toggle upload method mutation
   const toggleMethodMutation = useMutation({
     mutationFn: async (useGoogleDrive: boolean) => {
-      return await apiRequest('POST', '/api/admin/toggle-upload-method', {
+      const response = await apiRequest('POST', '/api/admin/toggle-upload-method', {
         useGoogleDrive
       });
+      return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       toast({
         title: "Thành công",
         description: `Đã chuyển sang ${data.currentMethod}`,
@@ -62,7 +63,7 @@ export default function UploadMethodManager() {
   });
 
   const handleToggleMethod = async () => {
-    if (!driveInfo?.isConfigured) {
+    if (!info?.isConfigured) {
       toast({
         title: "Cần cấu hình",
         description: "Google Drive chưa được cấu hình. Cần GOOGLE_CLIENT_ID và GOOGLE_CLIENT_SECRET.",
@@ -72,7 +73,7 @@ export default function UploadMethodManager() {
     }
 
     setIsToggling(true);
-    const useGoogleDrive = driveInfo.currentUploadMethod === 'Google Cloud Storage';
+    const useGoogleDrive = info.currentUploadMethod === 'Google Cloud Storage';
     toggleMethodMutation.mutate(useGoogleDrive);
   };
 
