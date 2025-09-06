@@ -3,7 +3,7 @@ services:
     name: via-english-academy-backend
     env: node
     plan: starter
-    buildCommand: npm install && npm run build
+    buildCommand: npm install && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
     startCommand: npm run start
     envVars:
       - key: NODE_ENV
