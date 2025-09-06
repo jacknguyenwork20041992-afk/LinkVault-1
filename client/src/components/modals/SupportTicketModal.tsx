@@ -138,60 +138,95 @@ export default function SupportTicketModal({
         try {
           console.log(`Uploading ${selectedImages.length} images...`);
           
-          for (let i = 0; i < selectedImages.length; i++) {
-            const image = selectedImages[i];
-            console.log(`Getting upload URL for image ${i + 1}...`);
+          // Check upload method from backend
+          const uploadResponse = await apiRequest("POST", "/api/objects/upload");
+          
+          if (!uploadResponse.ok) {
+            console.error("Failed to get upload info:", uploadResponse.status);
+            throw new Error(`Failed to get upload info: ${uploadResponse.status}`);
+          }
+          
+          const responseData = await uploadResponse.json();
+          
+          // Check if we should use Google Drive
+          if (responseData.useGoogleDrive) {
+            console.log("Using Google Drive for image upload...");
             
-            // Get upload URL from backend
-            const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-            
-            // Check if object storage is available
-            if (uploadResponse.status === 503) {
-              console.warn("Object storage not available, proceeding without images");
-              // Show warning to user but continue
-              toast({
-                title: "Thông báo",
-                description: "Không thể tải hình ảnh lên. Yêu cầu sẽ được gửi mà không có hình ảnh.",
-              });
-              break; // Skip image upload
-            }
-            
-            if (!uploadResponse.ok) {
-              console.error("Failed to get upload URL:", uploadResponse.status);
-              throw new Error(`Failed to get upload URL: ${uploadResponse.status}`);
-            }
-            
-            const responseData = await uploadResponse.json();
-            const { uploadURL } = responseData;
-            
-            // Upload image to object storage
-            console.log(`Uploading image ${i + 1} to storage...`);
-            const uploadResult = await fetch(uploadURL, {
-              method: "PUT",
-              body: image,
-              headers: {
-                "Content-Type": image.type,
-              },
+            // Create FormData for multiple files
+            const formData = new FormData();
+            selectedImages.forEach((image, index) => {
+              formData.append('images', image);
             });
             
-            if (!uploadResult.ok) {
-              const errorText = await uploadResult.text();
-              console.error(`Upload failed for image ${i + 1}:`, errorText);
-              throw new Error(`Failed to upload image ${i + 1}: ${uploadResult.status}`);
+            // Upload all images to Google Drive
+            const driveUploadResponse = await fetch("/api/drive/upload-images", {
+              method: "POST",
+              body: formData,
+            });
+            
+            if (!driveUploadResponse.ok) {
+              const errorText = await driveUploadResponse.text();
+              console.error("Google Drive upload failed:", errorText);
+              throw new Error(`Failed to upload images to Google Drive: ${driveUploadResponse.status}`);
             }
             
-            const imageUrl = uploadURL ? uploadURL.split("?")[0] : "";
-            imageUrls.push(imageUrl);
-            console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
+            const driveResult = await driveUploadResponse.json();
+            imageUrls = driveResult.files.map((file: any) => file.webViewLink);
+            console.log("Images uploaded to Google Drive successfully:", imageUrls);
+            
+          } else {
+            // Use traditional object storage approach
+            console.log("Using object storage for image upload...");
+            const { uploadURL } = responseData;
+            
+            for (let i = 0; i < selectedImages.length; i++) {
+              const image = selectedImages[i];
+              console.log(`Getting upload URL for image ${i + 1}...`);
+              
+              // Get individual upload URL for each image
+              const individualUploadResponse = await apiRequest("POST", "/api/objects/upload");
+              
+              if (!individualUploadResponse.ok) {
+                console.error("Failed to get upload URL:", individualUploadResponse.status);
+                throw new Error(`Failed to get upload URL: ${individualUploadResponse.status}`);
+              }
+              
+              const individualResponseData = await individualUploadResponse.json();
+              const individualUploadURL = individualResponseData.uploadURL;
+              
+              // Upload image to object storage
+              console.log(`Uploading image ${i + 1} to storage...`);
+              const uploadResult = await fetch(individualUploadURL, {
+                method: "PUT",
+                body: image,
+                headers: {
+                  "Content-Type": image.type,
+                },
+              });
+              
+              if (!uploadResult.ok) {
+                const errorText = await uploadResult.text();
+                console.error(`Upload failed for image ${i + 1}:`, errorText);
+                throw new Error(`Failed to upload image ${i + 1}: ${uploadResult.status}`);
+              }
+              
+              const imageUrl = individualUploadURL ? individualUploadURL.split("?")[0] : "";
+              imageUrls.push(imageUrl);
+              console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
+            }
           }
         } catch (error: unknown) {
           console.error("Error uploading images:", error);
           
-          // Only throw error for critical failures, not for object storage unavailability
+          // Only throw error for critical failures, not for service unavailability
           const errorMessage = error instanceof Error ? error.message : String(error);
           if (errorMessage.includes("503") || errorMessage.includes("Object storage not configured")) {
-            // Object storage unavailable - continue without images
+            // Service unavailable - continue without images
             console.warn("Continuing without image upload due to service unavailability");
+            toast({
+              title: "Thông báo",
+              description: "Không thể tải hình ảnh lên. Yêu cầu sẽ được gửi mà không có hình ảnh.",
+            });
           } else {
             throw error;
           }
