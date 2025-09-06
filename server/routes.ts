@@ -31,6 +31,7 @@ import { chatWithAI } from "./openai";
 import { chatWithGeminiAI } from "./gemini";
 import { TextExtractor } from "./textExtractor";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
+import { googleDriveService } from "./googleDriveService";
 import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
@@ -1081,7 +1082,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Object Storage Routes
+  // Google Drive Upload Routes (New approach)
+  // Configure multer for memory storage
+  const memoryUpload = multer({ 
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
+  });
+
+  // Upload multiple images to Google Drive (for support tickets)
+  app.post("/api/drive/upload-images", isAuthenticated, memoryUpload.array('images', 5), async (req, res) => {
+    try {
+      const files = req.files as Express.Multer.File[];
+      if (!files || files.length === 0) {
+        return res.status(400).json({ message: "No files uploaded" });
+      }
+
+      const uploadResults = [];
+      for (const file of files) {
+        // Validate file type
+        if (!file.mimetype.startsWith('image/')) {
+          return res.status(400).json({ message: `File ${file.originalname} is not an image` });
+        }
+
+        const result = await googleDriveService.uploadFileFromRequest(
+          file.buffer,
+          `support_image_${Date.now()}_${file.originalname}`,
+          file.mimetype
+        );
+        
+        uploadResults.push({
+          originalName: file.originalname,
+          fileId: result.fileId,
+          webViewLink: result.webViewLink,
+          downloadLink: result.downloadLink
+        });
+      }
+
+      res.json({ 
+        message: "Images uploaded successfully",
+        files: uploadResults 
+      });
+    } catch (error) {
+      console.error("Error uploading images to Google Drive:", error);
+      res.status(500).json({ message: "Failed to upload images to Google Drive" });
+    }
+  });
+
+  // Upload single file to Google Drive (for account requests)
+  app.post("/api/drive/upload-file", isAuthenticated, memoryUpload.single('file'), async (req, res) => {
+    try {
+      const file = req.file;
+      if (!file) {
+        return res.status(400).json({ message: "No file uploaded" });
+      }
+
+      const { requestType, branchName } = req.body;
+      
+      // Create meaningful filename for account request
+      const date = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
+      const typePrefix = requestType === 'new_account' ? 'NewAccounts' : 'UntagAccounts';
+      const safeBranchName = branchName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
+      const fileName = `VIA_${typePrefix}_${safeBranchName}_${date}.xlsx`;
+
+      const result = await googleDriveService.uploadFileFromRequest(
+        file.buffer,
+        fileName,
+        file.mimetype
+      );
+
+      res.json({
+        message: "File uploaded successfully",
+        fileId: result.fileId,
+        webViewLink: result.webViewLink,
+        downloadLink: result.downloadLink,
+        fileName: fileName
+      });
+    } catch (error) {
+      console.error("Error uploading file to Google Drive:", error);
+      res.status(500).json({ message: "Failed to upload file to Google Drive" });
+    }
+  });
+
+  // Object Storage Routes (Legacy - with Google Drive fallback)
   // Upload URL endpoint
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
@@ -1089,10 +1171,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if object storage is properly configured
       if (!process.env.PRIVATE_OBJECT_DIR) {
-        console.log("Object storage not configured, returning error");
-        return res.status(503).json({ 
-          error: "File upload not available", 
-          message: "Object storage is not configured. Please contact administrator." 
+        console.log("Object storage not configured, falling back to Google Drive approach");
+        return res.status(200).json({ 
+          useGoogleDrive: true,
+          message: "Using Google Drive for file uploads",
+          uploadEndpoint: "/api/drive/upload-images"
         });
       }
       
@@ -1104,9 +1187,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      res.status(503).json({ 
-        error: "File upload not available", 
-        message: "Object storage service is temporarily unavailable" 
+      console.log("Falling back to Google Drive approach");
+      res.status(200).json({ 
+        useGoogleDrive: true,
+        message: "Using Google Drive for file uploads",
+        uploadEndpoint: "/api/drive/upload-images"
       });
     }
   });
@@ -1742,6 +1827,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Object storage routes for account requests
   app.post("/api/account-requests/upload-url", isAuthenticated, async (req, res) => {
     try {
+      // Check if object storage is properly configured
+      if (!process.env.PRIVATE_OBJECT_DIR) {
+        console.log("Object storage not configured, using Google Drive for account requests");
+        return res.status(200).json({ 
+          useGoogleDrive: true,
+          message: "Using Google Drive for file uploads",
+          uploadEndpoint: "/api/drive/upload-file"
+        });
+      }
+
       const objectStorageService = new ObjectStorageService();
       const { requestType, branchName } = req.body;
       
@@ -1753,7 +1848,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Failed to get upload URL" });
+      console.log("Falling back to Google Drive for account requests");
+      res.status(200).json({ 
+        useGoogleDrive: true,
+        message: "Using Google Drive for file uploads",
+        uploadEndpoint: "/api/drive/upload-file"
+      });
     }
   });
 
