@@ -18,6 +18,11 @@ export class GoogleDriveService {
     // For this demo, we'll use a service account approach
     this.drive = google.drive({ version: 'v3' });
     this.folderId = process.env.GOOGLE_DRIVE_FOLDER_ID || 'root';
+    
+    // Log which Google account is being used
+    console.log('📁 Google Drive Service initialized');
+    console.log('📁 Using Google Client ID:', process.env.GOOGLE_CLIENT_ID?.substring(0, 20) + '...' || 'Not configured');
+    console.log('📁 Target folder ID:', this.folderId);
   }
 
   // Upload file to Google Drive using service account

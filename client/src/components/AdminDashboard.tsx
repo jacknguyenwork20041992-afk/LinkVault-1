@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { Book, FileText, Users, Bell, Plus, UserPlus, Upload, Clock, Eye, Palette } from "lucide-react";
+import { Book, FileText, Users, Bell, Plus, UserPlus, Upload, Clock, Eye, Palette, HardDrive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { formatDistanceToNow } from "date-fns";
@@ -62,6 +62,14 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
       color: "text-purple-500",
       testId: "button-manage-themes",
       action: () => onNavigateToView?.("theme-management")
+    },
+    {
+      title: "Upload Method",
+      description: "Cấu hình Google Drive / Cloud Storage",
+      icon: HardDrive,
+      color: "text-indigo-500",
+      testId: "button-upload-settings",
+      action: () => onNavigateToView?.("upload-settings")
     }
   ];
 
