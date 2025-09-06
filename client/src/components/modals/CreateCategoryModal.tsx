@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { insertCategorySchema, type InsertCategory, type Category, type Program } from "@shared/schema";
+import { insertCategorySchema, type InsertCategory, type Category, type Program } from "@/types";
 import { X } from "lucide-react";
 import {
   Dialog,

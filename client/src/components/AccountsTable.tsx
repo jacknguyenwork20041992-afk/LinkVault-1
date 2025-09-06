@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Pencil, Trash2, Plus, Key, Eye, EyeOff, ExternalLink, Search, Filter } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import type { Account, InsertAccount } from "@shared/schema";
+import type { Account, InsertAccount } from "@/types";
 
 export default function AccountsTable() {
   const { toast } = useToast();

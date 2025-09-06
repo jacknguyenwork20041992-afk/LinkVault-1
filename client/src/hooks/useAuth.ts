@@ -1,6 +1,6 @@
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
-import type { User } from "@shared/schema";
+import type { User } from "@/types";
 
 export function useAuth() {
   const { data: user, isLoading } = useQuery<User | null>({

@@ -10,7 +10,7 @@ import { apiRequest } from "@/lib/queryClient";
 import CreateProjectModal from "@/components/modals/CreateProjectModal";
 import EditProjectModal from "@/components/modals/EditProjectModal";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
-import type { Project } from "@shared/schema";
+import type { Project } from "@/types";
 
 export default function ProjectsManagement() {
   const { toast } = useToast();

@@ -16,7 +16,7 @@ import {
   Trash2,
   Plus
 } from "lucide-react";
-import type { ChatConversation, ChatMessage } from "@shared/schema";
+import type { ChatConversation, ChatMessage } from "@/types";
 
 interface ChatBotProps {
   isOpen: boolean;

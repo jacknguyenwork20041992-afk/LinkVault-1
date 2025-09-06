@@ -11,7 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import CreateUserModal from "@/components/modals/CreateUserModal";
 import EditUserModal from "@/components/modals/EditUserModal";
 import { apiRequest } from "@/lib/queryClient";
-import type { User as UserType } from "@shared/schema";
+import type { User as UserType } from "@/types";
 
 export default function UsersManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

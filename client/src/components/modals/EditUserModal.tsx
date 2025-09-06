@@ -5,7 +5,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { createUserSchema, type CreateUser, type User } from "@shared/schema";
+import { createUserSchema, type CreateUser, type User } from "@/types";
 import { z } from "zod";
 import {
   Dialog,

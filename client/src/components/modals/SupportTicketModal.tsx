@@ -4,7 +4,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { insertSupportTicketSchema, type InsertSupportTicket } from "@shared/schema";
+import { insertSupportTicketSchema, type InsertSupportTicket } from "@/types";
 import { X, Upload, FileImage, Calendar, MapPin, GraduationCap, FileText, Link } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { z } from "zod";

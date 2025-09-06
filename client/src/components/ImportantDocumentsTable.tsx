@@ -25,7 +25,7 @@ import { apiRequest, queryClient } from "@/lib/queryClient";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import type { ImportantDocument } from "@shared/schema";
+import type { ImportantDocument } from "@/types";
 
 const formSchema = z.object({
   title: z.string().min(1, "Tên tài liệu không được để trống"),

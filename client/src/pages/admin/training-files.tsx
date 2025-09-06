@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { FileText, Download, RotateCcw, Trash2, AlertCircle, CheckCircle, Clock, Upload } from "lucide-react";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
-import type { TrainingFile } from "@shared/schema";
+import type { TrainingFile } from "@/types";
 
 const statusConfig = {
   processing: {

@@ -5,7 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { insertDocumentSchema, documentLinkSchema, type InsertDocument, type Document, type Category, type Program } from "@shared/schema";
+import { insertDocumentSchema, documentLinkSchema, type InsertDocument, type Document, type Category, type Program } from "@/types";
 import { z } from "zod";
 import { X, Plus, Trash2 } from "lucide-react";
 import {

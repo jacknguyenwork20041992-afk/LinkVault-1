@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import CreateDocumentModal from "@/components/modals/CreateDocumentModal";
 import BulkCreateDocumentModal from "@/components/modals/BulkCreateDocumentModal";
 import { apiRequest } from "@/lib/queryClient";
-import type { Document, Category, Program } from "@shared/schema";
+import type { Document, Category, Program } from "@/types";
 
 export default function DocumentsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
