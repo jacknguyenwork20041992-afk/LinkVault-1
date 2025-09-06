@@ -1,4 +1,5 @@
 // Client-specific type definitions (no drizzle dependencies)
+import { z } from "zod";
 
 export interface User {
   id: string;
@@ -55,6 +56,11 @@ export interface SupportTicket {
   priority: string;
   userId: string;
   assignedTo?: string | null;
+  issueDate?: Date | null;
+  branch?: string | null;
+  classLevel?: string | null;
+  documentLink?: string | null;
+  imageUrls?: string[] | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
 }
@@ -116,6 +122,11 @@ export interface InsertSupportTicket {
   description: string;
   priority?: string;
   userId: string;
+  issueDate?: Date;
+  branch?: string;
+  classLevel?: string;
+  documentLink?: string;
+  imageUrls?: string[];
 }
 
 export interface InsertProgram {
@@ -208,52 +219,61 @@ export interface ChatMessage {
   createdAt?: Date | null;
 }
 
-// Form schemas (simplified)
-export const createUserSchema = {
-  email: { required: true },
-  firstName: { required: false },
-  lastName: { required: false },
-  password: { required: false },
-  role: { required: false, default: "user" },
-  authProvider: { required: false, default: "manual" }
-};
+// Form schemas (Zod)
 
-export const insertSupportTicketSchema = {
-  title: { required: true },
-  description: { required: true },
-  priority: { required: false, default: "medium" },
-  userId: { required: true }
-};
+export const createUserSchema = z.object({
+  email: z.string().email(),
+  firstName: z.string().optional(),
+  lastName: z.string().optional(),
+  password: z.string().optional(),
+  role: z.string().optional().default("user"),
+  authProvider: z.string().optional().default("manual")
+});
 
-export const insertProgramSchema = {
-  name: { required: true },
-  description: { required: false },
-  curriculum: { required: true },
-  ageRange: { required: true }
-};
+export const insertSupportTicketSchema = z.object({
+  title: z.string().min(1, "Tiêu đề là bắt buộc"),
+  description: z.string().min(1, "Mô tả là bắt buộc"),
+  priority: z.string().optional().default("medium"),
+  userId: z.string(),
+  issueDate: z.date().optional(),
+  branch: z.string().optional(),
+  classLevel: z.string().optional(),
+  documentLink: z.string().optional(),
+  imageUrls: z.array(z.string()).optional()
+});
 
-export const insertCategorySchema = {
-  name: { required: true },
-  description: { required: false },
-  programId: { required: false }
-};
+export const insertProgramSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  curriculum: z.string().min(1),
+  ageRange: z.string().min(1)
+});
 
-export const insertDocumentSchema = {
-  title: { required: true },
-  description: { required: false },
-  links: { required: true },
-  fileType: { required: false },
-  categoryId: { required: false },
-  programId: { required: false }
-};
+export const insertCategorySchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  programId: z.string().optional()
+});
 
-export const insertNotificationSchema = {
-  title: { required: true },
-  content: { required: true },
-  type: { required: true },
-  isGlobal: { required: false, default: false },
-  createdBy: { required: true }
-};
+export const insertDocumentSchema = z.object({
+  title: z.string().min(1),
+  description: z.string().optional(),
+  links: z.array(z.object({
+    url: z.string().url(),
+    description: z.string()
+  })),
+  fileType: z.string().optional(),
+  categoryId: z.string().optional(),
+  programId: z.string().optional()
+});
+
+export const insertNotificationSchema = z.object({
+  title: z.string().min(1),
+  content: z.string().min(1),
+  type: z.string().min(1),
+  isGlobal: z.boolean().optional().default(false),
+  createdBy: z.string().min(1)
+});
 
 // Bulk creation types
 export interface BulkCreateDocuments {
@@ -276,36 +296,47 @@ export interface BulkCreateCategories {
 }
 
 // Additional schemas
-export const bulkCreateDocumentsSchema = {
-  documents: { required: true },
-  categoryId: { required: false },
-  programId: { required: false }
-};
+export const bulkCreateDocumentsSchema = z.object({
+  documents: z.array(z.object({
+    title: z.string().min(1),
+    description: z.string().optional(),
+    links: z.array(z.object({
+      url: z.string().url(),
+      description: z.string()
+    })),
+    fileType: z.string().optional()
+  })),
+  categoryId: z.string().optional(),
+  programId: z.string().optional()
+});
 
-export const bulkCreateCategoriesSchema = {
-  categories: { required: true },
-  programId: { required: false }
-};
+export const bulkCreateCategoriesSchema = z.object({
+  categories: z.array(z.object({
+    name: z.string().min(1),
+    description: z.string().optional()
+  })),
+  programId: z.string().optional()
+});
 
-export const documentLinkSchema = {
-  url: { required: true },
-  description: { required: true }
-};
+export const documentLinkSchema = z.object({
+  url: z.string().url(),
+  description: z.string().min(1)
+});
 
-export const insertProjectSchema = {
-  name: { required: true },
-  description: { required: false },
-  status: { required: false, default: "planning" },
-  priority: { required: false, default: "medium" },
-  dueDate: { required: false },
-  assignedTo: { required: false },
-  createdBy: { required: true }
-};
+export const insertProjectSchema = z.object({
+  name: z.string().min(1),
+  description: z.string().optional(),
+  status: z.string().optional().default("planning"),
+  priority: z.string().optional().default("medium"),
+  dueDate: z.date().optional(),
+  assignedTo: z.string().optional(),
+  createdBy: z.string().min(1)
+});
 
-export const insertAccountSchema = {
-  name: { required: true },
-  type: { required: true },
-  balance: { required: false, default: 0 },
-  currency: { required: false, default: "VND" },
-  isActive: { required: false, default: true }
-};
+export const insertAccountSchema = z.object({
+  name: z.string().min(1),
+  type: z.string().min(1),
+  balance: z.number().optional().default(0),
+  currency: z.string().optional().default("VND"),
+  isActive: z.boolean().optional().default(true)
+});
