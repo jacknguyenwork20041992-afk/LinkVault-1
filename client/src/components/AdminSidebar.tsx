@@ -17,8 +17,7 @@ import {
   Upload,
   HelpCircle,
   UserPlus,
-  Palette,
-  HardDrive
+  Palette
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -100,7 +99,6 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "users", label: "Người dùng", icon: Users },
         { id: "notifications", label: "Thông báo", icon: Bell },
         { id: "theme-management", label: "Quản lý giao diện", icon: Palette },
-        { id: "upload-settings", label: "Upload Settings", icon: HardDrive },
       ]
     }
   ];

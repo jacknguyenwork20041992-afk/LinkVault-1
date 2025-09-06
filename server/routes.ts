@@ -31,7 +31,6 @@ import { chatWithAI } from "./openai";
 import { chatWithGeminiAI } from "./gemini";
 import { TextExtractor } from "./textExtractor";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
-import { googleDriveService } from "./googleDriveService";
 import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
@@ -85,36 +84,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
-  // Handle Google Drive image proxy first
-  app.get("/api/support-images/drive_file_:fileId", (req, res) => {
-    const fileId = 'drive_file_' + req.params.fileId;
-    console.log("🖼️ GOOGLE DRIVE IMAGE REQUEST:", fileId);
-    
-    const svg = `
-      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#f0f0f0"/>
-        <text x="50%" y="40%" text-anchor="middle" fill="#666" font-family="Arial" font-size="16">
-          📁 Google Drive File
-        </text>
-        <text x="50%" y="60%" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">
-          ID: ${fileId.substring(0, 20)}...
-        </text>
-        <text x="50%" y="75%" text-anchor="middle" fill="#999" font-family="Arial" font-size="10">
-          (Development Mode)
-        </text>
-      </svg>
-    `;
-    
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.send(svg);
-  });
-
-  // Serve support ticket images via API endpoint  
+  // Serve support ticket images via API endpoint
   app.get("/api/support-images/:imageId", isAuthenticated, async (req, res) => {
-    const { imageId } = req.params;
-    console.log("🖼️ REGULAR IMAGE REQUEST:", imageId);
-    
+    console.log("🖼️ IMAGE REQUEST:", req.params.imageId);
     try {
       const objectStorageService = new ObjectStorageService();
       const imagePath = `/objects/uploads/${req.params.imageId}`;
@@ -1109,137 +1081,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Google Drive Upload Routes (New approach)
-  // Configure multer for memory storage
-  const memoryUpload = multer({ 
-    storage: multer.memoryStorage(),
-    limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
-  });
-
-  // Upload multiple images to Google Drive (for support tickets)
-  app.post("/api/drive/upload-images", isAuthenticated, memoryUpload.array('images', 5), async (req, res) => {
-    try {
-      const files = req.files as Express.Multer.File[];
-      if (!files || files.length === 0) {
-        return res.status(400).json({ message: "No files uploaded" });
-      }
-
-      const uploadResults = [];
-      for (const file of files) {
-        // Validate file type
-        if (!file.mimetype.startsWith('image/')) {
-          return res.status(400).json({ message: `File ${file.originalname} is not an image` });
-        }
-
-        const result = await googleDriveService.uploadFileFromRequest(
-          file.buffer,
-          `support_image_${Date.now()}_${file.originalname}`,
-          file.mimetype
-        );
-        
-        uploadResults.push({
-          originalName: file.originalname,
-          fileId: result.fileId,
-          webViewLink: result.webViewLink,
-          downloadLink: result.downloadLink
-        });
-      }
-
-      res.json({ 
-        message: "Images uploaded successfully",
-        files: uploadResults 
-      });
-    } catch (error) {
-      console.error("Error uploading images to Google Drive:", error);
-      res.status(500).json({ message: "Failed to upload images to Google Drive" });
-    }
-  });
-
-  // Upload single file to Google Drive (for account requests)
-  app.post("/api/drive/upload-file", isAuthenticated, memoryUpload.single('file'), async (req, res) => {
-    try {
-      const file = req.file;
-      if (!file) {
-        return res.status(400).json({ message: "No file uploaded" });
-      }
-
-      const { requestType, branchName } = req.body;
-      
-      // Create meaningful filename for account request
-      const date = new Date().toISOString().slice(0, 10).replace(/-/g, ''); // YYYYMMDD
-      const typePrefix = requestType === 'new_account' ? 'NewAccounts' : 'UntagAccounts';
-      const safeBranchName = branchName?.replace(/[^a-zA-Z0-9]/g, '_') || 'Unknown';
-      const fileName = `VIA_${typePrefix}_${safeBranchName}_${date}.xlsx`;
-
-      const result = await googleDriveService.uploadFileFromRequest(
-        file.buffer,
-        fileName,
-        file.mimetype
-      );
-
-      res.json({
-        message: "File uploaded successfully",
-        fileId: result.fileId,
-        webViewLink: result.webViewLink,
-        downloadLink: result.downloadLink,
-        fileName: fileName
-      });
-    } catch (error) {
-      console.error("Error uploading file to Google Drive:", error);
-      res.status(500).json({ message: "Failed to upload file to Google Drive" });
-    }
-  });
-
-  // Admin route to get Google Drive info
-  app.get("/api/admin/google-drive-info", isAuthenticated, isAdmin, (req, res) => {
-    const clientId = process.env.GOOGLE_CLIENT_ID;
-    const hasGoogleDrive = !!(clientId && process.env.GOOGLE_CLIENT_SECRET);
-    
-    // Check if Google Drive is being used (either no object storage config or explicitly disabled)
-    const isUsingGoogleDrive = !process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true';
-    
-    res.json({
-      isConfigured: hasGoogleDrive,
-      clientId: clientId ? clientId.substring(0, 20) + '...' : 'Not configured',
-      driveAccount: clientId ? 'Tài khoản liên kết với Google OAuth Client ID' : 'Chưa cấu hình',
-      folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'root (Google Drive gốc)',
-      currentUploadMethod: isUsingGoogleDrive ? 'Google Drive' : 'Google Cloud Storage'
-    });
-  });
-
-  // Admin route to toggle upload method
-  app.post("/api/admin/toggle-upload-method", isAuthenticated, isAdmin, (req, res) => {
-    const { useGoogleDrive } = req.body;
-    
-    // This is a temporary toggle - in production you'd want to store this in database
-    if (useGoogleDrive) {
-      // Temporarily disable object storage to force Google Drive
-      process.env.TEMP_DISABLE_OBJECT_STORAGE = 'true';
-      console.log('🔄 Switched to Google Drive upload method');
-    } else {
-      delete process.env.TEMP_DISABLE_OBJECT_STORAGE;
-      console.log('🔄 Switched to Google Cloud Storage upload method');
-    }
-    
-    res.json({ 
-      success: true, 
-      currentMethod: useGoogleDrive ? 'Google Drive' : 'Google Cloud Storage' 
-    });
-  });
-
-  // Object Storage Routes (Legacy - with Google Drive fallback)
+  // Object Storage Routes
   // Upload URL endpoint
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("Getting upload URL for object storage...");
       
-      // Check if object storage is properly configured or temporarily disabled
-      if (!process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true') {
-        console.log("📁 Using Google Drive for file uploads (object storage disabled)");
-        return res.status(200).json({ 
-          useGoogleDrive: true,
-          message: "Using Google Drive for file uploads",
-          uploadEndpoint: "/api/drive/upload-images"
+      // Check if object storage is properly configured
+      if (!process.env.PRIVATE_OBJECT_DIR) {
+        console.log("Object storage not configured, returning error");
+        return res.status(503).json({ 
+          error: "File upload not available", 
+          message: "Object storage is not configured. Please contact administrator." 
         });
       }
       
@@ -1251,11 +1104,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      console.log("📁 Falling back to Google Drive approach");
-      res.status(200).json({ 
-        useGoogleDrive: true,
-        message: "Using Google Drive for file uploads",
-        uploadEndpoint: "/api/drive/upload-images"
+      res.status(503).json({ 
+        error: "File upload not available", 
+        message: "Object storage service is temporarily unavailable" 
       });
     }
   });
@@ -1891,16 +1742,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Object storage routes for account requests
   app.post("/api/account-requests/upload-url", isAuthenticated, async (req, res) => {
     try {
-      // Check if object storage is properly configured or temporarily disabled
-      if (!process.env.PRIVATE_OBJECT_DIR || process.env.TEMP_DISABLE_OBJECT_STORAGE === 'true') {
-        console.log("📁 Using Google Drive for account request uploads");
-        return res.status(200).json({ 
-          useGoogleDrive: true,
-          message: "Using Google Drive for file uploads",
-          uploadEndpoint: "/api/drive/upload-file"
-        });
-      }
-
       const objectStorageService = new ObjectStorageService();
       const { requestType, branchName } = req.body;
       
@@ -1912,12 +1753,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ uploadURL });
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      console.log("📁 Falling back to Google Drive for account requests");
-      res.status(200).json({ 
-        useGoogleDrive: true,
-        message: "Using Google Drive for file uploads",
-        uploadEndpoint: "/api/drive/upload-file"
-      });
+      res.status(500).json({ error: "Failed to get upload URL" });
     }
   });
 
@@ -2361,31 +2197,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error creating theme:", error);
       res.status(500).json({ message: "Lỗi khi tạo giao diện" });
     }
-  });
-
-  // Development image proxy for mock Google Drive URLs
-  app.get('/api/image-proxy/:fileId', (req, res) => {
-    const { fileId } = req.params;
-    
-    // For development, return a placeholder image
-    const svg = `
-      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-        <rect width="100%" height="100%" fill="#f0f0f0"/>
-        <text x="50%" y="40%" text-anchor="middle" fill="#666" font-family="Arial" font-size="16">
-          📁 Google Drive File
-        </text>
-        <text x="50%" y="60%" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">
-          ID: ${fileId.substring(0, 20)}...
-        </text>
-        <text x="50%" y="75%" text-anchor="middle" fill="#999" font-family="Arial" font-size="10">
-          (Development Mode)
-        </text>
-      </svg>
-    `;
-    
-    res.setHeader('Content-Type', 'image/svg+xml');
-    res.setHeader('Cache-Control', 'public, max-age=3600');
-    res.send(svg);
   });
 
   const httpServer = createServer(app);
