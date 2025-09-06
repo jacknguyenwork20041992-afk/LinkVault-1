@@ -36,8 +36,8 @@ export class GoogleDriveService {
       // For now, return a mock URL since we need proper service account setup
       // This will be replaced with actual Google Drive upload
       const mockFileId = 'drive_file_' + Date.now();
-      // Use absolute URL to avoid any path issues
-      const mockUrl = `http://localhost:5000/api/image-proxy/${mockFileId}`;
+      // Use support-images endpoint for consistency
+      const mockUrl = `/api/support-images/${mockFileId}`;
       
       console.log(`Mock upload to Google Drive: ${fileName} (${mimeType})`);
       return mockUrl;
@@ -61,8 +61,8 @@ export class GoogleDriveService {
   // Get shareable link for file
   async getFileLink(fileId: string): Promise<string> {
     try {
-      // Return absolute URL for development
-      return `http://localhost:5000/api/image-proxy/${fileId}`;
+      // Return support-images URL for consistency
+      return `/api/support-images/${fileId}`;
     } catch (error) {
       console.error('Error getting file link from Google Drive:', error);
       throw new Error('Failed to get file link from Google Drive');
@@ -78,9 +78,9 @@ export class GoogleDriveService {
     try {
       // Mock implementation for now
       const fileId = 'drive_file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      // Use absolute URLs to avoid any path issues
-      const webViewLink = `http://localhost:5000/api/image-proxy/${fileId}`;
-      const downloadLink = `http://localhost:5000/api/image-proxy/${fileId}`;
+      // Use support-images endpoint for consistency with frontend
+      const webViewLink = `/api/support-images/${fileId}`;
+      const downloadLink = `/api/support-images/${fileId}`;
       
       console.log(`Mock upload to Google Drive: ${fileName} (${mimeType}), size: ${file.length} bytes`);
       
