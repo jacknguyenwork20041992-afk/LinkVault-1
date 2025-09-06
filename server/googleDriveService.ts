@@ -36,7 +36,8 @@ export class GoogleDriveService {
       // For now, return a mock URL since we need proper service account setup
       // This will be replaced with actual Google Drive upload
       const mockFileId = 'drive_file_' + Date.now();
-      const mockUrl = `https://drive.google.com/file/d/${mockFileId}/view`;
+      // Use direct view URL that can be embedded in img tags
+      const mockUrl = `https://drive.google.com/uc?export=view&id=${mockFileId}`;
       
       console.log(`Mock upload to Google Drive: ${fileName} (${mimeType})`);
       return mockUrl;
@@ -60,7 +61,8 @@ export class GoogleDriveService {
   // Get shareable link for file
   async getFileLink(fileId: string): Promise<string> {
     try {
-      return `https://drive.google.com/file/d/${fileId}/view`;
+      // Return direct view URL that can be embedded
+      return `https://drive.google.com/uc?export=view&id=${fileId}`;
     } catch (error) {
       console.error('Error getting file link from Google Drive:', error);
       throw new Error('Failed to get file link from Google Drive');
@@ -76,7 +78,8 @@ export class GoogleDriveService {
     try {
       // Mock implementation for now
       const fileId = 'drive_file_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-      const webViewLink = `https://drive.google.com/file/d/${fileId}/view`;
+      // Use direct view URLs that can be embedded in img tags
+      const webViewLink = `https://drive.google.com/uc?export=view&id=${fileId}`;
       const downloadLink = `https://drive.google.com/uc?id=${fileId}&export=download`;
       
       console.log(`Mock upload to Google Drive: ${fileName} (${mimeType}), size: ${file.length} bytes`);
