@@ -2,18 +2,6 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": [
-          "server/**",
-          "shared/**",
-          "public/**",
-          "client/dist/**"
-        ]
-      }
-    },
-    {
       "src": "client/**",
       "use": "@vercel/static-build",
       "config": {
@@ -23,23 +11,13 @@
   ],
   "routes": [
     {
-      "src": "/api/(.*)",
-      "dest": "/server/index.ts"
-    },
-    {
       "src": "/(.*)",
       "dest": "/client/dist/$1"
     }
   ],
   "outputDirectory": "client/dist",
-  "installCommand": "npm install",
-  "buildCommand": "npm run build",
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30
-    }
-  },
+  "buildCommand": "cd client && npm install && npm run build",
   "env": {
-    "NODE_ENV": "production"
+    "VITE_API_URL": "https://your-backend-url.onrender.com"
   }
 }
