@@ -1,5 +1,6 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
+import cors from "cors";
 import { registerRoutes } from "./routes";
 
 // Simple logging function for production
@@ -14,6 +15,20 @@ function log(message: string, source = "express") {
 }
 
 const app = express();
+
+// CORS configuration - Cho phép frontend kết nối
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'http://localhost:5173',  // Dev frontend
+      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
+    ];
+
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,  // Cho phép gửi cookies
+}));
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
