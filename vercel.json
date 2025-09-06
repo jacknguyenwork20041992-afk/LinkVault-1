@@ -1,23 +1,6 @@
 {
   "version": 2,
-  "builds": [
-    {
-      "src": "client/**",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "client/dist"
-      }
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "/client/dist/$1"
-    }
-  ],
-  "outputDirectory": "client/dist",
   "buildCommand": "cd client && npm install && npm run build",
-  "env": {
-    "VITE_API_URL": "https://your-backend-url.onrender.com"
-  }
+  "outputDirectory": "client/dist",
+  "installCommand": "cd client && npm install"
 }
