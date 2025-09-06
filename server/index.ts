@@ -1,7 +1,17 @@
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
-import { setupVite, serveStatic, log } from "./vite";
+
+// Simple logging function for production
+function log(message: string, source = "express") {
+  const formattedTime = new Date().toLocaleTimeString("en-US", {
+    hour: "numeric",
+    minute: "2-digit", 
+    second: "2-digit",
+    hour12: true,
+  });
+  console.log(`${formattedTime} [${source}] ${message}`);
+}
 
 const app = express();
 app.use(express.json());
@@ -52,14 +62,24 @@ app.use((req, res, next) => {
       res.status(status).json({ message });
     });
 
-    // importantly only setup vite in development and after
-    // setting up all the other routes so the catch-all route
-    // doesn't interfere with the other routes
-    if (app.get("env") === "development") {
-      await setupVite(app, server);
-    } else {
-      serveStatic(app);
+    // Only setup vite in development
+    if (process.env.NODE_ENV === "development") {
+      try {
+        const { setupVite } = await import("./vite");
+        await setupVite(app, server);
+      } catch (e) {
+        console.warn("Failed to setup Vite:", e);
+      }
     }
+    
+    // In production, add a basic health check
+    app.get("/api/health", (_req, res) => {
+      res.json({ 
+        status: "ok", 
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV 
+      });
+    });
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
@@ -90,8 +110,7 @@ app.use((req, res, next) => {
           });
         });
         
-        // Serve static files in production as fallback
-        serveStatic(app);
+        // Basic fallback for production
         
         app.listen(port, "0.0.0.0", () => {
           log(`⚠️  serving fallback server on port ${port} (initialization failed)`);
