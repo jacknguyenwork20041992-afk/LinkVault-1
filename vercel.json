@@ -1,3 +1,17 @@
 {
-  "version": 2
+  "version": 2,
+  "functions": {
+    "app/**/*.{js,ts,jsx,tsx}": {
+      "maxDuration": 30
+    }
+  },
+  "builds": [
+    {
+      "src": "client/package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ]
 }
