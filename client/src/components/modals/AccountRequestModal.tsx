@@ -176,7 +176,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     setFileUploading(true);
     
     try {
-      // Get upload method from backend
+      // Get upload URL with meaningful name
       const formValues = form.getValues();
       const response = await fetch("/api/account-requests/upload-url", {
         method: "POST",
@@ -194,67 +194,31 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
       }
       
       const data = await response.json();
+      const uploadURL = data.uploadURL;
       
-      // Check if we should use Google Drive
-      if (data.useGoogleDrive) {
-        console.log("Using Google Drive for file upload...");
-        
-        // Create FormData for file upload
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('requestType', formValues.requestType);
-        formData.append('branchName', formValues.branchName);
-        
-        // Upload to Google Drive
-        const driveUploadResponse = await fetch("/api/drive/upload-file", {
-          method: "POST",
-          body: formData,
-        });
-        
-        if (!driveUploadResponse.ok) {
-          const errorText = await driveUploadResponse.text();
-          console.error("Google Drive upload failed:", errorText);
-          throw new Error(`Failed to upload file to Google Drive: ${driveUploadResponse.status}`);
-        }
-        
-        const driveResult = await driveUploadResponse.json();
+      if (!uploadURL) {
+        throw new Error('No upload URL received from server');
+      }
+      
+      // Upload file
+      const uploadResponse = await fetch(uploadURL, {
+        method: 'PUT',
+        body: file,
+        headers: {
+          'Content-Type': file.type,
+        },
+      });
+      
+      if (uploadResponse.ok) {
         setUploadedFile(file);
-        setUploadedFileUrl(driveResult.webViewLink);
+        setUploadedFileUrl(uploadURL);
         
         toast({
           title: "Thành công",
-          description: "File đã được upload thành công lên Google Drive",
+          description: "File đã được upload thành công",
         });
-        
       } else {
-        // Use traditional object storage approach
-        console.log("Using object storage for file upload...");
-        const uploadURL = data.uploadURL;
-        
-        if (!uploadURL) {
-          throw new Error('No upload URL received from server');
-        }
-        
-        // Upload file to object storage
-        const uploadResponse = await fetch(uploadURL, {
-          method: 'PUT',
-          body: file,
-          headers: {
-            'Content-Type': file.type,
-          },
-        });
-        
-        if (uploadResponse.ok) {
-          setUploadedFile(file);
-          setUploadedFileUrl(uploadURL);
-          
-          toast({
-            title: "Thành công",
-            description: "File đã được upload thành công",
-          });
-        } else {
-          throw new Error(`Upload failed with status: ${uploadResponse.status}`);
-        }
+        throw new Error(`Upload failed with status: ${uploadResponse.status}`);
       }
     } catch (error) {
       console.error('Upload error:', error);

@@ -18,7 +18,6 @@ import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
 import ThemeManagement from "@/components/ThemeManagement";
-import UploadMethodManager from "@/components/admin/UploadMethodManager";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -150,8 +149,6 @@ export default function Admin() {
         return <AccountRequestsManagement />;
       case "theme-management":
         return <ThemeManagement />;
-      case "upload-settings":
-        return <UploadMethodManager />;
       default:
         return <AdminDashboard onNavigateToView={setActiveView} />;
     }
