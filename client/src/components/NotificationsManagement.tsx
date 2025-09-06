@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import CreateNotificationModal from "@/components/modals/CreateNotificationModal";
 import { apiRequest } from "@/lib/queryClient";
-import type { Notification } from "@shared/schema";
+import type { Notification } from "@/types";
 
 interface NotificationsManagementProps {
   onViewChange?: (view: string) => void;

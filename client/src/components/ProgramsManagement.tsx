@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import CreateProgramModal from "@/components/modals/CreateProgramModal";
 import { apiRequest } from "@/lib/queryClient";
-import type { Program } from "@shared/schema";
+import type { Program } from "@/types";
 
 export default function ProgramsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

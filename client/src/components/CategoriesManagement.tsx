@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import CreateCategoryModal from "@/components/modals/CreateCategoryModal";
 import BulkCreateCategoryModal from "@/components/modals/BulkCreateCategoryModal";
 import { apiRequest } from "@/lib/queryClient";
-import type { Category, Program } from "@shared/schema";
+import type { Category, Program } from "@/types";
 
 export default function CategoriesManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);

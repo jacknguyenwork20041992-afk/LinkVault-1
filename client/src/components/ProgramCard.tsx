@@ -2,7 +2,7 @@ import { ArrowRight, Book } from "lucide-react";
 import { Link } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import type { Program } from "@shared/schema";
+import type { Program } from "@/types";
 
 interface ProgramCardProps {
   program: Program;

@@ -29,7 +29,7 @@ import {
   X
 } from "lucide-react";
 import FloatingSupportButton from "@/components/FloatingSupportButton";
-import type { SupportTicket } from "@shared/schema";
+import type { SupportTicket } from "@/types";
 
 // Ticket Card Component
 interface TicketCardProps {

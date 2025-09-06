@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import type { User } from "@shared/schema";
+import type { User } from "@/types";
 
 interface AdminSidebarProps {
   activeView: string;
