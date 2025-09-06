@@ -54,10 +54,9 @@ export class ObjectStorageService {
       )
     );
     if (paths.length === 0) {
-      throw new Error(
-        "PUBLIC_OBJECT_SEARCH_PATHS not set. Create a bucket in 'Object Storage' " +
-          "tool and set PUBLIC_OBJECT_SEARCH_PATHS env var (comma-separated paths)."
-      );
+      console.warn("⚠️  PUBLIC_OBJECT_SEARCH_PATHS not set. Public object search will not be available.");
+      console.warn("   Create a bucket in 'Object Storage' tool and set PUBLIC_OBJECT_SEARCH_PATHS env var.");
+      return []; // Return empty array instead of throwing
     }
     return paths;
   }
@@ -66,10 +65,9 @@ export class ObjectStorageService {
   getPrivateObjectDir(): string {
     const dir = process.env.PRIVATE_OBJECT_DIR || "";
     if (!dir) {
-      throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
-      );
+      // Return a default directory instead of throwing an error
+      console.warn("PRIVATE_OBJECT_DIR not set, using default directory");
+      return "/default-bucket/uploads";
     }
     return dir;
   }
@@ -104,10 +102,24 @@ export class ObjectStorageService {
       const aclPolicy = await getObjectAclPolicy(file);
       const isPublic = aclPolicy?.visibility === "public";
       
+      // Extract meaningful filename from object path
+      const objectName = file.name;
+      let downloadFilename = objectName.split('/').pop() || 'download';
+      
+      // If filename looks like UUID, try to create meaningful name
+      if (downloadFilename.match(/^[0-9a-f-]{36}/i)) {
+        // For account request files, create meaningful name from current date
+        if (objectName.includes('uploads/')) {
+          const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+          downloadFilename = `DanhSach_HocVien_${date}.xlsx`;
+        }
+      }
+      
       // Set appropriate headers
       res.set({
         "Content-Type": metadata.contentType || "application/octet-stream",
         "Content-Length": metadata.size,
+        "Content-Disposition": `attachment; filename="${encodeURIComponent(downloadFilename)}"`,
         "Cache-Control": `${
           isPublic ? "public" : "private"
         }, max-age=${cacheTtlSec}`,
@@ -137,10 +149,11 @@ export class ObjectStorageService {
     console.log("Starting getObjectEntityUploadURL...");
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
-    if (!privateObjectDir) {
+    if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
+      console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
+      console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
       throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
+        "Object storage not configured. Please contact administrator to set up object storage."
       );
     }
 
@@ -167,10 +180,11 @@ export class ObjectStorageService {
     console.log("Starting getObjectEntityUploadURLWithName...");
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
-    if (!privateObjectDir) {
+    if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
+      console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
+      console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
       throw new Error(
-        "PRIVATE_OBJECT_DIR not set. Create a bucket in 'Object Storage' " +
-          "tool and set PRIVATE_OBJECT_DIR env var."
+        "Object storage not configured. Please contact administrator to set up object storage."
       );
     }
 

@@ -4,6 +4,13 @@ import type { Express } from "express";
 import { storage } from "./storage";
 
 export function setupGoogleAuth(app: Express) {
+  // Skip Google Auth setup if credentials are not available
+  if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET || 
+      process.env.GOOGLE_CLIENT_ID === 'optional' || process.env.GOOGLE_CLIENT_SECRET === 'optional') {
+    console.log('Google OAuth credentials not configured, skipping Google auth setup');
+    return;
+  }
+
   // Get the base URL for callback
   const getCallbackURL = (req: any) => {
     const protocol = req.headers['x-forwarded-proto'] || req.protocol || 'https';

@@ -144,6 +144,23 @@ export default function SupportTicketModal({
             
             // Get upload URL from backend
             const uploadResponse = await apiRequest("POST", "/api/objects/upload");
+            
+            // Check if object storage is available
+            if (uploadResponse.status === 503) {
+              console.warn("Object storage not available, proceeding without images");
+              // Show warning to user but continue
+              toast({
+                title: "Thông báo",
+                description: "Không thể tải hình ảnh lên. Yêu cầu sẽ được gửi mà không có hình ảnh.",
+              });
+              break; // Skip image upload
+            }
+            
+            if (!uploadResponse.ok) {
+              console.error("Failed to get upload URL:", uploadResponse.status);
+              throw new Error(`Failed to get upload URL: ${uploadResponse.status}`);
+            }
+            
             const responseData = await uploadResponse.json();
             const { uploadURL } = responseData;
             
@@ -167,9 +184,17 @@ export default function SupportTicketModal({
             imageUrls.push(imageUrl);
             console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
           }
-        } catch (error) {
+        } catch (error: unknown) {
           console.error("Error uploading images:", error);
-          throw error;
+          
+          // Only throw error for critical failures, not for object storage unavailability
+          const errorMessage = error instanceof Error ? error.message : String(error);
+          if (errorMessage.includes("503") || errorMessage.includes("Object storage not configured")) {
+            // Object storage unavailable - continue without images
+            console.warn("Continuing without image upload due to service unavailability");
+          } else {
+            throw error;
+          }
         }
       }
       

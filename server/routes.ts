@@ -1086,6 +1086,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
     try {
       console.log("Getting upload URL for object storage...");
+      
+      // Check if object storage is properly configured
+      if (!process.env.PRIVATE_OBJECT_DIR) {
+        console.log("Object storage not configured, returning error");
+        return res.status(503).json({ 
+          error: "File upload not available", 
+          message: "Object storage is not configured. Please contact administrator." 
+        });
+      }
+      
       const objectStorageService = new ObjectStorageService();
       const uploadURL = await objectStorageService.getObjectEntityUploadURL();
       console.log("Upload URL generated:", uploadURL);
@@ -1094,7 +1104,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error getting upload URL:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(503).json({ 
+        error: "File upload not available", 
+        message: "Object storage service is temporarily unavailable" 
+      });
     }
   });
 
@@ -1142,7 +1155,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             extractedContent: extractedText.content,
             status: "completed",
             metadata: {
-              ...trainingFile.metadata,
+              ...(trainingFile.metadata || {}),
               extractionMetadata: extractedText.metadata,
               processedAt: new Date().toISOString(),
             },
@@ -1157,7 +1170,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Auto-converted training file to knowledge article: ${knowledgeArticle.title}`);
             }
           } catch (conversionError) {
-            console.log(`Note: Could not auto-convert to knowledge base: ${conversionError.message}`);
+            const errorMessage = conversionError instanceof Error ? conversionError.message : 'Unknown error';
+            console.log(`Note: Could not auto-convert to knowledge base: ${errorMessage}`);
             // Don't fail the whole process, just log the conversion error
           }
         } catch (error) {
@@ -1167,8 +1181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateTrainingFile(trainingFile.id, {
             status: "failed",
             metadata: {
-              ...trainingFile.metadata,
-              error: error.message,
+              ...(trainingFile.metadata || {}),
+              error: error instanceof Error ? error.message : 'Unknown error',
               failedAt: new Date().toISOString(),
             },
           });
@@ -1465,21 +1479,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const ticket = await storage.createSupportTicket(ticketData);
       
-      // Set ACL policy for uploaded image if exists
-      if (ticketData.imageUrl) {
-        try {
-          const objectStorageService = new ObjectStorageService();
-          await objectStorageService.trySetObjectEntityAclPolicy(
-            ticketData.imageUrl,
-            {
-              owner: user.id,
-              visibility: "private", // Support ticket images should be private
-              aclRules: []
-            }
-          );
-        } catch (error) {
-          console.error("Error setting ACL policy for image:", error);
-          // Don't fail the ticket creation if ACL setting fails
+      // Set ACL policy for uploaded images if they exist
+      if (ticketData.imageUrls && Array.isArray(ticketData.imageUrls)) {
+        for (const imageUrl of ticketData.imageUrls) {
+          try {
+            const objectStorageService = new ObjectStorageService();
+            await objectStorageService.trySetObjectEntityAclPolicy(
+              imageUrl,
+              {
+                owner: user.id,
+                visibility: "private", // Support ticket images should be private
+                aclRules: []
+              }
+            );
+          } catch (error) {
+            console.error("Error setting ACL policy for image:", error);
+            // Don't fail the ticket creation if ACL setting fails
+          }
         }
       }
       

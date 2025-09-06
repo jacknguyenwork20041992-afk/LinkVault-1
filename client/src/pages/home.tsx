@@ -41,6 +41,9 @@ export default function Home() {
   const { data: notifications = [] } = useQuery<any[]>({
     queryKey: ["/api/notifications/unread"],
     retry: false,
+    refetchInterval: 15000, // Auto-refresh every 15 seconds for real-time notifications
+    refetchOnWindowFocus: true, // Refresh when user switches back to tab
+    refetchIntervalInBackground: true, // Continue refreshing to catch admin responses
   });
 
   const { data: programs = [] } = useQuery<any[]>({
