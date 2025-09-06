@@ -85,37 +85,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   setupLocalAuth(app);
   setupGoogleAuth(app);
 
-  // Serve support ticket images via API endpoint
-  app.get("/api/support-images/:imageId?", isAuthenticated, async (req, res) => {
+  // Handle Google Drive image proxy first
+  app.get("/api/support-images/drive_file_:fileId", (req, res) => {
+    const fileId = 'drive_file_' + req.params.fileId;
+    console.log("🖼️ GOOGLE DRIVE IMAGE REQUEST:", fileId);
+    
+    const svg = `
+      <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
+        <rect width="100%" height="100%" fill="#f0f0f0"/>
+        <text x="50%" y="40%" text-anchor="middle" fill="#666" font-family="Arial" font-size="16">
+          📁 Google Drive File
+        </text>
+        <text x="50%" y="60%" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">
+          ID: ${fileId.substring(0, 20)}...
+        </text>
+        <text x="50%" y="75%" text-anchor="middle" fill="#999" font-family="Arial" font-size="10">
+          (Development Mode)
+        </text>
+      </svg>
+    `;
+    
+    res.setHeader('Content-Type', 'image/svg+xml');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.send(svg);
+  });
+
+  // Serve support ticket images via API endpoint  
+  app.get("/api/support-images/:imageId", isAuthenticated, async (req, res) => {
     const { imageId } = req.params;
-    console.log("🖼️ IMAGE REQUEST:", imageId);
-    
-    // If no imageId, return error
-    if (!imageId) {
-      return res.status(404).json({ message: "Image not found" });
-    }
-    
-    // If it's a Google Drive proxy request, handle it here
-    if (imageId.startsWith('drive_file_')) {
-      const svg = `
-        <svg width="400" height="300" xmlns="http://www.w3.org/2000/svg">
-          <rect width="100%" height="100%" fill="#f0f0f0"/>
-          <text x="50%" y="40%" text-anchor="middle" fill="#666" font-family="Arial" font-size="16">
-            📁 Google Drive File
-          </text>
-          <text x="50%" y="60%" text-anchor="middle" fill="#999" font-family="Arial" font-size="12">
-            ID: ${imageId.substring(0, 20)}...
-          </text>
-          <text x="50%" y="75%" text-anchor="middle" fill="#999" font-family="Arial" font-size="10">
-            (Development Mode)
-          </text>
-        </svg>
-      `;
-      
-      res.setHeader('Content-Type', 'image/svg+xml');
-      res.setHeader('Cache-Control', 'public, max-age=3600');
-      return res.send(svg);
-    }
+    console.log("🖼️ REGULAR IMAGE REQUEST:", imageId);
     
     try {
       const objectStorageService = new ObjectStorageService();
