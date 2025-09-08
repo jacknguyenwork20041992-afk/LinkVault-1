@@ -62,7 +62,11 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
   });
 
   const onSubmit = (data: InsertProject) => {
+    console.log("🚀 onSubmit called with data:", data);
+    console.log("📅 Selected date:", date);
+    
     if (!date) {
+      console.log("❌ No date selected");
       toast({
         title: "Lỗi",
         description: "Vui lòng chọn ngày deadline",
@@ -71,10 +75,12 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
       return;
     }
     
-    createProjectMutation.mutate({
+    const submissionData = {
       ...data,
       deadline: date,
-    });
+    };
+    console.log("📤 Submitting data:", submissionData);
+    createProjectMutation.mutate(submissionData);
   };
 
   return (
@@ -88,7 +94,14 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit, (errors) => {
+            console.log("❌ Form validation errors:", errors);
+            toast({
+              title: "Lỗi validation",
+              description: "Vui lòng kiểm tra lại thông tin",
+              variant: "destructive",
+            });
+          })} className="space-y-4">
             <div className="grid grid-cols-1 gap-4">
               <FormField
                 control={form.control}
