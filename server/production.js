@@ -1,20 +1,24 @@
-// Production server without any complex dependencies
+// Production server - redirect to full server
 import express from 'express';
-import cors from 'cors';
-import pkg from 'pg';
-const { Pool } = pkg;
 
 const app = express();
 
-// CORS middleware - EMERGENCY FIX
-app.use(cors({
-  origin: true,  // Allow all origins temporarily
-  credentials: true,
-}));
+// Health check only - redirect to built server for full functionality
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'redirect_to_built_server',
+    message: 'Use npm start instead of production.js for full functionality',
+    timestamp: new Date().toISOString(),
+    env: process.env.NODE_ENV || 'production'
+  });
+});
 
-// Basic middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
+app.get('*', (req, res) => {
+  res.status(503).json({
+    error: 'Service should use built server',
+    message: 'Change start command to: npm start'
+  });
+});
 
 // Database connection (optional, will skip if fails)
 let db = null;

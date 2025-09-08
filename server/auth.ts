@@ -40,7 +40,8 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // HTTPS required in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-domain support
       maxAge: sessionTtl,
     },
   };
