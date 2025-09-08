@@ -1642,8 +1642,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(supportResponse);
     } catch (error) {
       console.error("Error creating support response:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create support response" });
       }
@@ -1742,8 +1742,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error creating support response:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create support response" });
       }
@@ -1864,8 +1864,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(accountRequest);
     } catch (error) {
       console.error("Error creating account request:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create account request" });
       }
@@ -1914,8 +1914,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedRequest);
     } catch (error) {
       console.error("Error updating account request:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to update account request" });
       }
