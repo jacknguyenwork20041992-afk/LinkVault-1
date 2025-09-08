@@ -34,9 +34,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-const supportTicketFormSchema = insertSupportTicketSchema.omit({
-  userId: true,
-});
+const supportTicketFormSchema = insertSupportTicketSchema;
 
 type SupportTicketFormData = z.infer<typeof supportTicketFormSchema>;
 
@@ -198,7 +196,7 @@ export default function SupportTicketModal({
         }
       }
       
-      // Create support ticket
+      // Create support ticket (backend will add userId automatically)
       const requestData = {
         ...data,
         imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
@@ -351,8 +349,8 @@ export default function SupportTicketModal({
                       <Input
                         type="date"
                         {...field}
-                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                        onChange={(e) => field.onChange(new Date(e.target.value))}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value)}
                         data-testid="input-issue-date"
                       />
                     </FormControl>

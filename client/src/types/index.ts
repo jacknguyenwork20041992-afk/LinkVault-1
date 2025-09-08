@@ -118,15 +118,15 @@ export interface InsertUser {
 }
 
 export interface InsertSupportTicket {
-  title: string;
   description: string;
   priority?: string;
-  userId: string;
-  issueDate?: Date;
-  branch?: string;
-  classLevel?: string;
+  userId?: string;
+  issueDate: string;
+  branch: string;
+  classLevel: string;
   documentLink?: string;
   imageUrls?: string[];
+  status?: string;
 }
 
 export interface InsertProgram {
@@ -231,15 +231,14 @@ export const createUserSchema = z.object({
 });
 
 export const insertSupportTicketSchema = z.object({
-  title: z.string().min(1, "Tiêu đề là bắt buộc"),
   description: z.string().min(1, "Mô tả là bắt buộc"),
-  priority: z.string().optional().default("medium"),
-  userId: z.string(),
-  issueDate: z.date().optional(),
-  branch: z.string().optional(),
-  classLevel: z.string().optional(),
+  priority: z.string().optional().default("normal"),
+  issueDate: z.string().min(1, "Ngày gặp vấn đề là bắt buộc"),
+  branch: z.string().min(1, "Chi nhánh là bắt buộc"),
+  classLevel: z.string().min(1, "Cấp độ lớp học là bắt buộc"),
   documentLink: z.string().optional(),
-  imageUrls: z.array(z.string()).optional()
+  imageUrls: z.array(z.string()).max(5, "Tối đa 5 hình ảnh").optional(),
+  status: z.string().optional().default("open")
 });
 
 export const insertProgramSchema = z.object({
