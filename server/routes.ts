@@ -1106,20 +1106,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Cloudinary upload routes
   app.post("/api/upload/image", isAuthenticated, upload.single('image'), async (req, res) => {
     try {
+      console.log("🖼️ IMAGE UPLOAD REQUEST:", req.file?.originalname);
+      console.log("🔐 User authenticated:", req.user ? 'YES' : 'NO');
+      
       if (!req.file) {
+        console.error("❌ No image file provided");
         return res.status(400).json({ error: "No image file provided" });
       }
 
+      console.log("📦 File details:", {
+        name: req.file.originalname,
+        size: req.file.size,
+        type: req.file.mimetype
+      });
+
       const { cloudinaryService } = await import('./cloudinaryService');
+      console.log("☁️ Uploading to Cloudinary...");
+      
       const imageUrl = await cloudinaryService.uploadImage(
         req.file.buffer,
         req.file.originalname,
         'support-tickets'
       );
 
+      console.log("✅ Upload successful:", imageUrl);
       res.json({ imageUrl });
     } catch (error) {
-      console.error("Error uploading image:", error);
+      console.error("❌ Error uploading image:", error);
       res.status(500).json({ 
         error: "Failed to upload image",
         message: error instanceof Error ? error.message : "Unknown error"
@@ -1129,20 +1142,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/upload/file", isAuthenticated, upload.single('file'), async (req, res) => {
     try {
+      console.log("📁 FILE UPLOAD REQUEST:", req.file?.originalname);
+      console.log("🔐 User authenticated:", req.user ? 'YES' : 'NO');
+      
       if (!req.file) {
+        console.error("❌ No file provided");
         return res.status(400).json({ error: "No file provided" });
       }
 
+      console.log("📦 File details:", {
+        name: req.file.originalname,
+        size: req.file.size,
+        type: req.file.mimetype
+      });
+
       const { cloudinaryService } = await import('./cloudinaryService');
+      console.log("☁️ Uploading to Cloudinary...");
+      
       const fileUrl = await cloudinaryService.uploadFile(
         req.file.buffer,
         req.file.originalname,
         'account-requests'
       );
 
+      console.log("✅ Upload successful:", fileUrl);
       res.json({ fileUrl });
     } catch (error) {
-      console.error("Error uploading file:", error);
+      console.error("❌ Error uploading file:", error);
       res.status(500).json({ 
         error: "Failed to upload file",
         message: error instanceof Error ? error.message : "Unknown error"
