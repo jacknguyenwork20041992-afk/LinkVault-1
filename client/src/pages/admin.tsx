@@ -51,14 +51,6 @@ export default function Admin() {
     item.notification?.title === "Yêu cầu tài khoản SWE mới"
   );
 
-  // Debug all notifications
-  console.log('All notifications raw:', allNotifications.map(n => ({
-    title: n.notification?.title,
-    createdAt: n.notification?.createdAt,
-    timestamp: new Date(n.notification?.createdAt).getTime()
-  })));
-  console.log('Support tickets:', supportTicketNotifications.length);
-  console.log('Account requests:', accountRequestNotifications.length);
 
   // Tổng số notifications
   const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
@@ -306,22 +298,12 @@ export default function Admin() {
                         
                         {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {(() => {
-                              const combined = [...supportTicketNotifications, ...accountRequestNotifications];
-                              const sorted = combined.sort((a, b) => {
-                                const timeA = new Date(a.notification.createdAt).getTime();
-                                const timeB = new Date(b.notification.createdAt).getTime();
-                                const result = timeB - timeA; // CORRECT: timeB - timeA for descending (newest first)
-                                console.log('Sorting:', a.notification.title, timeA, 'vs', b.notification.title, timeB, 'result:', result);
-                                return result;
-                              });
-                              console.log('FINAL SORTED ORDER:', sorted.map(n => ({
-                                title: n.notification.title,
-                                time: new Date(n.notification.createdAt).toLocaleString('vi-VN'),
-                                timestamp: new Date(n.notification.createdAt).getTime()
-                              })));
-                              return sorted;
-                            })()
+                          {[...supportTicketNotifications, ...accountRequestNotifications]
+                            .sort((a, b) => {
+                              const timeA = new Date(a.notification.createdAt).getTime();
+                              const timeB = new Date(b.notification.createdAt).getTime();
+                              return timeB - timeA; // Newest first (descending order)
+                            })
                             .map((notification: any) => {
                               const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
                               return (
