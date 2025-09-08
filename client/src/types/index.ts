@@ -154,7 +154,7 @@ export interface InsertDocument {
 
 export interface InsertNotification {
   title: string;
-  content: string;
+  message: string;
   type: string;
   isGlobal?: boolean;
   createdBy: string;
@@ -268,7 +268,7 @@ export const insertDocumentSchema = z.object({
 
 export const insertNotificationSchema = z.object({
   title: z.string().min(1),
-  content: z.string().min(1),
+  message: z.string().min(1),
   type: z.string().min(1),
   isGlobal: z.boolean().optional().default(false),
   createdBy: z.string().min(1)

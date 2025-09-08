@@ -81,7 +81,7 @@ export const documents = pgTable("documents", {
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
-  content: text("content").notNull(), // Changed from message to content
+  message: text("message").notNull(), // Keep original field name
   type: varchar("type").notNull().default("info"), // Added type field  
   isGlobal: boolean("is_global").default(true), // true for all users, false for specific users
   recipientId: varchar("recipient_id").references(() => users.id), // for specific user notifications (legacy)

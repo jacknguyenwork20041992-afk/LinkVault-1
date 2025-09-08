@@ -53,7 +53,7 @@ export default function CreateNotificationModal({
     resolver: zodResolver(insertNotificationSchema),
     defaultValues: {
       title: "",
-      content: "",
+      message: "",
       type: "info",
       isGlobal: true,
       createdBy: user?.id || "",
@@ -153,7 +153,7 @@ export default function CreateNotificationModal({
 
             <FormField
               control={form.control}
-              name="content"
+              name="message"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Nội dung</FormLabel>
