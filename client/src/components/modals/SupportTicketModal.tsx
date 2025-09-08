@@ -142,7 +142,8 @@ export default function SupportTicketModal({
             
             // Get upload URL from backend
             const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-            const { uploadURL } = uploadResponse as { uploadURL: string };
+            const responseData = await uploadResponse.json();
+            const { uploadURL } = responseData as { uploadURL: string };
             console.log(`Upload URL received for image ${i + 1}:`, uploadURL);
             
             // Check if this is a mock URL (from production deployment)
