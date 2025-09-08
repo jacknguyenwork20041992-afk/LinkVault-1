@@ -178,20 +178,10 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     try {
       // Get upload URL with meaningful name
       const formValues = form.getValues();
-      const response = await fetch("/api/account-requests/upload-url", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          requestType: formValues.requestType,
-          branchName: formValues.branchName
-        }),
+      const response = await apiRequest("POST", "/api/account-requests/upload-url", {
+        requestType: formValues.requestType,
+        branchName: formValues.branchName
       });
-      
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
       
       const data = await response.json();
       const uploadURL = data.uploadURL;

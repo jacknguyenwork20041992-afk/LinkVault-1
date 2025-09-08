@@ -22,10 +22,7 @@ export default function NotificationsManagement({ onViewChange }: NotificationsM
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["/api/admin/notifications"],
     queryFn: async () => {
-      const response = await fetch("/api/notifications");
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
+      const response = await apiRequest("GET", "/api/notifications");
       return response.json();
     },
     retry: false,

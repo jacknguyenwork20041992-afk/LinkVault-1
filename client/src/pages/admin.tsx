@@ -24,6 +24,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Home, Menu, Bell, Clock, User, CheckCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -56,10 +57,7 @@ export default function Admin() {
   const handleNotificationClick = async (notification: any) => {
     // Đánh dấu notification đã đọc
     try {
-      await fetch(`/api/notifications/${notification.notification.id}/read`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
+      await apiRequest("PUT", `/api/notifications/${notification.notification.id}/read`);
       // Invalidate queries để refresh notifications
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
     } catch (error) {
@@ -78,10 +76,7 @@ export default function Admin() {
     try {
       const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications];
       for (const item of allUnreadNotifications) {
-        await fetch(`/api/notifications/${item.notification.id}/read`, {
-          method: 'PUT',
-          credentials: 'include'
-        });
+        await apiRequest("PUT", `/api/notifications/${item.notification.id}/read`);
       }
       // Invalidate queries để refresh notifications
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });

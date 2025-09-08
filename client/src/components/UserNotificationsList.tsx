@@ -26,12 +26,7 @@ export default function UserNotificationsList() {
   const { data: paginatedData, isLoading, refetch } = useQuery({
     queryKey: ["/api/notifications/user", currentPage],
     queryFn: async (): Promise<PaginatedNotifications> => {
-      const response = await fetch(`/api/notifications/user?page=${currentPage}&limit=${limit}`, {
-        credentials: "include"
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
+      const response = await apiRequest("GET", `/api/notifications/user?page=${currentPage}&limit=${limit}`);
       return response.json();
     },
     retry: false,
