@@ -152,13 +152,6 @@ export class ObjectStorageService {
   async getObjectEntityUploadURL(): Promise<string> {
     console.log("Starting getObjectEntityUploadURL...");
     
-    // If on external deployment (like Render), return mock URL for now
-    if (isProductionDeployment) {
-      console.log("🚀 Running on external deployment - using mock upload URL");
-      console.log("   Object storage only works on Replit environment");
-      return "https://storage.googleapis.com/mock-bucket/uploads/" + randomUUID();
-    }
-    
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
@@ -190,16 +183,6 @@ export class ObjectStorageService {
   // Gets the upload URL for an object entity with meaningful name.
   async getObjectEntityUploadURLWithName(requestType: string, branchName: string): Promise<string> {
     console.log("Starting getObjectEntityUploadURLWithName...");
-    
-    // If on external deployment (like Render), return mock URL for now
-    if (isProductionDeployment) {
-      console.log("🚀 Running on external deployment - using mock upload URL");
-      console.log("   Object storage only works on Replit environment");
-      const date = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-      const typePrefix = requestType === 'new_account' ? 'NewAccounts' : 'UntagAccounts';
-      const filename = `${typePrefix}_${branchName?.replace(/\s+/g, '')}_${date}.xlsx`;
-      return `https://storage.googleapis.com/mock-bucket/uploads/${filename}`;
-    }
     
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);

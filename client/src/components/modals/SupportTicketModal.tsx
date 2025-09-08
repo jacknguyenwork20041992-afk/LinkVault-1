@@ -146,19 +146,6 @@ export default function SupportTicketModal({
             const { uploadURL } = responseData as { uploadURL: string };
             console.log(`Upload URL received for image ${i + 1}:`, uploadURL);
             
-            // Check if this is a mock URL (from production deployment)
-            if (uploadURL.includes('mock-bucket')) {
-              console.log('🎭 Mock upload detected - simulating successful upload');
-              
-              // For mock URLs, just use the mock URL as the final path
-              const url = new URL(uploadURL);
-              const objectPath = url.pathname;
-              imageUrls.push(objectPath);
-              
-              console.log(`Mock image ${i + 1} "uploaded" successfully`);
-              continue;
-            }
-            
             console.log(`Uploading image ${i + 1} to storage...`);
             
             // Upload the image using PUT request (only for real URLs)
