@@ -1,147 +1,3 @@
-// import "dotenv/config";
-// import express, { type Request, Response, NextFunction } from "express";
-// import cors from "cors";
-// import { registerRoutes } from "./routes";
-
-// // Simple logging function for production
-// function log(message: string, source = "express") {
-//   const formattedTime = new Date().toLocaleTimeString("en-US", {
-//     hour: "numeric",
-//     minute: "2-digit", 
-//     second: "2-digit",
-//     hour12: true,
-//   });
-//   console.log(`${formattedTime} [${source}] ${message}`);
-// }
-
-// const app = express();
-
-// // CORS configuration - Cho phép frontend kết nối
-// const allowedOrigins = process.env.ALLOWED_ORIGINS 
-//   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-//   : [
-//       'http://localhost:5173',  // Dev frontend
-//       /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
-//     ];
-
-// app.use(cors({
-//   origin: allowedOrigins,
-//   credentials: true,  // Cho phép gửi cookies
-// }));
-
-// app.use(express.json());
-// app.use(express.urlencoded({ extended: false }));
-
-// app.use((req, res, next) => {
-//   const start = Date.now();
-//   const path = req.path;
-//   let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-//   const originalResJson = res.json;
-//   res.json = function (bodyJson, ...args) {
-//     capturedJsonResponse = bodyJson;
-//     return originalResJson.apply(res, [bodyJson, ...args]);
-//   };
-
-//   res.on("finish", () => {
-//     const duration = Date.now() - start;
-//     if (path.startsWith("/api")) {
-//       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-//       if (capturedJsonResponse) {
-//         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-//       }
-
-//       if (logLine.length > 80) {
-//         logLine = logLine.slice(0, 79) + "…";
-//       }
-
-//       log(logLine);
-//     }
-//   });
-
-//   next();
-// });
-
-// (async () => {
-//   try {
-//     const server = await registerRoutes(app);
-
-//     app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-//       const status = err.status || err.statusCode || 500;
-//       const message = err.message || "Internal Server Error";
-
-//       // Log the error for debugging but don't throw it to prevent uncaught exceptions
-//       log(`Error handling request: ${message}`);
-//       console.error(err);
-
-//       res.status(status).json({ message });
-//     });
-
-//     // Only setup vite in development
-//     if (process.env.NODE_ENV === "development") {
-//       try {
-//         const { setupVite } = await import("./vite");
-//         await setupVite(app, server);
-//       } catch (e) {
-//         console.warn("Failed to setup Vite:", e);
-//       }
-//     }
-    
-//     // In production, add a basic health check
-//     app.get("/api/health", (_req, res) => {
-//       res.json({ 
-//         status: "ok", 
-//         timestamp: new Date().toISOString(),
-//         env: process.env.NODE_ENV 
-//       });
-//     });
-
-//     // ALWAYS serve the app on the port specified in the environment variable PORT
-//     // Other ports are firewalled. Default to 5000 if not specified.
-//     // this serves both the API and the client.
-//     // It is the only port that is not firewalled.
-//     const port = parseInt(process.env.PORT || '5000', 10);
-    
-//     server.listen({
-//       port,
-//       host: "0.0.0.0",
-//       reusePort: true,
-//     }, () => {
-//       log(`serving on port ${port}`);
-//     });
-//   } catch (error) {
-//     console.error("❌ Failed to start server:", error);
-    
-//     // In production, still try to start a basic server to avoid complete failure
-//     if (process.env.NODE_ENV === "production") {
-//       try {
-//         const port = parseInt(process.env.PORT || '5000', 10);
-        
-//         // Create a basic health check endpoint
-//         app.get("/health", (_req, res) => {
-//           res.status(503).json({ 
-//             status: "Service Unavailable", 
-//             message: "Server failed to initialize properly" 
-//           });
-//         });
-        
-//         // Basic fallback for production
-        
-//         app.listen(port, "0.0.0.0", () => {
-//           log(`⚠️  serving fallback server on port ${port} (initialization failed)`);
-//         });
-//       } catch (fallbackError) {
-//         console.error("❌ Failed to start fallback server:", fallbackError);
-//         process.exit(1);
-//       }
-//     } else {
-//       // In development, exit with error for debugging
-//       console.error("❌ Development server failed to start");
-//       process.exit(1);
-//     }
-//   }
-// })();
-
 import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
@@ -151,7 +7,7 @@ import { registerRoutes } from "./routes";
 function log(message: string, source = "express") {
   const formattedTime = new Date().toLocaleTimeString("en-US", {
     hour: "numeric",
-    minute: "2-digit",
+    minute: "2-digit", 
     second: "2-digit",
     hour12: true,
   });
@@ -161,37 +17,17 @@ function log(message: string, source = "express") {
 const app = express();
 
 // CORS configuration - Cho phép frontend kết nối
-const allowedOrigins = process.env.ALLOWED_ORIGINS
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
   : [
-      'http://localhost:5173', // Dev frontend
-      /^https:\/\/.*\.vercel\.app$/, // Tất cả vercel domains
+      'http://localhost:5173',  // Dev frontend
+      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
     ];
 
-// Log allowed origins for debugging
-log(`CORS allowed origins: ${JSON.stringify(allowedOrigins)}`, 'cors');
-
 app.use(cors({
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // Allow non-browser requests
-    const isAllowed = allowedOrigins.some(allowed =>
-      typeof allowed === 'string' ? allowed === origin : allowed.test(origin)
-    );
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      log(`CORS rejected origin: ${origin}`, 'cors');
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true, // Cho phép gửi cookies
+  origin: allowedOrigins,
+  credentials: true,  // Cho phép gửi cookies
 }));
-
-// Log incoming request origins for debugging
-app.use((req, res, next) => {
-  log(`Request Origin: ${req.get('Origin') || 'No Origin'}`, 'cors');
-  next();
-});
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -200,11 +36,13 @@ app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
+
   const originalResJson = res.json;
   res.json = function (bodyJson, ...args) {
     capturedJsonResponse = bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
+
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
@@ -212,28 +50,30 @@ app.use((req, res, next) => {
       if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
+
       if (logLine.length > 80) {
         logLine = logLine.slice(0, 79) + "…";
       }
+
       log(logLine);
     }
   });
+
   next();
 });
 
 (async () => {
   try {
     const server = await registerRoutes(app);
-    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
-      // Enhanced error logging for CORS
-      if (err.name === 'CorsError') {
-        log(`CORS error for ${req.get('Origin')}: ${message}`, 'cors');
-      } else {
-        log(`Error handling request: ${message}`);
-      }
+
+      // Log the error for debugging but don't throw it to prevent uncaught exceptions
+      log(`Error handling request: ${message}`);
       console.error(err);
+
       res.status(status).json({ message });
     });
 
@@ -246,20 +86,22 @@ app.use((req, res, next) => {
         console.warn("Failed to setup Vite:", e);
       }
     }
-
+    
     // In production, add a basic health check
     app.get("/api/health", (_req, res) => {
-      res.json({
-        status: "ok",
+      res.json({ 
+        status: "ok", 
         timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV
+        env: process.env.NODE_ENV 
       });
     });
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
     const port = parseInt(process.env.PORT || '5000', 10);
-
+    
     server.listen({
       port,
       host: "0.0.0.0",
@@ -269,23 +111,24 @@ app.use((req, res, next) => {
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
-
+    
     // In production, still try to start a basic server to avoid complete failure
     if (process.env.NODE_ENV === "production") {
       try {
         const port = parseInt(process.env.PORT || '5000', 10);
-
+        
         // Create a basic health check endpoint
         app.get("/health", (_req, res) => {
-          res.status(503).json({
-            status: "Service Unavailable",
-            message: "Server failed to initialize properly"
+          res.status(503).json({ 
+            status: "Service Unavailable", 
+            message: "Server failed to initialize properly" 
           });
         });
-
+        
         // Basic fallback for production
+        
         app.listen(port, "0.0.0.0", () => {
-          log(`⚠️ serving fallback server on port ${port} (initialization failed)`);
+          log(`⚠️  serving fallback server on port ${port} (initialization failed)`);
         });
       } catch (fallbackError) {
         console.error("❌ Failed to start fallback server:", fallbackError);
@@ -296,5 +139,7 @@ app.use((req, res, next) => {
       console.error("❌ Development server failed to start");
       process.exit(1);
     }
+  }
+})();
   }
 })();
