@@ -298,7 +298,12 @@ export default function Admin() {
                         {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
                           {[...supportTicketNotifications, ...accountRequestNotifications]
-                            .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime())
+                            .sort((a, b) => {
+                              const timeA = new Date(a.notification.createdAt).getTime();
+                              const timeB = new Date(b.notification.createdAt).getTime();
+                              console.log('Sorting:', a.notification.title, timeA, 'vs', b.notification.title, timeB, 'result:', timeB - timeA);
+                              return timeB - timeA;
+                            })
                             .map((notification: any) => {
                               const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
                               return (
