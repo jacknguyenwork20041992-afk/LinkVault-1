@@ -152,8 +152,9 @@ export class ObjectStorageService {
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
       console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
       console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
-      // Return a mock URL for now instead of throwing error
-      return "https://example.com/mock-upload-url";
+      throw new Error(
+        "Object storage not configured. Please contact administrator to set up object storage."
+      );
     }
 
     const objectId = randomUUID();
@@ -182,8 +183,9 @@ export class ObjectStorageService {
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
       console.warn("⚠️  Object storage not properly configured. Upload functionality may be limited.");
       console.warn("   Set PRIVATE_OBJECT_DIR environment variable for full functionality.");
-      // Return a mock URL for now instead of throwing error
-      return "https://example.com/mock-upload-url";
+      throw new Error(
+        "Object storage not configured. Please contact administrator to set up object storage."
+      );
     }
 
     // Create meaningful filename
