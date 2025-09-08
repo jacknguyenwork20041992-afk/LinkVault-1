@@ -81,10 +81,12 @@ export const documents = pgTable("documents", {
 export const notifications = pgTable("notifications", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   title: varchar("title").notNull(),
-  message: text("message").notNull(),
+  content: text("content").notNull(), // Changed from message to content
+  type: varchar("type").notNull().default("info"), // Added type field  
   isGlobal: boolean("is_global").default(true), // true for all users, false for specific users
   recipientId: varchar("recipient_id").references(() => users.id), // for specific user notifications (legacy)
   targetUserIds: jsonb("target_user_ids"), // Array of user IDs for multiple specific users
+  createdBy: varchar("created_by").references(() => users.id), // Added createdBy field
   createdAt: timestamp("created_at").defaultNow(),
 });
 
