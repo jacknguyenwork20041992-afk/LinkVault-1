@@ -295,64 +295,50 @@ export default function Admin() {
                           </div>
                         </div>
                         
-                        {/* Support Ticket Notifications */}
+                        {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {supportTicketNotifications.map((notification: any) => (
-                            <DropdownMenuItem 
-                              key={notification.notification.id}
-                              onClick={() => handleNotificationClick(notification)}
-                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                              data-testid={`notification-support-${notification.notification.id}`}
-                            >
-                              <div className="flex items-start space-x-3 w-full">
-                                <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-lg flex-shrink-0">
-                                  <User className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                                    {notification.notification.title}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                    {notification.notification.message}
-                                  </p>
-                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                          {[...supportTicketNotifications, ...accountRequestNotifications]
+                            .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime())
+                            .map((notification: any) => {
+                              const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
+                              return (
+                                <DropdownMenuItem 
+                                  key={notification.notification.id}
+                                  onClick={() => handleNotificationClick(notification)}
+                                  className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
+                                  data-testid={`notification-${isSupportTicket ? 'support' : 'account'}-${notification.notification.id}`}
+                                >
+                                  <div className="flex items-start space-x-3 w-full">
+                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${
+                                      isSupportTicket 
+                                        ? "bg-orange-100 dark:bg-orange-900/30" 
+                                        : "bg-blue-100 dark:bg-blue-900/30"
+                                    }`}>
+                                      <User className={`h-4 w-4 ${
+                                        isSupportTicket 
+                                          ? "text-orange-600 dark:text-orange-400" 
+                                          : "text-blue-600 dark:text-blue-400"
+                                      }`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                                        {notification.notification.title}
+                                      </p>
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                        {notification.notification.message}
+                                      </p>
+                                      <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                      </div>
+                                    </div>
+                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${
+                                      isSupportTicket ? "bg-orange-500" : "bg-blue-500"
+                                    }`}></div>
                                   </div>
-                                </div>
-                                <div className="h-2 w-2 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
-
-                          {/* Account Request Notifications */}
-                          {accountRequestNotifications.map((notification: any) => (
-                            <DropdownMenuItem 
-                              key={notification.notification.id}
-                              onClick={() => handleNotificationClick(notification)}
-                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                              data-testid={`notification-account-${notification.notification.id}`}
-                            >
-                              <div className="flex items-start space-x-3 w-full">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg flex-shrink-0">
-                                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                                    {notification.notification.title}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                    {notification.notification.message}
-                                  </p>
-                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
-                                  </div>
-                                </div>
-                                <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
+                                </DropdownMenuItem>
+                              );
+                            })}
                         </div>
                       </>
                     )}
