@@ -1,9 +1,4 @@
 {
-  "functions": {
-    "client/src/pages/*.tsx": {
-      "memory": 1024
-    }
-  },
   "rewrites": [
     {
       "source": "/api/(.*)",
