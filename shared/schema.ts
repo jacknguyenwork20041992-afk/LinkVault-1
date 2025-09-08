@@ -505,6 +505,8 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  deadline: z.string().datetime().transform((str) => new Date(str)),
 });
 
 export const insertImportantDocumentSchema = createInsertSchema(importantDocuments).omit({
