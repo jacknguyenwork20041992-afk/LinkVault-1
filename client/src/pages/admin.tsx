@@ -306,13 +306,22 @@ export default function Admin() {
                         
                         {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {[...supportTicketNotifications, ...accountRequestNotifications]
-                            .sort((a, b) => {
-                              const timeA = new Date(a.notification.createdAt).getTime();
-                              const timeB = new Date(b.notification.createdAt).getTime();
-                              console.log('Sorting:', a.notification.title, timeA, 'vs', b.notification.title, timeB, 'result:', timeB - timeA);
-                              return timeB - timeA;
-                            })
+                          {(() => {
+                              const combined = [...supportTicketNotifications, ...accountRequestNotifications];
+                              const sorted = combined.sort((a, b) => {
+                                const timeA = new Date(a.notification.createdAt).getTime();
+                                const timeB = new Date(b.notification.createdAt).getTime();
+                                const result = timeB - timeA; // CORRECT: timeB - timeA for descending (newest first)
+                                console.log('Sorting:', a.notification.title, timeA, 'vs', b.notification.title, timeB, 'result:', result);
+                                return result;
+                              });
+                              console.log('FINAL SORTED ORDER:', sorted.map(n => ({
+                                title: n.notification.title,
+                                time: new Date(n.notification.createdAt).toLocaleString('vi-VN'),
+                                timestamp: new Date(n.notification.createdAt).getTime()
+                              })));
+                              return sorted;
+                            })()
                             .map((notification: any) => {
                               const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
                               return (
