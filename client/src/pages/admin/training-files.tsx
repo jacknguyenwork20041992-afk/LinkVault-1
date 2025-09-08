@@ -88,9 +88,10 @@ export default function TrainingFilesPage() {
     formData.append('description', '');
 
     try {
-      const response = await fetch('/api/training-files/upload', {
+      const response = await fetch((import.meta.env.VITE_API_URL || window.location.origin) + '/api/training-files/upload', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!response.ok) {
