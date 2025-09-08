@@ -51,6 +51,15 @@ export default function Admin() {
     item.notification?.title === "Yêu cầu tài khoản SWE mới"
   );
 
+  // Debug all notifications
+  console.log('All notifications raw:', allNotifications.map(n => ({
+    title: n.notification?.title,
+    createdAt: n.notification?.createdAt,
+    timestamp: new Date(n.notification?.createdAt).getTime()
+  })));
+  console.log('Support tickets:', supportTicketNotifications.length);
+  console.log('Account requests:', accountRequestNotifications.length);
+
   // Tổng số notifications
   const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
 
