@@ -163,29 +163,6 @@ export default function CreateNotificationModal({
               )}
             />
 
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Loại thông báo</FormLabel>
-                  <FormControl>
-                    <Select onValueChange={field.onChange} value={field.value} data-testid="select-notification-type">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn loại thông báo" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="info">Thông tin</SelectItem>
-                        <SelectItem value="warning">Cảnh báo</SelectItem>
-                        <SelectItem value="success">Thành công</SelectItem>
-                        <SelectItem value="urgent">Khẩn cấp</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
