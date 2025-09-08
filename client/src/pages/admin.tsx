@@ -74,7 +74,9 @@ export default function Admin() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications];
+      // Combine và sort by createdAt để đảm bảo thứ tự đúng theo thời gian
+      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications]
+        .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime());
       for (const item of allUnreadNotifications) {
         await apiRequest("PUT", `/api/notifications/${item.notification.id}/read`);
       }
