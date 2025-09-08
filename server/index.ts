@@ -87,14 +87,6 @@ app.use((req, res, next) => {
       }
     }
     
-    // In production, add a basic health check
-    app.get("/api/health", (_req, res) => {
-      res.json({ 
-        status: "ok", 
-        timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV 
-      });
-    });
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.

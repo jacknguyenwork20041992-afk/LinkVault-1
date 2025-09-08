@@ -7,7 +7,10 @@ async function throwIfResNotOk(res: Response) {
   }
 }
 
-const API_BASE_URL = 'https://via-english-academy-backend.onrender.com';
+// Use local backend for development on Replit
+const API_BASE_URL = import.meta.env.VITE_API_URL || 
+  (typeof window !== 'undefined' && window.location.origin) || 
+  'http://localhost:5000';
 
 export async function apiRequest(
   method: string,

@@ -77,6 +77,15 @@ function getDemoResponse(message: string, knowledgeContext: any): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Health check endpoint - FIRST to avoid Vite override
+  app.get("/api/health", (_req, res) => {
+    res.json({ 
+      status: "ok", 
+      timestamp: new Date().toISOString(),
+      env: process.env.NODE_ENV || "development"
+    });
+  });
+
   // Setup multiple authentication methods
   const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
   const { setupGoogleAuth } = await import("./googleAuth");
