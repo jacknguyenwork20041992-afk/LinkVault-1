@@ -54,9 +54,7 @@ export default function CreateNotificationModal({
     defaultValues: {
       title: "",
       message: "",
-      type: "info",
       isGlobal: true,
-      createdBy: user?.id || "",
     },
   });
 
@@ -101,12 +99,7 @@ export default function CreateNotificationModal({
   };
 
   const onSubmit = (data: InsertNotification) => {
-    // Set createdBy to current user ID
-    const submissionData = {
-      ...data,
-      createdBy: user?.id || "",
-    };
-    createMutation.mutate(submissionData);
+    createMutation.mutate(data);
   };
 
   const isGlobal = form.watch("isGlobal");

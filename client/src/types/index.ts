@@ -155,9 +155,7 @@ export interface InsertDocument {
 export interface InsertNotification {
   title: string;
   message: string;
-  type: string;
   isGlobal?: boolean;
-  createdBy: string;
 }
 
 // Additional types
@@ -269,9 +267,7 @@ export const insertDocumentSchema = z.object({
 export const insertNotificationSchema = z.object({
   title: z.string().min(1),
   message: z.string().min(1),
-  type: z.string().min(1),
-  isGlobal: z.boolean().optional().default(false),
-  createdBy: z.string().min(1)
+  isGlobal: z.boolean().optional().default(false)
 });
 
 // Bulk creation types
