@@ -12,8 +12,6 @@ export class CloudinaryService {
   // Upload image file to Cloudinary
   async uploadImage(file: Buffer, filename: string, folder: string = 'support-tickets'): Promise<string> {
     try {
-      console.log(`Uploading image ${filename} to Cloudinary folder: ${folder}`);
-      
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -27,7 +25,6 @@ export class CloudinaryService {
               console.error('Cloudinary upload error:', error);
               reject(new Error(`Failed to upload image: ${error.message}`));
             } else if (result) {
-              console.log('Image uploaded successfully:', result.secure_url);
               resolve(result.secure_url);
             } else {
               reject(new Error('Upload failed: No result returned'));
@@ -50,8 +47,6 @@ export class CloudinaryService {
   // Upload file (Excel, PDF, etc.) to Cloudinary
   async uploadFile(file: Buffer, filename: string, folder: string = 'account-requests'): Promise<string> {
     try {
-      console.log(`Uploading file ${filename} to Cloudinary folder: ${folder}`);
-      
       return new Promise((resolve, reject) => {
         const uploadStream = cloudinary.uploader.upload_stream(
           {
@@ -65,7 +60,6 @@ export class CloudinaryService {
               console.error('Cloudinary upload error:', error);
               reject(new Error(`Failed to upload file: ${error.message}`));
             } else if (result) {
-              console.log('File uploaded successfully:', result.secure_url);
               resolve(result.secure_url);
             } else {
               reject(new Error('Upload failed: No result returned'));
