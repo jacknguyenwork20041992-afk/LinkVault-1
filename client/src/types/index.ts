@@ -175,11 +175,10 @@ export interface Project {
 export interface InsertProject {
   name: string;
   description?: string;
+  assignee: string;
+  deadline: Date;
   status?: string;
-  priority?: string;
-  dueDate?: Date;
-  assignedTo?: string;
-  createdBy: string;
+  link?: string;
 }
 
 export interface Account {
@@ -321,11 +320,10 @@ export const documentLinkSchema = z.object({
 export const insertProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  status: z.string().optional().default("planning"),
-  priority: z.string().optional().default("medium"),
-  dueDate: z.date().optional(),
-  assignedTo: z.string().optional(),
-  createdBy: z.string().min(1)
+  assignee: z.string().min(1),
+  deadline: z.date(),
+  status: z.string().optional().default("todo"),
+  link: z.string().optional()
 });
 
 export const insertAccountSchema = z.object({
