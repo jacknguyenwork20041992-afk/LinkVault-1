@@ -552,18 +552,11 @@ export default function SupportTicketsManagement() {
                                 className="relative cursor-pointer group"
                                 onClick={() => {
                                   // Open image in new tab
-                                  if (imageUrl.includes('cloudinary.com')) {
-                                    // Direct Cloudinary URL
-                                    window.open(imageUrl, '_blank');
-                                  } else {
-                                    // Old object storage format
-                                    const imageId = imageUrl.split('uploads/')[1]?.split('?')[0] || '';
-                                    window.open(`/api/support-images/${imageId}`, '_blank');
-                                  }
+                                  window.open(imageUrl, '_blank');
                                 }}
                               >
                                 <img 
-                                  src={imageUrl.includes('cloudinary.com') ? imageUrl : `/api/support-images/${imageUrl.split('uploads/')[1]?.split('?')[0] || ''}`}
+                                  src={imageUrl}
                                   alt={`Hình ảnh vấn đề ${index + 1}`}
                                   className="w-full h-48 md:h-64 object-cover rounded-md shadow-md transition-transform group-hover:scale-105"
                                   onError={(e) => {
