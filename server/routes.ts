@@ -826,7 +826,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const knowledgeContext = await storage.getKnowledgeContext();
       
       // Get conversation history for context
-      const conversationHistory = (conversationId && conversation && 'messages' in conversation ? conversation.messages : []).map((msg: any) => ({
+      const messages = conversationId && conversation && 'messages' in conversation ? conversation.messages || [] : [];
+      const conversationHistory = (Array.isArray(messages) ? messages : []).map((msg: any) => ({
         role: msg.role as "user" | "assistant",
         content: msg.content
       }));
@@ -1279,11 +1280,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // Update training file with extracted content
           await storage.updateTrainingFile(trainingFile.id, {
             extractedContent: cleanedContent,
-            fileSize: parseInt(metadata.size || '0'),
+            fileSize: parseInt(String(metadata.size || '0')),
             status: "completed",
             metadata: {
-              ...trainingFile.metadata,
-              ...extractedData.metadata,
+              ...(trainingFile.metadata || {}),
+              ...(extractedData.metadata || {}),
               extractedAt: new Date().toISOString(),
             },
           });
@@ -1297,7 +1298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               console.log(`Auto-converted training file to knowledge article: ${knowledgeArticle.title}`);
             }
           } catch (conversionError) {
-            console.log(`Note: Could not auto-convert to knowledge base: ${conversionError.message}`);
+            console.log(`Note: Could not auto-convert to knowledge base: ${(conversionError as Error).message}`);
             // Don't fail the whole process, just log the conversion error
           }
           
@@ -1306,8 +1307,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateTrainingFile(trainingFile.id, {
             status: "failed",
             metadata: {
-              ...trainingFile.metadata,
-              error: error.message,
+              ...(trainingFile.metadata || {}),
+              error: (error as Error).message,
               failedAt: new Date().toISOString(),
             },
           });
@@ -1373,11 +1374,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           await storage.updateTrainingFile(id, {
             extractedContent: cleanedContent,
-            fileSize: parseInt(metadata.size || '0'),
+            fileSize: parseInt(String(metadata.size || '0')),
             status: "completed",
             metadata: {
-              ...trainingFile.metadata,
-              ...extractedData.metadata,
+              ...(trainingFile.metadata || {}),
+              ...(extractedData.metadata || {}),
               reprocessedAt: new Date().toISOString(),
             },
           });
@@ -1389,8 +1390,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await storage.updateTrainingFile(id, {
             status: "failed",
             metadata: {
-              ...trainingFile.metadata,
-              error: error.message,
+              ...(trainingFile.metadata || {}),
+              error: (error as Error).message,
               failedAt: new Date().toISOString(),
             },
           });
@@ -1418,7 +1419,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error("Error converting training file to knowledge base:", error);
-      res.status(500).json({ message: error.message || "Failed to convert training file" });
+      res.status(500).json({ message: (error as Error).message || "Failed to convert training file" });
     }
   });
 
@@ -1523,8 +1524,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(ticket);
     } catch (error) {
       console.error("Error creating support ticket:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create support ticket" });
       }
@@ -1692,7 +1693,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.error("Error converting support ticket to training data:", error);
       res.status(400).json({ 
         success: false,
-        message: error.message || "Failed to convert support ticket to training data" 
+        message: (error as Error).message || "Failed to convert support ticket to training data" 
       });
     }
   });
