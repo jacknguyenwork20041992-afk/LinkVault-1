@@ -1,9 +1,16 @@
 // Production server without any complex dependencies
 import express from 'express';
+import cors from 'cors';
 import pkg from 'pg';
 const { Pool } = pkg;
 
 const app = express();
+
+// CORS middleware - EMERGENCY FIX
+app.use(cors({
+  origin: true,  // Allow all origins temporarily
+  credentials: true,
+}));
 
 // Basic middleware
 app.use(express.json());
