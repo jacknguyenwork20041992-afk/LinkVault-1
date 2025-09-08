@@ -24,8 +24,9 @@ const allowedOrigins = process.env.ALLOWED_ORIGINS
       /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
     ];
 
+// Temporary CORS fix for production debugging
 app.use(cors({
-  origin: allowedOrigins,
+  origin: true,  // Allow all origins temporarily
   credentials: true,  // Cho phép gửi cookies
 }));
 
