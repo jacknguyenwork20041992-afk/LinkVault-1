@@ -176,9 +176,9 @@ export interface InsertProject {
   name: string;
   description?: string;
   assignee: string;
-  deadline: Date;
   status?: string;
   link?: string;
+  deadline?: Date; // Optional vì được handle riêng qua date state
 }
 
 export interface Account {
@@ -321,7 +321,6 @@ export const insertProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
   assignee: z.string().min(1),
-  deadline: z.date(),
   status: z.string().optional().default("todo"),
   link: z.string().optional()
 });
