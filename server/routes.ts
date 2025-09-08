@@ -119,7 +119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileSize: 100 * 1024 * 1024, // 100MB limit (increased from 50MB)
     },
     fileFilter: (req, file, cb) => {
-      const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+      const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.gif', '.webp'];
       const ext = '.' + file.originalname.split('.').pop()?.toLowerCase();
       if (allowedTypes.includes(ext)) {
         cb(null, true);
@@ -1103,21 +1103,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Object Storage Routes
   // Upload URL endpoint
-  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+  // Cloudinary upload routes
+  app.post("/api/upload/image", isAuthenticated, upload.single('image'), async (req, res) => {
     try {
-      console.log("Getting upload URL for object storage...");
-      
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      console.log("Upload URL generated:", uploadURL);
-      const response = { uploadURL };
-      console.log("Sending response:", JSON.stringify(response));
-      res.json(response);
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
+      }
+
+      const { cloudinaryService } = await import('./cloudinaryService');
+      const imageUrl = await cloudinaryService.uploadImage(
+        req.file.buffer,
+        req.file.originalname,
+        'support-tickets'
+      );
+
+      res.json({ imageUrl });
     } catch (error) {
-      console.error("Error getting upload URL:", error);
-      res.status(503).json({ 
-        error: "File upload not available", 
-        message: "Object storage service is temporarily unavailable" 
+      console.error("Error uploading image:", error);
+      res.status(500).json({ 
+        error: "Failed to upload image",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/upload/file", isAuthenticated, upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { cloudinaryService } = await import('./cloudinaryService');
+      const fileUrl = await cloudinaryService.uploadFile(
+        req.file.buffer,
+        req.file.originalname,
+        'account-requests'
+      );
+
+      res.json({ fileUrl });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ 
+        error: "Failed to upload file",
+        message: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });

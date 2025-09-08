@@ -138,35 +138,27 @@ export default function SupportTicketModal({
           
           for (let i = 0; i < selectedImages.length; i++) {
             const image = selectedImages[i];
-            console.log(`Getting upload URL for image ${i + 1}...`);
+            console.log(`Uploading image ${i + 1} to Cloudinary...`);
             
-            // Get upload URL from backend
-            const uploadResponse = await apiRequest("POST", "/api/objects/upload");
-            const responseData = await uploadResponse.json();
-            const { uploadURL } = responseData as { uploadURL: string };
-            console.log(`Upload URL received for image ${i + 1}:`, uploadURL);
+            // Upload to Cloudinary
+            const formData = new FormData();
+            formData.append('image', image);
             
-            console.log(`Uploading image ${i + 1} to storage...`);
-            
-            // Upload the image using PUT request (only for real URLs)
-            const uploadResult = await fetch(uploadURL, {
-              method: "PUT",
-              body: image,
-              headers: {
-                "Content-Type": image.type,
-              },
+            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL || window.location.origin}/api/upload/image`, {
+              method: "POST",
+              body: formData,
+              credentials: "include",
             });
             
-            if (!uploadResult.ok) {
-              throw new Error(`Upload failed for image ${i + 1}: ${uploadResult.statusText}`);
+            if (!uploadResponse.ok) {
+              throw new Error(`Upload failed for image ${i + 1}: ${uploadResponse.statusText}`);
             }
             
-            console.log(`Image ${i + 1} uploaded successfully`);
+            const responseData = await uploadResponse.json();
+            const { imageUrl } = responseData as { imageUrl: string };
+            imageUrls.push(imageUrl);
             
-            // Extract the object path from the upload URL
-            const url = new URL(uploadURL);
-            const objectPath = url.pathname;
-            imageUrls.push(objectPath);
+            console.log(`Image ${i + 1} uploaded successfully to Cloudinary`);
           }
         } catch (error: unknown) {
           console.error("Error uploading images:", error);
