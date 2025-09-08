@@ -27,8 +27,13 @@ export function useWebSocket(): UseWebSocketReturn {
     }
 
     try {
-      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-      const wsUrl = `${protocol}//${window.location.host}/ws`;
+      // Use same API base URL as REST calls
+      const API_BASE_URL = import.meta.env.VITE_API_URL || 
+        (typeof window !== 'undefined' && window.location.origin) || 
+        'http://localhost:5000';
+      
+      // Convert HTTP(S) to WS(S) for WebSocket  
+      const wsUrl = API_BASE_URL.replace(/^http/, 'ws') + '/ws';
       
       ws.current = new WebSocket(wsUrl);
 

@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@/types";
 
 interface AdminSidebarProps {
@@ -40,18 +41,12 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
   };
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        window.location.href = "/";
-      } else {
-        console.error("Logout failed");
-      }
+      await apiRequest("POST", "/api/logout");
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
+      // Force redirect even if logout fails
+      window.location.href = "/";
     }
   };
 
