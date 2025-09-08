@@ -75,10 +75,13 @@ export function setupGoogleAuth(app: Express) {
   );
 
   app.get("/api/auth/google/callback",
-    passport.authenticate("google", { failureRedirect: "/auth?error=google" }),
+    passport.authenticate("google", { 
+      failureRedirect: `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:3000'}/auth?error=google`
+    }),
     (req, res) => {
-      // Successful authentication, redirect home.
-      res.redirect("/");
+      // Successful authentication, redirect to frontend domain.
+      const frontendUrl = process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:3000';
+      res.redirect(frontendUrl);
     }
   );
 }
