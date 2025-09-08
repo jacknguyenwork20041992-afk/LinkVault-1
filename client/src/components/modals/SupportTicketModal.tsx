@@ -351,8 +351,8 @@ export default function SupportTicketModal({
                       <Input
                         type="date"
                         {...field}
-                        value={field.value ? new Date(field.value).toISOString().split('T')[0] : ''}
-                        onChange={(e) => field.onChange(new Date(e.target.value))}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(e.target.value)}
                         data-testid="input-issue-date"
                       />
                     </FormControl>
