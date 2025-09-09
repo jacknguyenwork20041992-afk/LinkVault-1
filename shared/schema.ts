@@ -503,7 +503,7 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 // Document link schema
 export const documentLinkSchema = z.object({
   url: z.string().url("Link phải là URL hợp lệ"),
-  description: z.string().min(1, "Mô tả link là bắt buộc"),
+  description: z.string().optional(), // Mô tả link có thể để trống
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({
@@ -511,7 +511,7 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  links: z.array(documentLinkSchema).min(1, "Phải có ít nhất 1 link"),
+  links: z.array(documentLinkSchema).optional(), // Links có thể để trống
 });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
