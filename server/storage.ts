@@ -1493,22 +1493,24 @@ export class DatabaseStorage implements IStorage {
 
     const knowledgeResult = Array.from(knowledgeMap.values());
 
+    // TODO: Fix support responses query - temporarily disabled due to database error
     // Get support responses with images for AI learning
-    const supportResponsesData = await db.select({
-      ticketId: supportResponses.ticketId,
-      response: supportResponses.response,
-      imageUrls: supportResponses.imageUrls,
-      createdAt: supportResponses.createdAt,
-      ticketSubject: supportTickets.subject,
-      ticketDescription: supportTickets.description,
-      ticketCategory: supportTickets.category,
-      ticketStatus: supportTickets.status
-    })
-    .from(supportResponses)
-    .innerJoin(supportTickets, eq(supportResponses.ticketId, supportTickets.id))
-    .where(eq(supportResponses.isInternal, false)) // Only public responses
-    .orderBy(desc(supportResponses.createdAt))
-    .limit(50); // Latest 50 responses for AI learning
+    const supportResponsesData: any[] = [];
+    // const supportResponsesData = await db.select({
+    //   ticketId: supportResponses.ticketId,
+    //   response: supportResponses.response,
+    //   imageUrls: supportResponses.imageUrls,
+    //   createdAt: supportResponses.createdAt,
+    //   ticketSubject: supportTickets.subject,
+    //   ticketDescription: supportTickets.description,
+    //   ticketCategory: supportTickets.category,
+    //   ticketStatus: supportTickets.status
+    // })
+    // .from(supportResponses)
+    // .innerJoin(supportTickets, eq(supportResponses.ticketId, supportTickets.id))
+    // .where(eq(supportResponses.isInternal, false)) // Only public responses
+    // .orderBy(desc(supportResponses.createdAt))
+    // .limit(50); // Latest 50 responses for AI learning
 
     return {
       programs: programsResult,
