@@ -98,6 +98,12 @@ QUAN TRỌNG:
 - KHÔNG sử dụng dấu ** hay ### trong câu trả lời
 - Sử dụng định dạng: gạch đầu dòng (-), đánh số (1., 2., 3.) hoặc số La Mã (I., II., III.)
 
+HƯỚNG DẪN GỬI HÌNH ẢNH:
+- Nếu có hình ảnh liên quan trong kiến thức hỗ trợ, hãy bao gồm chúng trong phản hồi
+- Sử dụng định dạng: [IMAGE:url_hình_ảnh] ở cuối câu trả lời
+- Chỉ gửi hình ảnh khi thực sự hữu ích và liên quan đến câu hỏi
+- Tối đa 3 hình ảnh mỗi phản hồi
+
 VÍ DỤ FORMAT ĐÚNG:
 CHƯƠNG TRÌNH HỌC TẠI VIA:
 1. Tiếng Anh giao tiếp

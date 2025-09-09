@@ -257,6 +257,25 @@ export default function ChatBot({ isOpen, onClose }: ChatBotProps) {
                         style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}
                       >
                         <div className="text-sm whitespace-pre-wrap break-words overflow-hidden">{msg.content}</div>
+                        
+                        {/* Display images for AI responses */}
+                        {msg.role === "assistant" && msg.imageUrls && msg.imageUrls.length > 0 && (
+                          <div className="mt-3 space-y-2">
+                            {msg.imageUrls.map((imageUrl, imgIndex) => (
+                              <div key={imgIndex} className="relative">
+                                <img
+                                  src={imageUrl}
+                                  alt={`Hình ảnh minh họa ${imgIndex + 1}`}
+                                  className="max-w-full h-auto rounded-md border"
+                                  style={{ maxHeight: '200px' }}
+                                  onError={(e) => {
+                                    e.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
 
                       {msg.role === "user" && (
