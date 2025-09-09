@@ -33,7 +33,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
     defaultValues: {
       name: project.name,
       description: project.description || "",
-      assignee: project.assignee,
+      assigneeId: project.assigneeId,
       status: project.status,
       link: project.link || "",
     },
@@ -44,7 +44,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
     form.reset({
       name: project.name,
       description: project.description || "",
-      assignee: project.assignee,
+      assigneeId: project.assigneeId,
       status: project.status,
       link: project.link || "",
     });
@@ -138,12 +138,18 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
-                  name="assignee"
+                  name="assigneeId"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Người thực hiện *</FormLabel>
+                      <FormLabel>Project Leader *</FormLabel>
                       <FormControl>
-                        <Input placeholder="Tên người thực hiện" {...field} data-testid="input-edit-project-assignee" />
+                        <Input 
+                          placeholder={`Project Leader hiện tại: ${project.assignee || 'Chưa phân công'}`}
+                          {...field} 
+                          value={project.assignee || 'Chưa phân công'}
+                          disabled
+                          data-testid="input-edit-project-assignee" 
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -715,12 +715,59 @@ export class DatabaseStorage implements IStorage {
 
   // Project operations
   async getAllProjects(): Promise<Project[]> {
-    return await db.select().from(projects).orderBy(desc(projects.createdAt));
+    const results = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .orderBy(desc(projects.createdAt));
+
+    return results.map(row => ({
+      ...row,
+      assignee: row.assignee && row.assigneeLastName 
+        ? `${row.assignee} ${row.assigneeLastName}` 
+        : row.assignee || 'Chưa phân công'
+    }));
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
-    return project;
+    const [result] = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .where(eq(projects.id, id));
+
+    if (!result) return undefined;
+
+    return {
+      ...result,
+      assignee: result.assignee && result.assigneeLastName 
+        ? `${result.assignee} ${result.assigneeLastName}` 
+        : result.assignee || 'Chưa phân công'
+    };
   }
 
   async createProject(projectData: InsertProject): Promise<Project> {
