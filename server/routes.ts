@@ -655,6 +655,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Support Tools routes
+  app.get("/api/support-tools", async (req, res) => {
+    try {
+      const tools = await storage.getAllSupportTools();
+      res.json(tools);
+    } catch (error) {
+      console.error("Error fetching support tools:", error);
+      res.status(500).json({ message: "Failed to fetch support tools" });
+    }
+  });
+
+  app.post("/api/support-tools", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const toolData = req.body;
+      const tool = await storage.createSupportTool(toolData);
+      res.json(tool);
+    } catch (error) {
+      console.error("Error creating support tool:", error);
+      res.status(500).json({ message: "Failed to create support tool" });
+    }
+  });
+
+  app.put("/api/support-tools/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const toolData = req.body;
+      const tool = await storage.updateSupportTool(id, toolData);
+      res.json(tool);
+    } catch (error) {
+      console.error("Error updating support tool:", error);
+      res.status(500).json({ message: "Failed to update support tool" });
+    }
+  });
+
+  app.delete("/api/support-tools/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSupportTool(id);
+      res.json({ message: "Support tool deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting support tool:", error);
+      res.status(500).json({ message: "Failed to delete support tool" });
+    }
+  });
+
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;

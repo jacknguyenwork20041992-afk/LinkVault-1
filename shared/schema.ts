@@ -575,6 +575,12 @@ export const insertAccountSchema = createInsertSchema(accounts).omit({
   updatedAt: true,
 });
 
+export const insertSupportToolSchema = createInsertSchema(supportTools).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 export const insertChatConversationSchema = createInsertSchema(chatConversations).omit({
   id: true,
   createdAt: true,

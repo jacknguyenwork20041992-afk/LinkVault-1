@@ -240,6 +240,23 @@ export interface ChatMessage {
   createdAt?: Date | null;
 }
 
+export interface SupportTool {
+  id: string;
+  name: string;
+  link: string;
+  description?: string | null;
+  createdBy: string;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+}
+
+export interface InsertSupportTool {
+  name: string;
+  link: string;
+  description?: string;
+  createdBy: string;
+}
+
 // Form schemas (Zod)
 
 export const createUserSchema = z.object({
@@ -364,4 +381,11 @@ export const insertAccountSchema = z.object({
   balance: z.number().optional().default(0),
   currency: z.string().optional().default("VND"),
   isActive: z.boolean().optional().default(true)
+});
+
+export const insertSupportToolSchema = z.object({
+  name: z.string().min(1, "Tên công cụ là bắt buộc"),
+  link: z.string().url("Link phải là URL hợp lệ"),
+  description: z.string().optional(),
+  createdBy: z.string().min(1)
 });

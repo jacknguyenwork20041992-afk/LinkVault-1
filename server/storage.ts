@@ -19,6 +19,7 @@ import {
   supportTickets,
   supportResponses,
   accountRequests,
+  supportTools,
   themeSettings,
   adminUserChats,
   adminUserMessages,
@@ -831,6 +832,29 @@ export class DatabaseStorage implements IStorage {
   // Delete task
   async deleteTask(id: string): Promise<void> {
     await db.delete(projectTasks).where(eq(projectTasks.id, id));
+  }
+
+  // Support Tools methods
+  async getAllSupportTools(): Promise<any[]> {
+    return db.select().from(supportTools).orderBy(supportTools.createdAt);
+  }
+
+  async createSupportTool(toolData: any): Promise<any> {
+    const [tool] = await db.insert(supportTools).values(toolData).returning();
+    return tool;
+  }
+
+  async updateSupportTool(id: string, toolData: any): Promise<any> {
+    const [tool] = await db
+      .update(supportTools)
+      .set({ ...toolData, updatedAt: new Date() })
+      .where(eq(supportTools.id, id))
+      .returning();
+    return tool;
+  }
+
+  async deleteSupportTool(id: string): Promise<void> {
+    await db.delete(supportTools).where(eq(supportTools.id, id));
   }
 
   async getProject(id: string): Promise<Project | undefined> {
