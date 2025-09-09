@@ -816,6 +816,23 @@ export class DatabaseStorage implements IStorage {
     return task;
   }
 
+  // Create task
+  async createTask(taskData: any): Promise<any> {
+    const [task] = await db
+      .insert(projectTasks)
+      .values({
+        ...taskData,
+        deadline: new Date(taskData.deadline),
+      })
+      .returning();
+    return task;
+  }
+
+  // Delete task
+  async deleteTask(id: string): Promise<void> {
+    await db.delete(projectTasks).where(eq(projectTasks.id, id));
+  }
+
   async getProject(id: string): Promise<Project | undefined> {
     const [result] = await db
       .select({

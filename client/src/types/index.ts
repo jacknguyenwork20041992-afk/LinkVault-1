@@ -163,13 +163,14 @@ export interface Project {
   id: string;
   name: string;
   description?: string | null;
+  assignee?: string;
+  assigneeId?: string;
   status: string;
-  priority: string;
-  dueDate?: Date | null;
-  assignedTo?: string | null;
-  createdBy: string;
+  deadline: Date;
+  link?: string;
   createdAt?: Date | null;
   updatedAt?: Date | null;
+  tasks?: any[];
 }
 
 export interface InsertProject {

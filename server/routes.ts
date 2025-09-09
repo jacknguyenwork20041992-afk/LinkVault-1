@@ -631,6 +631,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new task
+  app.post("/api/tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const taskData = req.body;
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  // Delete task
+  app.delete("/api/tasks/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteTask(id);
+      res.json({ message: "Task deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
