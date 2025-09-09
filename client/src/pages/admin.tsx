@@ -55,7 +55,10 @@ export default function Admin() {
 
   // Lấy thông báo deadline
   const deadlineNotifications = allNotifications.filter((item: any) => 
-    item.notification?.title?.includes("deadline") || item.notification?.title?.includes("Test thông báo")
+    item.notification?.title?.includes("deadline") || 
+    item.notification?.title?.includes("Test thông báo") ||
+    item.notification?.title?.includes("Dự án") ||
+    item.notification?.title?.includes("Công việc")
   );
 
   console.log("Deadline notifications:", deadlineNotifications);
