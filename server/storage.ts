@@ -741,6 +741,81 @@ export class DatabaseStorage implements IStorage {
     }));
   }
 
+  // Get all projects with their tasks
+  async getAllProjectsWithTasks(): Promise<any[]> {
+    const projectResults = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .orderBy(desc(projects.createdAt));
+
+    const tasksResults = await db
+      .select({
+        id: projectTasks.id,
+        projectId: projectTasks.projectId,
+        name: projectTasks.name,
+        description: projectTasks.description,
+        assigneeId: projectTasks.assigneeId,
+        deadline: projectTasks.deadline,
+        status: projectTasks.status,
+        link: projectTasks.link,
+        createdAt: projectTasks.createdAt,
+        updatedAt: projectTasks.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projectTasks)
+      .leftJoin(users, eq(projectTasks.assigneeId, users.id))
+      .orderBy(projectTasks.createdAt);
+
+    return projectResults.map(project => ({
+      ...project,
+      assignee: project.assignee && project.assigneeLastName 
+        ? `${project.assignee} ${project.assigneeLastName}` 
+        : project.assignee || 'Chưa phân công',
+      tasks: tasksResults
+        .filter(task => task.projectId === project.id)
+        .map(task => ({
+          ...task,
+          assignee: task.assignee && task.assigneeLastName 
+            ? `${task.assignee} ${task.assigneeLastName}` 
+            : task.assignee || 'Chưa phân công'
+        }))
+    }));
+  }
+
+  // Update project status
+  async updateProjectStatus(id: string, status: string): Promise<Project> {
+    const [project] = await db
+      .update(projects)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
+  }
+
+  // Update task status
+  async updateTaskStatus(id: string, status: string): Promise<any> {
+    const [task] = await db
+      .update(projectTasks)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(projectTasks.id, id))
+      .returning();
+    return task;
+  }
+
   async getProject(id: string): Promise<Project | undefined> {
     const [result] = await db
       .select({

@@ -594,6 +594,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all projects with tasks
+  app.get("/api/projects-with-tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const projects = await storage.getAllProjectsWithTasks();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects with tasks:", error);
+      res.status(500).json({ message: "Failed to fetch projects with tasks" });
+    }
+  });
+
+  // Update project status
+  app.patch("/api/projects/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const project = await storage.updateProjectStatus(id, status);
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating project status:", error);
+      res.status(500).json({ message: "Failed to update project status" });
+    }
+  });
+
+  // Update task status
+  app.patch("/api/tasks/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const task = await storage.updateTaskStatus(id, status);
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      res.status(500).json({ message: "Failed to update task status" });
+    }
+  });
+
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
