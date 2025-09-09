@@ -165,8 +165,8 @@ function BulkCreateDocumentModal({
           title: "",
           description: "",
           links: [{ url: "", description: "" }],
-          categoryId: "",
-          programId: "",
+          categoryId: undefined,
+          programId: undefined,
         },
       ],
     },
@@ -227,8 +227,8 @@ function BulkCreateDocumentModal({
       title: "",
       description: "",
       links: [{ url: "", description: "" }],
-      categoryId: "",
-      programId: "",
+      categoryId: undefined,
+      programId: undefined,
     });
   };
 
