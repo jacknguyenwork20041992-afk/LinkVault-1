@@ -574,12 +574,12 @@ export default function Home() {
                           <ExternalLink className="h-4 w-4 text-purple-400 dark:text-purple-500 opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                         </div>
                         
-                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 line-clamp-1">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-2 leading-tight">
                           {tool.name}
                         </h3>
                         
                         {tool.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 line-clamp-2">
+                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-tight">
                             {tool.description}
                           </p>
                         )}

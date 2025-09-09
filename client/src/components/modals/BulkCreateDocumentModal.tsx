@@ -219,11 +219,8 @@ function BulkCreateDocumentModal({
   };
 
   const onSubmit = (data: BulkCreateDocuments) => {
-    // USE form.getValues() instead of data parameter to get Controller values
+    // Use form.getValues() to get Controller values that aren't in data parameter
     const formValues = form.getValues();
-    console.log("=== USING FORM.GETVALUES() ===");
-    console.log("Form values with Controller data:", formValues);
-    
     createMutation.mutate(formValues);
   };
 

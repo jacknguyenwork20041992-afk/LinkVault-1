@@ -339,36 +339,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/documents/bulk", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      console.log("BULK ENDPOINT HIT - req.body:", JSON.stringify(req.body, null, 2));
       const { documents } = req.body;
       if (!Array.isArray(documents) || documents.length === 0) {
         return res.status(400).json({ message: "Documents array is required" });
       }
       
-      console.log("RAW DOCUMENTS:", JSON.stringify(documents, null, 2));
-      
-      // NO VALIDATION - JUST PASS THROUGH WITH DEFAULTS
-      const processedDocuments = documents.map(doc => {
-        const processed = {
-          title: doc.title || "",
-          description: doc.description || "",
-          programId: doc.programId || null,
-          categoryId: doc.categoryId || null,
-          links: doc.links || [],
-          isPublic: doc.isPublic !== undefined ? doc.isPublic : true,
-          isRequired: doc.isRequired !== undefined ? doc.isRequired : false
-        };
-        console.log("PROCESSED DOC:", processed);
-        return processed;
-      });
+      const processedDocuments = documents.map(doc => ({
+        title: doc.title || "",
+        description: doc.description || "",
+        programId: doc.programId || null,
+        categoryId: doc.categoryId || null,
+        links: doc.links || [],
+        isPublic: doc.isPublic !== undefined ? doc.isPublic : true,
+        isRequired: doc.isRequired !== undefined ? doc.isRequired : false
+      }));
       
       const createdDocuments = await storage.createDocuments(processedDocuments);
-      console.log("CREATED SUCCESSFULLY:", createdDocuments.length);
       res.json(createdDocuments);
     } catch (error) {
-      console.error("BULK ERROR DETAILS:", error);
-      console.error("ERROR STACK:", error.stack);
-      res.status(400).json({ message: "Failed to create documents", details: error.message });
+      console.error("Error creating bulk documents:", error);
+      res.status(400).json({ message: "Failed to create documents" });
     }
   });
 
