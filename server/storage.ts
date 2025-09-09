@@ -72,7 +72,7 @@ import {
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, asc, ilike, or, not, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, asc, ilike, or, not, inArray, gte, lte, ne } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
