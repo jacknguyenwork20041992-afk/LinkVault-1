@@ -294,7 +294,8 @@ export default function SupportTicketsManagement() {
         const formData = new FormData();
         formData.append('image', file);
         
-        const uploadResponse = await apiRequest("POST", "/api/upload/image", formData) as any;
+        const response = await apiRequest("POST", "/api/upload/image", formData);
+        const uploadResponse = await response.json();
         
         if (uploadResponse.imageUrl) {
           uploadedImages.push(uploadResponse.imageUrl);
