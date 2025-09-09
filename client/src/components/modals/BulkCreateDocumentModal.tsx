@@ -219,24 +219,12 @@ function BulkCreateDocumentModal({
   };
 
   const onSubmit = (data: BulkCreateDocuments) => {
-    console.log("=== FORM SUBMIT DEBUG ===");
-    console.log("Raw form data:", data);
-    console.log("Form getValues():", form.getValues());
-    console.log("Form state dirty fields:", form.formState.dirtyFields);
-    console.log("Documents being sent:", JSON.stringify(data.documents, null, 2));
+    // USE form.getValues() instead of data parameter to get Controller values
+    const formValues = form.getValues();
+    console.log("=== USING FORM.GETVALUES() ===");
+    console.log("Form values with Controller data:", formValues);
     
-    // Detailed debug for each document
-    data.documents.forEach((doc, index) => {
-      console.log(`Document ${index}:`, {
-        title: doc.title,
-        programId: doc.programId,
-        categoryId: doc.categoryId,
-        description: doc.description
-      });
-    });
-    console.log("=========================");
-    
-    createMutation.mutate(data);
+    createMutation.mutate(formValues);
   };
 
   const addDocument = () => {
