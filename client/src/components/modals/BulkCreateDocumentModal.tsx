@@ -233,8 +233,9 @@ function BulkCreateDocumentModal({
   };
 
   const getFilteredCategories = (programId: string) => {
+    // Only show categories that belong to the selected program
     return (categories as Category[]).filter((category: Category) => 
-      !programId || category.programId === programId
+      programId && category.programId === programId
     );
   };
 
