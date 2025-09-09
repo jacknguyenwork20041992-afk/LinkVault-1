@@ -344,6 +344,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Documents array is required" });
       }
       
+      // Debug: Check what frontend sends
+      console.log("DEBUG - Raw frontend data:", JSON.stringify(documents[0], null, 2));
+      
       const validatedDocuments = documents.map(doc => insertDocumentSchema.parse(doc));
       const createdDocuments = await storage.createDocuments(validatedDocuments);
       res.json(createdDocuments);
