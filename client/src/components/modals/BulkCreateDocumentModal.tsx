@@ -219,6 +219,10 @@ function BulkCreateDocumentModal({
   };
 
   const onSubmit = (data: BulkCreateDocuments) => {
+    // Debug: Check form data before sending
+    console.log("DEBUG - Form data before API call:", JSON.stringify(data, null, 2));
+    console.log("DEBUG - First document programId:", data.documents[0]?.programId);
+    console.log("DEBUG - First document categoryId:", data.documents[0]?.categoryId);
     createMutation.mutate(data);
   };
 
