@@ -22,6 +22,7 @@ import {
   Filter,
   X,
   Brain,
+  Upload,
 } from "lucide-react";
 import {
   Dialog,
@@ -50,6 +51,7 @@ export default function SupportTicketsManagement() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [responseText, setResponseText] = useState("");
+  const [responseImages, setResponseImages] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,8 +71,8 @@ export default function SupportTicketsManagement() {
 
   // Respond to ticket mutation
   const respondMutation = useMutation({
-    mutationFn: async ({ ticketId, response }: { ticketId: string; response: string }) => {
-      await apiRequest("POST", `/api/support-tickets/${ticketId}/respond`, { response });
+    mutationFn: async ({ ticketId, response, imageUrls }: { ticketId: string; response: string; imageUrls?: string[] }) => {
+      await apiRequest("POST", `/api/support-tickets/${ticketId}/respond`, { response, imageUrls });
     },
     onSuccess: () => {
       toast({
@@ -78,6 +80,7 @@ export default function SupportTicketsManagement() {
         description: "Đã gửi phản hồi",
       });
       setResponseText("");
+      setResponseImages([]);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/support-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets", selectedTicket?.id, "responses"] });
     },
@@ -263,7 +266,69 @@ export default function SupportTicketsManagement() {
 
   const handleRespond = () => {
     if (!responseText.trim() || !selectedTicket) return;
-    respondMutation.mutate({ ticketId: selectedTicket.id, response: responseText });
+    respondMutation.mutate({ 
+      ticketId: selectedTicket.id, 
+      response: responseText,
+      imageUrls: responseImages.length > 0 ? responseImages : undefined
+    });
+  };
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    try {
+      const uploadedImages: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: "Lỗi",
+            description: `File ${file.name} không phải là hình ảnh`,
+            variant: "destructive",
+          });
+          continue;
+        }
+        
+        // Upload to Cloudinary
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('upload_preset', 'support-tickets');
+        
+        const cloudinaryResponse = await fetch(
+          `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
+          {
+            method: 'POST',
+            body: formData,
+          }
+        );
+        
+        if (!cloudinaryResponse.ok) {
+          throw new Error(`Failed to upload ${file.name}`);
+        }
+        
+        const result = await cloudinaryResponse.json();
+        uploadedImages.push(result.secure_url);
+      }
+      
+      setResponseImages(prev => [...prev, ...uploadedImages]);
+      
+      toast({
+        title: "Thành công",
+        description: `Đã upload ${uploadedImages.length} hình ảnh`,
+      });
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({
+        title: "Lỗi", 
+        description: "Không thể upload hình ảnh. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setResponseImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleUpdateStatus = (status: string) => {
@@ -620,6 +685,58 @@ export default function SupportTicketsManagement() {
                       className="min-h-[100px]"
                       data-testid="textarea-response"
                     />
+                    
+                    {/* Image Upload */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Đính kèm hình ảnh:</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e.target.files)}
+                          className="hidden"
+                          id="response-image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('response-image-upload')?.click()}
+                          className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Chọn hình ảnh
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          Có thể chọn nhiều hình ảnh cùng lúc
+                        </span>
+                      </div>
+                      
+                      {/* Preview uploaded images */}
+                      {responseImages.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                          {responseImages.map((imageUrl, index) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrl}
+                                alt={`Response image ${index + 1}`}
+                                className="w-full h-20 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                onClick={() => window.open(imageUrl, '_blank')}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(index)}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
                     <Button
                       onClick={handleRespond}
                       disabled={!responseText.trim() || respondMutation.isPending}
