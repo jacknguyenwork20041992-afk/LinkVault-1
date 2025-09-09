@@ -175,10 +175,33 @@ export interface Project {
 export interface InsertProject {
   name: string;
   description?: string;
-  assignee: string;
+  assigneeId: string; // Changed to assigneeId to match new schema
   status?: string;
   link?: string;
   deadline?: Date; // Optional vì được handle riêng qua date state
+}
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  name: string;
+  assigneeId: string;
+  description?: string;
+  link?: string;
+  deadline: Date;
+  status: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface InsertProjectTask {
+  projectId: string;
+  name: string;
+  assigneeId: string;
+  description?: string;
+  link?: string;
+  deadline: Date;
+  status?: string;
 }
 
 export interface Account {
@@ -320,9 +343,18 @@ export const documentLinkSchema = z.object({
 export const insertProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  assignee: z.string().min(1),
+  assigneeId: z.string().min(1),
   status: z.string().optional().default("todo"),
   link: z.string().optional()
+});
+
+export const insertProjectTaskSchema = z.object({
+  projectId: z.string().min(1),
+  name: z.string().min(1),
+  assigneeId: z.string().min(1),
+  description: z.string().optional(),
+  link: z.string().optional(),
+  status: z.string().optional().default("todo")
 });
 
 export const insertAccountSchema = z.object({

@@ -386,6 +386,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get admin users for dropdowns
+  app.get("/api/admin-users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminUsers = await storage.getAdminUsers();
+      res.json(adminUsers);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      res.status(500).json({ message: "Failed to fetch admin users" });
+    }
+  });
+
   app.post("/api/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = createUserSchema.parse(req.body);
