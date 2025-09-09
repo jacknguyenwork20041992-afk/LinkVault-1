@@ -664,7 +664,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (notifications.length === 0) {
         const testNotification = await storage.createNotification({
           title: "⏰ Test thông báo deadline",
-          content: `Đây là thông báo test được tạo lúc ${new Date().toLocaleString("vi-VN")}\n\nTính năng kiểm tra deadline đã hoạt động bình thường!\n\n🔍 Hệ thống đã quét tất cả projects và tasks nhưng không tìm thấy mục nào sắp đến hạn trong 3 ngày tới.`,
+          message: `Đây là thông báo test được tạo lúc ${new Date().toLocaleString("vi-VN")}\n\nTính năng kiểm tra deadline đã hoạt động bình thường!\n\n🔍 Hệ thống đã quét tất cả projects và tasks nhưng không tìm thấy mục nào sắp đến hạn trong 3 ngày tới.`,
           type: "deadline",
           isGlobal: true,
           createdBy: "system"

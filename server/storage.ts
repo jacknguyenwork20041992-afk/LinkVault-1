@@ -907,7 +907,7 @@ export class DatabaseStorage implements IStorage {
         .insert(notifications)
         .values({
           title,
-          content,
+          message: content,
           type: 'deadline',
           isGlobal: true,
           createdBy: 'system'
@@ -946,7 +946,7 @@ export class DatabaseStorage implements IStorage {
         .insert(notifications)
         .values({
           title,
-          content,
+          message: content,
           type: 'deadline',
           isGlobal: true,
           createdBy: 'system'
