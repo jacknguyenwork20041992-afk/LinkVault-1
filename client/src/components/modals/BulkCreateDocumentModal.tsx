@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -295,22 +295,20 @@ function BulkCreateDocumentModal({
 
                         <LinksSection documentIndex={index} form={form} />
 
-                        <FormField
-                          control={form.control}
-                          name={`documents.${index}.programId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Chương trình</FormLabel>
+                        <div>
+                          <FormLabel>Chương trình</FormLabel>
+                          <Controller
+                            name={`documents.${index}.programId`}
+                            control={form.control}
+                            render={({ field }) => (
                               <Select onValueChange={(value) => {
                                 field.onChange(value);
-                                // Reset category when program changes
+                                // Reset category when program changes  
                                 form.setValue(`documents.${index}.categoryId`, "");
-                              }} value={field.value || undefined}>
-                                <FormControl>
-                                  <SelectTrigger data-testid={`select-document-program-${index}`}>
-                                    <SelectValue placeholder="Chọn chương trình" />
-                                  </SelectTrigger>
-                                </FormControl>
+                              }} value={field.value}>
+                                <SelectTrigger data-testid={`select-document-program-${index}`}>
+                                  <SelectValue placeholder="Chọn chương trình" />
+                                </SelectTrigger>
                                 <SelectContent>
                                   {(programs as Program[]).map((program: Program) => (
                                     <SelectItem key={program.id} value={program.id}>
@@ -319,23 +317,20 @@ function BulkCreateDocumentModal({
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                            )}
+                          />
+                        </div>
 
-                        <FormField
-                          control={form.control}
-                          name={`documents.${index}.categoryId`}
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormLabel>Khóa học (không bắt buộc)</FormLabel>
-                              <Select onValueChange={field.onChange} value={field.value || undefined}>
-                                <FormControl>
-                                  <SelectTrigger data-testid={`select-document-category-${index}`}>
-                                    <SelectValue placeholder="Không chọn khóa học (áp dụng toàn chương trình)" />
-                                  </SelectTrigger>
-                                </FormControl>
+                        <div>
+                          <FormLabel>Khóa học (không bắt buộc)</FormLabel>
+                          <Controller
+                            name={`documents.${index}.categoryId`}
+                            control={form.control}
+                            render={({ field }) => (
+                              <Select onValueChange={field.onChange} value={field.value}>
+                                <SelectTrigger data-testid={`select-document-category-${index}`}>
+                                  <SelectValue placeholder="Không chọn khóa học (áp dụng toàn chương trình)" />
+                                </SelectTrigger>
                                 <SelectContent>
                                   <SelectItem value="none">Không chọn khóa học (áp dụng toàn chương trình)</SelectItem>
                                   {filteredCategories.map((category: Category) => (
@@ -345,10 +340,9 @@ function BulkCreateDocumentModal({
                                   ))}
                                 </SelectContent>
                               </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                            )}
+                          />
+                        </div>
 
                         <div className="md:col-span-2">
                           <FormField
