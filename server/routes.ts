@@ -655,6 +655,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check and send deadline notifications
+  app.post("/api/notifications/deadline-check", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const notifications = await storage.checkAndCreateDeadlineNotifications();
+      res.json({ 
+        message: "Deadline notifications checked and created",
+        notifications: notifications.length,
+        details: notifications
+      });
+    } catch (error) {
+      console.error("Error checking deadline notifications:", error);
+      res.status(500).json({ message: "Failed to check deadline notifications" });
+    }
+  });
+
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;

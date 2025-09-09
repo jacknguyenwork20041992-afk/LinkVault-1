@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Home, Menu, Bell, Clock, User, CheckCheck } from "lucide-react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Admin() {
@@ -87,6 +87,29 @@ export default function Admin() {
       console.error('Error marking notifications as read:', error);
     }
   };
+
+  // Mutation để gửi thông báo deadline
+  const sendDeadlineNotifications = useMutation({
+    mutationFn: async () => {
+      return await apiRequest("POST", "/api/notifications/deadline-check");
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "🎉 Thành công!",
+        description: `Đã tạo ${data.notifications} thông báo deadline. Kiểm tra trang thông báo để xem chi tiết.`,
+        variant: "default",
+      });
+      // Refresh notifications sau khi tạo
+      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
+    },
+    onError: (error) => {
+      toast({
+        title: "❌ Lỗi",
+        description: "Không thể gửi thông báo deadline. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    },
+  });
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -244,6 +267,28 @@ export default function Admin() {
               </div>
               
               <div className="flex items-center space-x-3 lg:space-x-4">
+                {/* Button gửi thông báo deadline */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => sendDeadlineNotifications.mutate()}
+                  disabled={sendDeadlineNotifications.isPending}
+                  className="text-sm font-medium text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950/30 dark:hover:bg-blue-950/50"
+                  data-testid="button-send-deadline-notifications"
+                >
+                  {sendDeadlineNotifications.isPending ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      Đang gửi...
+                    </>
+                  ) : (
+                    <>
+                      <Clock className="h-4 w-4 mr-2" />
+                      Kiểm tra deadline
+                    </>
+                  )}
+                </Button>
+
                 {/* Modern Admin Notification Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>

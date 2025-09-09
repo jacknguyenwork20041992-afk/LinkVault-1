@@ -833,6 +833,136 @@ export class DatabaseStorage implements IStorage {
     await db.delete(projectTasks).where(eq(projectTasks.id, id));
   }
 
+  // Check for upcoming deadlines and create notifications
+  async checkAndCreateDeadlineNotifications(): Promise<any[]> {
+    const today = new Date();
+    const threeDaysFromNow = new Date();
+    threeDaysFromNow.setDate(today.getDate() + 3);
+
+    // Get projects with deadlines in next 3 days
+    const upcomingProjects = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        deadline: projects.deadline,
+        assigneeId: projects.assigneeId,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .where(and(
+        gte(projects.deadline, today),
+        lte(projects.deadline, threeDaysFromNow),
+        ne(projects.status, 'completed'),
+        ne(projects.status, 'cancelled')
+      ));
+
+    // Get tasks with deadlines in next 3 days
+    const upcomingTasks = await db
+      .select({
+        id: projectTasks.id,
+        name: projectTasks.name,
+        deadline: projectTasks.deadline,
+        assigneeId: projectTasks.assigneeId,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+        projectId: projectTasks.projectId,
+        projectName: projects.name,
+      })
+      .from(projectTasks)
+      .leftJoin(users, eq(projectTasks.assigneeId, users.id))
+      .leftJoin(projects, eq(projectTasks.projectId, projects.id))
+      .where(and(
+        gte(projectTasks.deadline, today),
+        lte(projectTasks.deadline, threeDaysFromNow),
+        ne(projectTasks.status, 'completed'),
+        ne(projectTasks.status, 'cancelled')
+      ));
+
+    const createdNotifications = [];
+
+    // Create notifications for upcoming projects
+    for (const project of upcomingProjects) {
+      const daysUntilDeadline = Math.ceil(
+        (new Date(project.deadline).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      
+      const assigneeName = project.assignee && project.assigneeLastName 
+        ? `${project.assignee} ${project.assigneeLastName}` 
+        : 'Chưa phân công';
+
+      const title = daysUntilDeadline === 0 
+        ? `🚨 Dự án "${project.name}" đến hạn hôm nay!`
+        : `⏰ Dự án "${project.name}" sắp đến hạn trong ${daysUntilDeadline} ngày`;
+
+      const content = `Dự án: ${project.name}\nNgười thực hiện: ${assigneeName}\nDeadline: ${new Date(project.deadline).toLocaleDateString("vi-VN")}\n\n${
+        daysUntilDeadline === 0 
+          ? 'Hãy kiểm tra và cập nhật trạng thái dự án ngay!'
+          : 'Hãy đảm bảo dự án được hoàn thành đúng hạn.'
+      }`;
+
+      // Create global notification
+      const [notification] = await db
+        .insert(notifications)
+        .values({
+          title,
+          content,
+          type: 'deadline',
+          isGlobal: true,
+          createdBy: 'system'
+        })
+        .returning();
+
+      createdNotifications.push({
+        type: 'project',
+        notification,
+        target: project
+      });
+    }
+
+    // Create notifications for upcoming tasks
+    for (const task of upcomingTasks) {
+      const daysUntilDeadline = Math.ceil(
+        (new Date(task.deadline).getTime() - today.getTime()) / (1000 * 60 * 60 * 24)
+      );
+      
+      const assigneeName = task.assignee && task.assigneeLastName 
+        ? `${task.assignee} ${task.assigneeLastName}` 
+        : 'Chưa phân công';
+
+      const title = daysUntilDeadline === 0 
+        ? `🚨 Công việc "${task.name}" đến hạn hôm nay!`
+        : `⏰ Công việc "${task.name}" sắp đến hạn trong ${daysUntilDeadline} ngày`;
+
+      const content = `Dự án: ${task.projectName}\nCông việc: ${task.name}\nNgười thực hiện: ${assigneeName}\nDeadline: ${new Date(task.deadline).toLocaleDateString("vi-VN")}\n\n${
+        daysUntilDeadline === 0 
+          ? 'Hãy kiểm tra và cập nhật trạng thái công việc ngay!'
+          : 'Hãy đảm bảo công việc được hoàn thành đúng hạn.'
+      }`;
+
+      // Create global notification
+      const [notification] = await db
+        .insert(notifications)
+        .values({
+          title,
+          content,
+          type: 'deadline',
+          isGlobal: true,
+          createdBy: 'system'
+        })
+        .returning();
+
+      createdNotifications.push({
+        type: 'task',
+        notification,
+        target: task
+      });
+    }
+
+    return createdNotifications;
+  }
+
   async getProject(id: string): Promise<Project | undefined> {
     const [result] = await db
       .select({
