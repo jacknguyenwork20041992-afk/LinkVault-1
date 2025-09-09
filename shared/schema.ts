@@ -124,10 +124,24 @@ export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   description: text("description"),
-  assignee: varchar("assignee").notNull(), // Người thực hiện
+  assigneeId: varchar("assignee_id").references(() => users.id, { onDelete: "set null" }), // Project leader
   deadline: timestamp("deadline").notNull(),
   status: varchar("status").notNull().default("todo"), // todo, in_progress, completed, cancelled
   link: varchar("link"), // Link project (optional)
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Project tasks table for task management within projects
+export const projectTasks = pgTable("project_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name").notNull(), // Tên công việc
+  assigneeId: varchar("assignee_id").references(() => users.id, { onDelete: "set null" }), // Người thực hiện
+  description: text("description"), // Mô tả (optional)
+  link: varchar("link"), // Link (optional)
+  deadline: timestamp("deadline").notNull(),
+  status: varchar("status").notNull().default("todo"), // todo, in_progress, completed, cancelled
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -303,6 +317,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
   activities: many(activities),
   chatConversations: many(chatConversations),
+  assignedProjects: many(projects),
+  assignedTasks: many(projectTasks),
 }));
 
 export const programsRelations = relations(programs, ({ many }) => ({
@@ -363,6 +379,25 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   conversation: one(chatConversations, {
     fields: [chatMessages.conversationId],
     references: [chatConversations.id],
+  }),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  assignee: one(users, {
+    fields: [projects.assigneeId],
+    references: [users.id],
+  }),
+  tasks: many(projectTasks),
+}));
+
+export const projectTasksRelations = relations(projectTasks, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectTasks.projectId],
+    references: [projects.id],
+  }),
+  assignee: one(users, {
+    fields: [projectTasks.assigneeId],
+    references: [users.id],
   }),
 }));
 
@@ -502,6 +537,14 @@ export const insertActivitySchema = createInsertSchema(activities).omit({
 });
 
 export const insertProjectSchema = createInsertSchema(projects).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  deadline: z.string().datetime().transform((str) => new Date(str)),
+});
+
+export const insertProjectTaskSchema = createInsertSchema(projectTasks).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
