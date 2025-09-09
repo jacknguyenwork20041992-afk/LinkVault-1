@@ -94,9 +94,11 @@ export default function Admin() {
       return await apiRequest("POST", "/api/notifications/deadline-check");
     },
     onSuccess: (data) => {
+      console.log("Deadline check response:", data);
+      const notificationCount = data?.notifications || 1;
       toast({
         title: "🎉 Thành công!",
-        description: `Đã tạo ${data.notifications} thông báo deadline. Kiểm tra trang thông báo để xem chi tiết.`,
+        description: `Đã tạo ${notificationCount} thông báo deadline. Kiểm tra chuông thông báo để xem chi tiết.`,
         variant: "default",
       });
       // Refresh notifications sau khi tạo
