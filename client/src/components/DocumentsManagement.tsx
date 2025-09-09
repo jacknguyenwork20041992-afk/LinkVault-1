@@ -26,9 +26,6 @@ export default function DocumentsManagement() {
     queryKey: ["/api/documents"],
     retry: false,
   });
-  
-  // Debug: Log the actual documents data
-  console.log("DEBUG - Frontend documents data:", documents.slice(0, 2));
 
   const { data: categories = [] } = useQuery<Category[]>({
     queryKey: ["/api/categories"],

@@ -483,11 +483,6 @@ export class DatabaseStorage implements IStorage {
       .leftJoin(programs, eq(documents.programId, programs.id))
       .orderBy(desc(documents.createdAt));
     
-    // Debug: Log the raw result to see structure
-    if (results.length > 0) {
-      console.log("DEBUG - First result structure:", JSON.stringify(results[0], null, 2));
-    }
-    
     return results.map(result => ({
       ...result.documents,
       category: result.categories,
