@@ -903,14 +903,11 @@ export class DatabaseStorage implements IStorage {
       }`;
 
       // Create global notification
-      const [notification] = await db
-        .insert(notifications)
-        .values({
-          title,
-          message: content,
-          isGlobal: true
-        })
-        .returning();
+      const notification = await this.createNotification({
+        title,
+        message: content,
+        isGlobal: true
+      });
 
       createdNotifications.push({
         type: 'project',
@@ -940,14 +937,11 @@ export class DatabaseStorage implements IStorage {
       }`;
 
       // Create global notification
-      const [notification] = await db
-        .insert(notifications)
-        .values({
-          title,
-          message: content,
-          isGlobal: true
-        })
-        .returning();
+      const notification = await this.createNotification({
+        title,
+        message: content,
+        isGlobal: true
+      });
 
       createdNotifications.push({
         type: 'task',
