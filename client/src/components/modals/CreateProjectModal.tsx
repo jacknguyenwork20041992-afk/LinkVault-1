@@ -403,7 +403,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   <Button 
                     type="button" 
                     onClick={addTask}
-                    className="mt-4"
+                    className="mt-4 bg-blue-600 hover:bg-blue-700 text-white"
                     size="sm"
                     data-testid="button-add-task"
                   >
