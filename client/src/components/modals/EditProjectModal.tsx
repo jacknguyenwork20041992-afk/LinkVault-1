@@ -231,6 +231,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
                 type="submit" 
                 disabled={updateProjectMutation.isPending}
                 data-testid="button-submit-edit-project"
+                className="bg-blue-600 hover:bg-blue-700 text-white border border-blue-600 hover:border-blue-700 shadow-md hover:shadow-lg transition-all duration-200 px-6 py-2 rounded-lg font-medium"
               >
                 {updateProjectMutation.isPending ? "Đang cập nhật..." : "Cập nhật"}
               </Button>
