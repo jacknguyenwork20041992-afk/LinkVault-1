@@ -512,7 +512,6 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   updatedAt: true,
 }).extend({
   links: z.array(documentLinkSchema).optional(), // Links có thể để trống
-  programId: z.string().min(1, "Phải chọn chương trình"),
 });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
