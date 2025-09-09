@@ -18,6 +18,7 @@ import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
 import ThemeManagement from "@/components/ThemeManagement";
+import SupportToolsManagement from "@/components/SupportToolsManagement";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -125,6 +126,8 @@ export default function Admin() {
         return <CategoriesManagement />;
       case "documents":
         return <DocumentsManagement />;
+      case "support-tools":
+        return <SupportToolsManagement />;
       case "important-documents":
         return <ImportantDocumentsTable />;
       case "projects":
@@ -162,6 +165,8 @@ export default function Admin() {
         return "Quản lý khóa học";
       case "documents":
         return "Quản lý tài liệu";
+      case "support-tools":
+        return "Công cụ hỗ trợ";
       case "important-documents":
         return "Tài liệu quan trọng";
       case "projects":

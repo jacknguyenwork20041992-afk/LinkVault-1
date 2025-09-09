@@ -17,7 +17,8 @@ import {
   Upload,
   HelpCircle,
   UserPlus,
-  Palette
+  Palette,
+  Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -71,6 +72,7 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "programs", label: "Chương trình", icon: Book },
         { id: "categories", label: "Khóa học", icon: Tags },
         { id: "documents", label: "Tài liệu", icon: FileText },
+        { id: "support-tools", label: "Công cụ hỗ trợ", icon: Wrench },
         { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
       ]
     },
