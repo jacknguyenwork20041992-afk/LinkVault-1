@@ -340,6 +340,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/documents/bulk", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { documents } = req.body;
+      console.log("DEBUG - Bulk request received with documents:", documents?.length || 0);
+      
       if (!Array.isArray(documents) || documents.length === 0) {
         return res.status(400).json({ message: "Documents array is required" });
       }
@@ -347,12 +349,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Debug: Check what frontend sends
       console.log("DEBUG - Raw frontend data:", JSON.stringify(documents[0], null, 2));
       
-      const validatedDocuments = documents.map(doc => insertDocumentSchema.parse(doc));
+      const validatedDocuments = documents.map((doc, index) => {
+        console.log(`DEBUG - Validating document ${index + 1}:`, { programId: doc.programId, categoryId: doc.categoryId });
+        const validated = insertDocumentSchema.parse(doc);
+        console.log(`DEBUG - After validation ${index + 1}:`, { programId: validated.programId, categoryId: validated.categoryId });
+        return validated;
+      });
+      
       const createdDocuments = await storage.createDocuments(validatedDocuments);
       res.json(createdDocuments);
     } catch (error) {
       console.error("Error creating bulk documents:", error);
-      res.status(400).json({ message: "Failed to create documents" });
+      if (error.issues) {
+        console.error("Validation errors:", error.issues);
+      }
+      res.status(400).json({ message: "Failed to create documents", error: error.message });
     }
   });
 
