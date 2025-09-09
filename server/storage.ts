@@ -1895,6 +1895,7 @@ export class DatabaseStorage implements IStorage {
         ticketId: supportResponses.ticketId,
         responderId: supportResponses.responderId,
         response: supportResponses.response,
+        imageUrls: supportResponses.imageUrls,
         isInternal: supportResponses.isInternal,
         createdAt: supportResponses.createdAt,
         responderEmail: users.email,
@@ -1911,6 +1912,7 @@ export class DatabaseStorage implements IStorage {
         ticketId: row.ticketId,
         responderId: row.responderId,
         response: row.response,
+        imageUrls: row.imageUrls,
         isInternal: row.isInternal,
         createdAt: row.createdAt,
         responder: {
