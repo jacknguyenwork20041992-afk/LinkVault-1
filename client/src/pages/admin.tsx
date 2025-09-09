@@ -23,7 +23,7 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Home, Menu, Bell, Clock, User, CheckCheck } from "lucide-react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 
 export default function Admin() {
@@ -41,8 +41,6 @@ export default function Admin() {
     refetchIntervalInBackground: true, // Bật polling để admin luôn nhận thông báo
   });
 
-  console.log("All notifications:", allNotifications);
-
   // Lấy thông báo "Yêu cầu hỗ trợ mới" 
   const supportTicketNotifications = allNotifications.filter((item: any) => 
     item.notification?.title === "Yêu cầu hỗ trợ mới"
@@ -53,18 +51,9 @@ export default function Admin() {
     item.notification?.title === "Yêu cầu tài khoản SWE mới"
   );
 
-  // Lấy thông báo deadline
-  const deadlineNotifications = allNotifications.filter((item: any) => 
-    item.notification?.title?.includes("deadline") || 
-    item.notification?.title?.includes("Test thông báo") ||
-    item.notification?.title?.includes("Dự án") ||
-    item.notification?.title?.includes("Công việc")
-  );
-
-  console.log("Deadline notifications:", deadlineNotifications);
 
   // Tổng số notifications
-  const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length + deadlineNotifications.length;
+  const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
 
   const handleNotificationClick = async (notification: any) => {
     // Đánh dấu notification đã đọc
@@ -87,7 +76,7 @@ export default function Admin() {
   const handleMarkAllAsRead = async () => {
     try {
       // Combine và sort by createdAt để đảm bảo thứ tự đúng theo thời gian
-      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications, ...deadlineNotifications]
+      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications]
         .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime());
       for (const item of allUnreadNotifications) {
         await apiRequest("PUT", `/api/notifications/${item.notification.id}/read`);
@@ -98,31 +87,6 @@ export default function Admin() {
       console.error('Error marking notifications as read:', error);
     }
   };
-
-  // Mutation để gửi thông báo deadline
-  const sendDeadlineNotifications = useMutation({
-    mutationFn: async () => {
-      return await apiRequest("POST", "/api/notifications/deadline-check");
-    },
-    onSuccess: (data) => {
-      console.log("Deadline check response:", data);
-      const notificationCount = data?.notifications || 1;
-      toast({
-        title: "🎉 Thành công!",
-        description: `Đã tạo ${notificationCount} thông báo deadline. Kiểm tra chuông thông báo để xem chi tiết.`,
-        variant: "default",
-      });
-      // Refresh notifications sau khi tạo
-      queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
-    },
-    onError: (error) => {
-      toast({
-        title: "❌ Lỗi",
-        description: "Không thể gửi thông báo deadline. Vui lòng thử lại.",
-        variant: "destructive",
-      });
-    },
-  });
 
   // Redirect if not authenticated or not admin
   useEffect(() => {
@@ -280,28 +244,6 @@ export default function Admin() {
               </div>
               
               <div className="flex items-center space-x-3 lg:space-x-4">
-                {/* Button gửi thông báo deadline */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => sendDeadlineNotifications.mutate()}
-                  disabled={sendDeadlineNotifications.isPending}
-                  className="text-sm font-medium text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100 hover:border-blue-300 hover:text-blue-700 transition-all duration-200 dark:text-blue-400 dark:border-blue-800 dark:bg-blue-950/30 dark:hover:bg-blue-950/50"
-                  data-testid="button-send-deadline-notifications"
-                >
-                  {sendDeadlineNotifications.isPending ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
-                      Đang gửi...
-                    </>
-                  ) : (
-                    <>
-                      <Clock className="h-4 w-4 mr-2" />
-                      Kiểm tra deadline
-                    </>
-                  )}
-                </Button>
-
                 {/* Modern Admin Notification Dropdown */}
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
@@ -356,7 +298,7 @@ export default function Admin() {
                         
                         {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {[...supportTicketNotifications, ...accountRequestNotifications, ...deadlineNotifications]
+                          {[...supportTicketNotifications, ...accountRequestNotifications]
                             .sort((a, b) => {
                               const timeA = new Date(a.notification.createdAt).getTime();
                               const timeB = new Date(b.notification.createdAt).getTime();
@@ -364,42 +306,24 @@ export default function Admin() {
                             })
                             .map((notification: any) => {
                               const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
-                              const isAccountRequest = notification.notification.title === "Yêu cầu tài khoản SWE mới";
-                              const isDeadline = notification.notification.title?.includes("deadline") || notification.notification.title?.includes("Test thông báo");
-                              
-                              let bgColor, iconColor, dotColor;
-                              if (isSupportTicket) {
-                                bgColor = "bg-orange-100 dark:bg-orange-900/30";
-                                iconColor = "text-orange-600 dark:text-orange-400";
-                                dotColor = "bg-orange-500";
-                              } else if (isAccountRequest) {
-                                bgColor = "bg-blue-100 dark:bg-blue-900/30";
-                                iconColor = "text-blue-600 dark:text-blue-400";
-                                dotColor = "bg-blue-500";
-                              } else if (isDeadline) {
-                                bgColor = "bg-red-100 dark:bg-red-900/30";
-                                iconColor = "text-red-600 dark:text-red-400";
-                                dotColor = "bg-red-500";
-                              } else {
-                                bgColor = "bg-gray-100 dark:bg-gray-900/30";
-                                iconColor = "text-gray-600 dark:text-gray-400";
-                                dotColor = "bg-gray-500";
-                              }
-                              
                               return (
                                 <DropdownMenuItem 
                                   key={notification.notification.id}
                                   onClick={() => handleNotificationClick(notification)}
                                   className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                                  data-testid={`notification-${isSupportTicket ? 'support' : isAccountRequest ? 'account' : 'deadline'}-${notification.notification.id}`}
+                                  data-testid={`notification-${isSupportTicket ? 'support' : 'account'}-${notification.notification.id}`}
                                 >
                                   <div className="flex items-start space-x-3 w-full">
-                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${bgColor}`}>
-                                      {isDeadline ? (
-                                        <Clock className={`h-4 w-4 ${iconColor}`} />
-                                      ) : (
-                                        <User className={`h-4 w-4 ${iconColor}`} />
-                                      )}
+                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${
+                                      isSupportTicket 
+                                        ? "bg-orange-100 dark:bg-orange-900/30" 
+                                        : "bg-blue-100 dark:bg-blue-900/30"
+                                    }`}>
+                                      <User className={`h-4 w-4 ${
+                                        isSupportTicket 
+                                          ? "text-orange-600 dark:text-orange-400" 
+                                          : "text-blue-600 dark:text-blue-400"
+                                      }`} />
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
@@ -413,7 +337,9 @@ export default function Admin() {
                                         {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
                                       </div>
                                     </div>
-                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${dotColor}`}></div>
+                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${
+                                      isSupportTicket ? "bg-orange-500" : "bg-blue-500"
+                                    }`}></div>
                                   </div>
                                 </DropdownMenuItem>
                               );

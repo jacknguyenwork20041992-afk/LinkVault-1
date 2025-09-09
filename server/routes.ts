@@ -655,46 +655,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Check and send deadline notifications
-  app.post("/api/notifications/deadline-check", isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      const notifications = await storage.checkAndCreateDeadlineNotifications();
-      
-      // Tạo thông báo test nếu không có notifications nào
-      if (notifications.length === 0) {
-        const testMessage = `Đây là thông báo test được tạo lúc ${new Date().toLocaleString("vi-VN")}\n\nTính năng kiểm tra deadline đã hoạt động bình thường!\n\n🔍 Hệ thống đã quét tất cả projects và tasks nhưng không tìm thấy mục nào sắp đến hạn trong 3 ngày tới.`;
-        console.log("Creating test notification with:", { title: "⏰ Test thông báo deadline", message: testMessage, isGlobal: true });
-        
-        const testNotification = await storage.createNotification({
-          title: "⏰ Test thông báo deadline",
-          message: testMessage,
-          isGlobal: true
-        });
-        
-        notifications.push({
-          type: 'test',
-          notification: testNotification,
-          target: 'system-test'
-        });
-      }
-      
-      console.log("Sending response:", { 
-        message: "Deadline notifications checked and created",
-        notifications: notifications.length,
-        details: notifications
-      });
-      
-      res.json({ 
-        message: "Deadline notifications checked and created",
-        notifications: notifications.length,
-        details: notifications
-      });
-    } catch (error) {
-      console.error("Error checking deadline notifications:", error);
-      res.status(500).json({ message: "Failed to check deadline notifications" });
-    }
-  });
-
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
