@@ -505,20 +505,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDocument(documentData: InsertDocument): Promise<Document> {
-    // Handle empty categoryId or "none" by setting it to null
+    // Handle empty categoryId/programId or "none" by setting it to null
     const cleanData = {
       ...documentData,
-      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null
+      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null,
+      programId: documentData.programId && documentData.programId.trim() !== "" && documentData.programId !== "none" ? documentData.programId : null
     };
     const [document] = await db.insert(documents).values(cleanData).returning();
     return document;
   }
 
   async createDocuments(documentsData: InsertDocument[]): Promise<Document[]> {
-    // Handle empty categoryId or "none" by setting it to null for all documents
+    // Handle empty categoryId/programId or "none" by setting it to null for all documents
     const cleanedData = documentsData.map(doc => ({
       ...doc,
-      categoryId: doc.categoryId && doc.categoryId.trim() !== "" && doc.categoryId !== "none" ? doc.categoryId : null
+      categoryId: doc.categoryId && doc.categoryId.trim() !== "" && doc.categoryId !== "none" ? doc.categoryId : null,
+      programId: doc.programId && doc.programId.trim() !== "" && doc.programId !== "none" ? doc.programId : null
     }));
     const createdDocuments = await db.insert(documents).values(cleanedData).returning();
     return createdDocuments;
@@ -530,10 +532,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocument(id: string, documentData: Partial<InsertDocument>): Promise<Document> {
-    // Handle empty categoryId or "none" by setting it to null
+    // Handle empty categoryId/programId or "none" by setting it to null
     const cleanData = {
       ...documentData,
       categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null,
+      programId: documentData.programId && documentData.programId.trim() !== "" && documentData.programId !== "none" ? documentData.programId : null,
       updatedAt: new Date()
     };
     const [document] = await db
