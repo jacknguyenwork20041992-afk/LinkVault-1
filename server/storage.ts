@@ -908,9 +908,7 @@ export class DatabaseStorage implements IStorage {
         .values({
           title,
           message: content,
-          type: 'deadline',
-          isGlobal: true,
-          createdBy: 'system'
+          isGlobal: true
         })
         .returning();
 
@@ -947,9 +945,7 @@ export class DatabaseStorage implements IStorage {
         .values({
           title,
           message: content,
-          type: 'deadline',
-          isGlobal: true,
-          createdBy: 'system'
+          isGlobal: true
         })
         .returning();
 
