@@ -1499,12 +1499,10 @@ export class DatabaseStorage implements IStorage {
       response: supportResponses.response,
       imageUrls: supportResponses.imageUrls,
       createdAt: supportResponses.createdAt,
-      ticket: {
-        subject: supportTickets.subject,
-        description: supportTickets.description,
-        category: supportTickets.category,
-        status: supportTickets.status
-      }
+      ticketSubject: supportTickets.subject,
+      ticketDescription: supportTickets.description,
+      ticketCategory: supportTickets.category,
+      ticketStatus: supportTickets.status
     })
     .from(supportResponses)
     .innerJoin(supportTickets, eq(supportResponses.ticketId, supportTickets.id))
@@ -1533,9 +1531,9 @@ export class DatabaseStorage implements IStorage {
       })),
       knowledgeBase: knowledgeResult,
       supportResponses: supportResponsesData.map(sr => ({
-        ticketSubject: sr.ticket.subject,
-        ticketDescription: sr.ticket.description,
-        ticketCategory: sr.ticket.category,
+        ticketSubject: sr.ticketSubject,
+        ticketDescription: sr.ticketDescription,
+        ticketCategory: sr.ticketCategory,
         response: sr.response,
         imageUrls: sr.imageUrls || [],
         createdAt: sr.createdAt.toISOString()
