@@ -983,20 +983,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         aiResponse = getDemoResponse(message, knowledgeContext);
       }
 
-      // Extract images from AI response
-      const imageRegex = /\[IMAGE:(.*?)\]/g;
-      const imageMatches = [...aiResponse.matchAll(imageRegex)];
-      const imageUrls = imageMatches.map(match => match[1]);
-      
-      // Clean response content by removing image tags
-      const cleanContent = aiResponse.replace(imageRegex, '').trim();
-
-      // Save AI message with images
+      // Save AI message
       const aiMessage = await storage.createChatMessage({
         conversationId: conversation.id,
         role: "assistant",
-        content: cleanContent,
-        imageUrls: imageUrls.length > 0 ? imageUrls : undefined
+        content: aiResponse
       });
 
       res.json({

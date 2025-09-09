@@ -185,7 +185,6 @@ export const chatMessages = pgTable("chat_messages", {
   conversationId: varchar("conversation_id").references(() => chatConversations.id, { onDelete: "cascade" }),
   role: varchar("role").notNull(), // "user" or "assistant"
   content: text("content").notNull(),
-  imageUrls: text("image_urls").array(),
   createdAt: timestamp("created_at").defaultNow(),
 });
 
