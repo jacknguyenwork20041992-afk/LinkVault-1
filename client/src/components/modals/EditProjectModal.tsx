@@ -182,22 +182,22 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden bg-background border border-border">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col bg-background border border-border">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="text-foreground">Chỉnh sửa dự án: {project.name}</DialogTitle>
           <DialogDescription className="text-muted-foreground">
             Cập nhật thông tin dự án và quản lý công việc
           </DialogDescription>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 flex flex-col min-h-0">
+          <TabsList className="grid w-full grid-cols-2 flex-shrink-0">
             <TabsTrigger value="overview">Tổng quan</TabsTrigger>
             <TabsTrigger value="tasks">Phân công công việc</TabsTrigger>
           </TabsList>
 
           {/* Project Overview Tab */}
-          <TabsContent value="overview" className="space-y-4 overflow-y-auto max-h-[500px]">
+          <TabsContent value="overview" className="flex-1 overflow-y-auto space-y-4 mt-4">
             <Form {...form}>
               <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
                 <div className="grid gap-6">
@@ -354,7 +354,7 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
           </TabsContent>
 
           {/* Task Management Tab */}
-          <TabsContent value="tasks" className="space-y-4 overflow-y-auto max-h-[500px]">
+          <TabsContent value="tasks" className="flex-1 overflow-y-auto space-y-4 mt-4">
             {/* Add New Task Form */}
             <div className="border border-border rounded-lg p-4 bg-muted/20">
               <h4 className="font-semibold mb-4">Thêm công việc mới</h4>
