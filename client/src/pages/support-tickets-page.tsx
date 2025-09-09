@@ -193,11 +193,11 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                     {ticket.imageUrls.slice(0, 4).map((imageUrl, index) => (
                       <div key={index} className="relative group">
                         <img 
-                          src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                          src={imageUrl}
                           alt={`Hình ảnh ${index + 1}`}
                           className="w-full h-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => {
-                            window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
+                            window.open(imageUrl, '_blank');
                           }}
                         />
                         {ticket.imageUrls && ticket.imageUrls.length > 4 && index === 3 && (
