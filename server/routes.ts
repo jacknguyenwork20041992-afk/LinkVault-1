@@ -678,6 +678,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
       
+      console.log("Sending response:", { 
+        message: "Deadline notifications checked and created",
+        notifications: notifications.length,
+        details: notifications
+      });
+      
       res.json({ 
         message: "Deadline notifications checked and created",
         notifications: notifications.length,

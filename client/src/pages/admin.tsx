@@ -41,6 +41,8 @@ export default function Admin() {
     refetchIntervalInBackground: true, // Bật polling để admin luôn nhận thông báo
   });
 
+  console.log("All notifications:", allNotifications);
+
   // Lấy thông báo "Yêu cầu hỗ trợ mới" 
   const supportTicketNotifications = allNotifications.filter((item: any) => 
     item.notification?.title === "Yêu cầu hỗ trợ mới"
@@ -51,9 +53,15 @@ export default function Admin() {
     item.notification?.title === "Yêu cầu tài khoản SWE mới"
   );
 
+  // Lấy thông báo deadline
+  const deadlineNotifications = allNotifications.filter((item: any) => 
+    item.notification?.title?.includes("deadline") || item.notification?.title?.includes("Test thông báo")
+  );
+
+  console.log("Deadline notifications:", deadlineNotifications);
 
   // Tổng số notifications
-  const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
+  const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length + deadlineNotifications.length;
 
   const handleNotificationClick = async (notification: any) => {
     // Đánh dấu notification đã đọc
@@ -76,7 +84,7 @@ export default function Admin() {
   const handleMarkAllAsRead = async () => {
     try {
       // Combine và sort by createdAt để đảm bảo thứ tự đúng theo thời gian
-      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications]
+      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications, ...deadlineNotifications]
         .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime());
       for (const item of allUnreadNotifications) {
         await apiRequest("PUT", `/api/notifications/${item.notification.id}/read`);
@@ -345,7 +353,7 @@ export default function Admin() {
                         
                         {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {[...supportTicketNotifications, ...accountRequestNotifications]
+                          {[...supportTicketNotifications, ...accountRequestNotifications, ...deadlineNotifications]
                             .sort((a, b) => {
                               const timeA = new Date(a.notification.createdAt).getTime();
                               const timeB = new Date(b.notification.createdAt).getTime();
@@ -353,24 +361,42 @@ export default function Admin() {
                             })
                             .map((notification: any) => {
                               const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
+                              const isAccountRequest = notification.notification.title === "Yêu cầu tài khoản SWE mới";
+                              const isDeadline = notification.notification.title?.includes("deadline") || notification.notification.title?.includes("Test thông báo");
+                              
+                              let bgColor, iconColor, dotColor;
+                              if (isSupportTicket) {
+                                bgColor = "bg-orange-100 dark:bg-orange-900/30";
+                                iconColor = "text-orange-600 dark:text-orange-400";
+                                dotColor = "bg-orange-500";
+                              } else if (isAccountRequest) {
+                                bgColor = "bg-blue-100 dark:bg-blue-900/30";
+                                iconColor = "text-blue-600 dark:text-blue-400";
+                                dotColor = "bg-blue-500";
+                              } else if (isDeadline) {
+                                bgColor = "bg-red-100 dark:bg-red-900/30";
+                                iconColor = "text-red-600 dark:text-red-400";
+                                dotColor = "bg-red-500";
+                              } else {
+                                bgColor = "bg-gray-100 dark:bg-gray-900/30";
+                                iconColor = "text-gray-600 dark:text-gray-400";
+                                dotColor = "bg-gray-500";
+                              }
+                              
                               return (
                                 <DropdownMenuItem 
                                   key={notification.notification.id}
                                   onClick={() => handleNotificationClick(notification)}
                                   className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                                  data-testid={`notification-${isSupportTicket ? 'support' : 'account'}-${notification.notification.id}`}
+                                  data-testid={`notification-${isSupportTicket ? 'support' : isAccountRequest ? 'account' : 'deadline'}-${notification.notification.id}`}
                                 >
                                   <div className="flex items-start space-x-3 w-full">
-                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${
-                                      isSupportTicket 
-                                        ? "bg-orange-100 dark:bg-orange-900/30" 
-                                        : "bg-blue-100 dark:bg-blue-900/30"
-                                    }`}>
-                                      <User className={`h-4 w-4 ${
-                                        isSupportTicket 
-                                          ? "text-orange-600 dark:text-orange-400" 
-                                          : "text-blue-600 dark:text-blue-400"
-                                      }`} />
+                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${bgColor}`}>
+                                      {isDeadline ? (
+                                        <Clock className={`h-4 w-4 ${iconColor}`} />
+                                      ) : (
+                                        <User className={`h-4 w-4 ${iconColor}`} />
+                                      )}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                       <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
@@ -384,9 +410,7 @@ export default function Admin() {
                                         {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
                                       </div>
                                     </div>
-                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${
-                                      isSupportTicket ? "bg-orange-500" : "bg-blue-500"
-                                    }`}></div>
+                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${dotColor}`}></div>
                                   </div>
                                 </DropdownMenuItem>
                               );
