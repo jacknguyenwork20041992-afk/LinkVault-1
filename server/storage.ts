@@ -409,6 +409,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(programs).where(eq(programs.id, id));
   }
 
+  async createPrograms(programsData: InsertProgram[]): Promise<Program[]> {
+    const createdPrograms = await db.insert(programs).values(programsData).returning();
+    return createdPrograms;
+  }
+
   // Category operations
   async getCategoriesByProgram(programId: string): Promise<Category[]> {
     return await db

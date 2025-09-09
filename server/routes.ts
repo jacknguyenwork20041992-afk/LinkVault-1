@@ -209,6 +209,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk create programs
+  app.post("/api/programs/create-many", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { programs } = req.body;
+      if (!Array.isArray(programs) || programs.length === 0) {
+        return res.status(400).json({ message: "Programs array is required" });
+      }
+      
+      const validatedPrograms = programs.map(program => insertProgramSchema.parse(program));
+      const createdPrograms = await storage.createPrograms(validatedPrograms);
+      res.json(createdPrograms);
+    } catch (error) {
+      console.error("Error creating bulk programs:", error);
+      res.status(400).json({ message: "Failed to create programs" });
+    }
+  });
+
   // Category routes
   app.get("/api/categories", isAuthenticated, async (req, res) => {
     try {
