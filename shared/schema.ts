@@ -259,6 +259,7 @@ export const supportResponses = pgTable("support_responses", {
   ticketId: varchar("ticket_id").references(() => supportTickets.id, { onDelete: "cascade" }).notNull(),
   responderId: varchar("responder_id").references(() => users.id).notNull(), // Admin responding
   response: text("response").notNull(),
+  imageUrls: jsonb("image_urls").$type<string[]>(),
   isInternal: boolean("is_internal").default(false), // true for internal admin notes
   createdAt: timestamp("created_at").defaultNow(),
 });
