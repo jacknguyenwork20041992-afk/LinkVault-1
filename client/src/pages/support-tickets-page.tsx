@@ -258,6 +258,29 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                             <p className="text-muted-foreground text-sm mb-2 bg-green-50 dark:bg-green-950/30 p-3 rounded-md border-l-4 border-green-500">
                               {response.response}
                             </p>
+                            
+                            {/* Display response images */}
+                            {response.imageUrls && response.imageUrls.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                  <Image className="h-4 w-4" />
+                                  <span className="font-medium">Hình ảnh đính kèm ({response.imageUrls.length}):</span>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                  {response.imageUrls.map((imageUrl: string, index: number) => (
+                                    <div key={index} className="relative group">
+                                      <img
+                                        src={imageUrl}
+                                        alt={`Response image ${index + 1}`}
+                                        className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                        onClick={() => window.open(imageUrl, '_blank')}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
                             <span className="text-xs text-muted-foreground">
                               {formatDateTime(response.createdAt)}
                             </span>
