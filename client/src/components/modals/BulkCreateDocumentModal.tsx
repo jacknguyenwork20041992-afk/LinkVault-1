@@ -219,10 +219,6 @@ function BulkCreateDocumentModal({
   };
 
   const onSubmit = (data: BulkCreateDocuments) => {
-    // Debug: Check form data before sending
-    console.log("DEBUG - Form data before API call:", JSON.stringify(data, null, 2));
-    console.log("DEBUG - First document programId:", data.documents[0]?.programId);
-    console.log("DEBUG - First document categoryId:", data.documents[0]?.categoryId);
     createMutation.mutate(data);
   };
 
@@ -309,7 +305,7 @@ function BulkCreateDocumentModal({
                                 field.onChange(value);
                                 // Reset category when program changes
                                 form.setValue(`documents.${index}.categoryId`, "");
-                              }} defaultValue={field.value || ""}>
+                              }} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-program-${index}`}>
                                     <SelectValue placeholder="Chọn chương trình" />
@@ -334,7 +330,7 @@ function BulkCreateDocumentModal({
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel>Khóa học (không bắt buộc)</FormLabel>
-                              <Select onValueChange={field.onChange} defaultValue={field.value || ""}>
+                              <Select onValueChange={field.onChange} value={field.value || ""}>
                                 <FormControl>
                                   <SelectTrigger data-testid={`select-document-category-${index}`}>
                                     <SelectValue placeholder="Không chọn khóa học (áp dụng toàn chương trình)" />
