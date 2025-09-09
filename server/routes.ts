@@ -10,6 +10,7 @@ import {
   insertNotificationSchema,
   insertActivitySchema,
   insertProjectSchema,
+  insertProjectTaskSchema,
   insertImportantDocumentSchema,
   insertAccountSchema,
   insertChatConversationSchema,
@@ -615,6 +616,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating project:", error);
       res.status(400).json({ message: "Failed to create project" });
+    }
+  });
+
+  // Create project with tasks
+  app.post("/api/projects-with-tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { project, tasks } = req.body;
+      const validatedProject = insertProjectSchema.parse(project);
+      const validatedTasks = tasks.map((task: any) => insertProjectTaskSchema.parse(task));
+      
+      const result = await storage.createProjectWithTasks(validatedProject, validatedTasks);
+      res.json(result);
+    } catch (error) {
+      console.error("Error creating project with tasks:", error);
+      res.status(400).json({ message: "Failed to create project with tasks" });
     }
   });
 

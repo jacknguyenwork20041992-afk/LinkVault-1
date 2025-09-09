@@ -7,6 +7,7 @@ import {
   userNotifications,
   activities,
   projects,
+  projectTasks,
   importantDocuments,
   accounts,
   chatConversations,
@@ -741,6 +742,40 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: string): Promise<void> {
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // Create project with tasks in a transaction
+  async createProjectWithTasks(projectData: any, tasksData: any[]): Promise<any> {
+    return await db.transaction(async (tx) => {
+      // Create the project first
+      const [project] = await tx
+        .insert(projects)
+        .values(projectData)
+        .returning();
+
+      // Create tasks with projectId
+      if (tasksData.length > 0) {
+        const tasksWithProjectId = tasksData.map(task => ({
+          ...task,
+          projectId: project.id
+        }));
+
+        const createdTasks = await tx
+          .insert(projectTasks)
+          .values(tasksWithProjectId)
+          .returning();
+
+        return {
+          project,
+          tasks: createdTasks
+        };
+      }
+
+      return {
+        project,
+        tasks: []
+      };
+    });
   }
 
   // Important document operations
