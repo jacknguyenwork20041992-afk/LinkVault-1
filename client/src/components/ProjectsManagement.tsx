@@ -21,6 +21,7 @@ export default function ProjectsManagement() {
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | null>(null);
   const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [expandedTasks, setExpandedTasks] = useState<Record<string, boolean>>({});
 
   const { data: projects = [], isLoading } = useQuery<any[]>({
     queryKey: ["/api/projects-with-tasks"],
@@ -254,7 +255,13 @@ export default function ProjectsManagement() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {filteredProjects.map((project) => {
-            const [isTasksExpanded, setIsTasksExpanded] = useState(false);
+            const isTasksExpanded = expandedTasks[project.id] || false;
+            const toggleTasks = () => {
+              setExpandedTasks(prev => ({
+                ...prev,
+                [project.id]: !prev[project.id]
+              }));
+            };
             
             return (
               <div key={project.id} className="modern-card hover-lift group" data-testid={`card-project-${project.id}`}>
@@ -351,7 +358,7 @@ export default function ProjectsManagement() {
                   </div>
 
                   {/* Tasks Section */}
-                  <Collapsible open={isTasksExpanded} onOpenChange={setIsTasksExpanded}>
+                  <Collapsible open={isTasksExpanded} onOpenChange={toggleTasks}>
                     <div className="border-t border-border pt-4">
                       <CollapsibleTrigger asChild>
                         <Button 
