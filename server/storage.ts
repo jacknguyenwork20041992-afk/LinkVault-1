@@ -476,17 +476,23 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDocuments(): Promise<(Document & { category: Category | null, program: Program | null })[]> {
-    return await db
+    const results = await db
       .select()
       .from(documents)
       .leftJoin(categories, eq(documents.categoryId, categories.id))
       .leftJoin(programs, eq(documents.programId, programs.id))
-      .orderBy(desc(documents.createdAt))
-      .then(results => results.map(result => ({
-        ...result.documents,
-        category: result.categories,
-        program: result.programs
-      })));
+      .orderBy(desc(documents.createdAt));
+    
+    // Debug: Log the raw result to see structure
+    if (results.length > 0) {
+      console.log("DEBUG - First result structure:", JSON.stringify(results[0], null, 2));
+    }
+    
+    return results.map(result => ({
+      ...result.documents,
+      category: result.categories,
+      program: result.programs
+    }));
   }
 
   async getRecentDocuments(limit: number): Promise<(Document & { category: Category | null, program: Program | null })[]> {
