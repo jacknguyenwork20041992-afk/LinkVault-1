@@ -290,25 +290,15 @@ export default function SupportTicketsManagement() {
           continue;
         }
         
-        // Upload to Cloudinary
+        // Upload using existing API endpoint
         const formData = new FormData();
-        formData.append('file', file);
-        formData.append('upload_preset', 'support-tickets');
+        formData.append('image', file);
         
-        const cloudinaryResponse = await fetch(
-          `https://api.cloudinary.com/v1_1/${import.meta.env.VITE_CLOUDINARY_CLOUD_NAME}/image/upload`,
-          {
-            method: 'POST',
-            body: formData,
-          }
-        );
+        const uploadResponse = await apiRequest("POST", "/api/upload/image", formData) as any;
         
-        if (!cloudinaryResponse.ok) {
-          throw new Error(`Failed to upload ${file.name}`);
+        if (uploadResponse.imageUrl) {
+          uploadedImages.push(uploadResponse.imageUrl);
         }
-        
-        const result = await cloudinaryResponse.json();
-        uploadedImages.push(result.secure_url);
       }
       
       setResponseImages(prev => [...prev, ...uploadedImages]);
@@ -608,7 +598,7 @@ export default function SupportTicketsManagement() {
                           <span className="font-medium">Hình ảnh vấn đề ({selectedTicket.imageUrls.length}):</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedTicket.imageUrls.map((imageUrl, index) => (
+                          {selectedTicket.imageUrls.map((imageUrl: string, index: number) => (
                             <div key={index} className="border rounded-lg p-3 bg-gray-50">
                               <div className="mb-2">
                                 <span className="text-sm font-medium text-gray-600">Hình ảnh {index + 1}</span>
@@ -627,7 +617,7 @@ export default function SupportTicketsManagement() {
                                   onError={(e) => {
                                     console.error('Image load error for:', imageUrl);
                                     e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling!.style.display = 'block';
+                                    (e.currentTarget.nextElementSibling as HTMLElement)!.style.display = 'block';
                                   }}
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-md flex items-center justify-center">
@@ -674,7 +664,7 @@ export default function SupportTicketsManagement() {
                           {/* Display response images */}
                           {response.imageUrls && response.imageUrls.length > 0 && (
                             <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
-                              {response.imageUrls.map((imageUrl, index) => (
+                              {response.imageUrls.map((imageUrl: string, index: number) => (
                                 <div key={index} className="relative">
                                   <img
                                     src={imageUrl}
@@ -732,7 +722,7 @@ export default function SupportTicketsManagement() {
                       {/* Preview uploaded images */}
                       {responseImages.length > 0 && (
                         <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
-                          {responseImages.map((imageUrl, index) => (
+                          {responseImages.map((imageUrl: string, index: number) => (
                             <div key={index} className="relative group">
                               <img
                                 src={imageUrl}
