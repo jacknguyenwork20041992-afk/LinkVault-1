@@ -107,9 +107,9 @@ export default function ProjectsManagement() {
       "in_progress": { label: "Đang thực hiện", variant: "default" as const, color: "text-blue-600", icon: Play },
       "completed": { label: "Hoàn thành", variant: "secondary" as const, color: "text-green-600", icon: CheckCircle },
       "cancelled": { label: "Đã hủy", variant: "destructive" as const, color: "text-red-600", icon: XCircle },
-    };
+    } as const;
     
-    const config = statusConfig[status] || statusConfig["todo"];
+    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig["todo"];
     const Icon = config.icon;
     return (
       <Badge variant={config.variant} className={`${config.color} flex items-center space-x-1`}>
