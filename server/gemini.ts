@@ -81,6 +81,16 @@ Tài liệu quan trọng:
 ${knowledgeContext.importantDocuments.map((d: any) => `${d.title}: ${d.description || 'Tài liệu thiết yếu cho học viên'}`).join('\n')}
 ` : ''}
 
+${knowledgeContext.supportResponses?.length > 0 ? `
+Kiến thức từ các trường hợp hỗ trợ trước đây:
+${knowledgeContext.supportResponses.slice(0, 20).map((sr: any) => `
+Chủ đề: ${sr.ticketSubject} (${sr.ticketCategory})
+Vấn đề: ${sr.ticketDescription}
+Giải pháp: ${sr.response}
+${sr.imageUrls?.length > 0 ? `Có hình ảnh minh họa: ${sr.imageUrls.map((url: string) => `[Hình ảnh: ${url}]`).join(', ')}` : ''}
+`).join('\n')}
+` : ''}
+
 QUAN TRỌNG: 
 - Luôn trả lời dựa trên thông tin có sẵn về VIA English Academy
 - Không đưa ra thông tin chung chung hoặc suy đoán
