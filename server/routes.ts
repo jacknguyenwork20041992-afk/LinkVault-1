@@ -659,6 +659,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/notifications/deadline-check", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const notifications = await storage.checkAndCreateDeadlineNotifications();
+      
+      // Tạo thông báo test nếu không có notifications nào
+      if (notifications.length === 0) {
+        const testNotification = await storage.createNotification({
+          title: "⏰ Test thông báo deadline",
+          content: `Đây là thông báo test được tạo lúc ${new Date().toLocaleString("vi-VN")}\n\nTính năng kiểm tra deadline đã hoạt động bình thường!\n\n🔍 Hệ thống đã quét tất cả projects và tasks nhưng không tìm thấy mục nào sắp đến hạn trong 3 ngày tới.`,
+          type: "deadline",
+          isGlobal: true,
+          createdBy: "system"
+        });
+        
+        notifications.push({
+          type: 'test',
+          notification: testNotification,
+          target: 'system-test'
+        });
+      }
+      
       res.json({ 
         message: "Deadline notifications checked and created",
         notifications: notifications.length,
