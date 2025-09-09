@@ -1493,6 +1493,25 @@ export class DatabaseStorage implements IStorage {
 
     const knowledgeResult = Array.from(knowledgeMap.values());
 
+    // Get support responses with images for AI learning
+    const supportResponsesData = await db.select({
+      ticketId: supportResponses.ticketId,
+      response: supportResponses.response,
+      imageUrls: supportResponses.imageUrls,
+      createdAt: supportResponses.createdAt,
+      ticket: {
+        subject: supportTickets.subject,
+        description: supportTickets.description,
+        category: supportTickets.category,
+        status: supportTickets.status
+      }
+    })
+    .from(supportResponses)
+    .innerJoin(supportTickets, eq(supportResponses.ticketId, supportTickets.id))
+    .where(eq(supportResponses.isInternal, false)) // Only public responses
+    .orderBy(desc(supportResponses.createdAt))
+    .limit(50); // Latest 50 responses for AI learning
+
     return {
       programs: programsResult,
       notifications: notificationsData.map(n => ({
@@ -1512,7 +1531,15 @@ export class DatabaseStorage implements IStorage {
         description: d.description || undefined,
         url: d.url
       })),
-      knowledgeBase: knowledgeResult
+      knowledgeBase: knowledgeResult,
+      supportResponses: supportResponsesData.map(sr => ({
+        ticketSubject: sr.ticket.subject,
+        ticketDescription: sr.ticket.description,
+        ticketCategory: sr.ticket.category,
+        response: sr.response,
+        imageUrls: sr.imageUrls || [],
+        createdAt: sr.createdAt.toISOString()
+      }))
     };
   }
 
