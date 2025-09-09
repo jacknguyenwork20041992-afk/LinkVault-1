@@ -670,6 +670,22 @@ export default function SupportTicketsManagement() {
                             </span>
                           </div>
                           <p className="text-foreground whitespace-pre-wrap">{response.response}</p>
+                          
+                          {/* Display response images */}
+                          {response.imageUrls && response.imageUrls.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                              {response.imageUrls.map((imageUrl, index) => (
+                                <div key={index} className="relative">
+                                  <img
+                                    src={imageUrl}
+                                    alt={`Response image ${index + 1}`}
+                                    className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                    onClick={() => window.open(imageUrl, '_blank')}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>

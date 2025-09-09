@@ -1761,7 +1761,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/support-tickets/:ticketId/respond", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const { ticketId } = req.params;
-      const { response } = req.body;
+      const { response, imageUrls } = req.body;
       const user = req.user;
       
       // Check if ticket exists
@@ -1772,6 +1772,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const responseData = insertSupportResponseSchema.parse({
         response,
+        imageUrls,
         ticketId,
         responderId: user.id,
         isInternal: false
