@@ -29,8 +29,8 @@ export default function FloatingSupportButton() {
     <>
       {/* Floating button cluster - responsive positioning */}
       <div className="fixed bottom-4 right-4 z-50 flex flex-col gap-2 items-stretch sm:flex-row sm:gap-3 sm:items-center md:bottom-6 md:right-6 md:gap-4">
-        {/* Chat Widget - For both admin and users */}
-        {user && (
+        {/* Chat Widget - Admin only */}
+        {user && user.role === 'admin' && (
           <div className="relative">
             <ChatWidget />
           </div>
