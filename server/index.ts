@@ -2,6 +2,7 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
+import { sessionService } from "./sessionService";
 
 // Simple logging function for production
 function log(message: string, source = "express") {
@@ -101,6 +102,13 @@ app.use((req, res, next) => {
       reusePort: true,
     }, () => {
       log(`serving on port ${port}`);
+      
+      // Start session management service
+      try {
+        sessionService.start();
+      } catch (error) {
+        console.error("⚠️ Failed to start session service:", error);
+      }
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
