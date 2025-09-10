@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -96,9 +96,20 @@ const getActivityColor = (type: string) => {
 export default function ActivityDashboard() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
+  const [searchInput, setSearchInput] = useState(""); // Separate state for input
   const [type, setType] = useState("all");
   const limit = 10; // Fixed to 10 items per page
   const { toast } = useToast();
+
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearch(searchInput);
+      setPage(1); // Reset to first page when searching
+    }, 500); // 500ms delay
+
+    return () => clearTimeout(timer);
+  }, [searchInput]);
 
   const { data: activityData, isLoading, refetch } = useQuery<ActivityResponse>({
     queryKey: ["/api/activities", page, search, type, limit],
@@ -147,8 +158,7 @@ export default function ActivityDashboard() {
   };
 
   const handleSearchChange = (value: string) => {
-    setSearch(value);
-    setPage(1); // Reset to first page when searching
+    setSearchInput(value); // Update input immediately, debounced search will follow
   };
 
   const handleTypeChange = (value: string) => {
@@ -208,7 +218,7 @@ export default function ActivityDashboard() {
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
               placeholder="Tìm kiếm theo tên, email hoặc mô tả..."
-              value={search}
+              value={searchInput}
               onChange={(e) => handleSearchChange(e.target.value)}
               className="pl-10"
               data-testid="input-search-activities"
