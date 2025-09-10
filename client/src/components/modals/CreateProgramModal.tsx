@@ -79,7 +79,8 @@ export default function CreateProgramModal({
   const isEditing = !!editingProgram;
 
   const form = useForm<InsertProgram>({
-    resolver: zodResolver(insertProgramSchema),
+    // Temporarily remove schema validation to test
+    // resolver: zodResolver(insertProgramSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -254,7 +255,7 @@ export default function CreateProgramModal({
             {/* Icon Selection */}
             <FormField
               control={form.control}
-              name="iconName" as any
+              name={"iconName" as any}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Biểu tượng</FormLabel>
@@ -290,7 +291,7 @@ export default function CreateProgramModal({
             {/* Color Selection */}
             <FormField
               control={form.control}
-              name="colorScheme" as any
+              name={"colorScheme" as any}
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Màu sắc</FormLabel>
