@@ -564,7 +564,7 @@ export default function Home() {
                     {supportTools.map((tool: any) => (
                       <div 
                         key={tool.id}
-                        className="group bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-950/20 dark:via-gray-800 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-700/50 p-4 hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200 hover:-translate-y-1"
+                        className="group bg-gradient-to-br from-purple-50 via-white to-indigo-50 dark:from-purple-950/20 dark:via-gray-800 dark:to-indigo-950/20 rounded-lg border border-purple-200 dark:border-purple-700/50 p-4 hover:shadow-lg hover:border-purple-300 dark:hover:border-purple-600 transition-all duration-200 hover:-translate-y-1 h-full flex flex-col"
                         data-testid={`card-support-tool-${tool.id}`}
                       >
                         <div className="flex items-start justify-between mb-3">
@@ -578,17 +578,19 @@ export default function Home() {
                           {tool.name}
                         </h3>
                         
-                        {tool.description && (
-                          <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-tight">
-                            {tool.description}
-                          </p>
-                        )}
+                        <div className="flex-1">
+                          {tool.description && (
+                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-tight">
+                              {tool.description}
+                            </p>
+                          )}
+                        </div>
                         
                         <a
                           href={tool.link}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center w-full justify-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+                          className="inline-flex items-center w-full justify-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md mt-auto"
                           data-testid={`link-support-tool-${tool.id}`}
                         >
                           <Wrench className="h-4 w-4 mr-2" />
