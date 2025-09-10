@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { CalendarIcon, Plus, Trash2, User, ExternalLink } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, User, ExternalLink, Edit, Check, X } from "lucide-react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -37,6 +37,8 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
     deadline: new Date(),
     link: ""
   });
+  const [editingTask, setEditingTask] = useState<any>(null);
+  const [editingTaskData, setEditingTaskData] = useState<any>(null);
 
   // Get project with tasks
   const { data: projectWithTasks } = useQuery({
@@ -147,6 +149,36 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
     },
   });
 
+  // Update task mutation
+  const updateTaskMutation = useMutation({
+    mutationFn: async (taskData: any) => {
+      await apiRequest("PUT", `/api/tasks/${taskData.id}`, {
+        name: taskData.name,
+        description: taskData.description,
+        assigneeId: taskData.assigneeId,
+        deadline: taskData.deadline.toISOString(),
+        link: taskData.link,
+        status: taskData.status,
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/projects-with-tasks"] });
+      setEditingTask(null);
+      setEditingTaskData(null);
+      toast({
+        title: "Thành công",
+        description: "Công việc đã được cập nhật thành công",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Lỗi",
+        description: error.message || "Không thể cập nhật công việc",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: InsertProject) => {
     if (!date) {
       toast({
@@ -173,6 +205,36 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
       return;
     }
     addTaskMutation.mutate(newTask);
+  };
+
+  const handleEditTask = (task: any) => {
+    setEditingTask(task.id);
+    setEditingTaskData({
+      id: task.id,
+      name: task.name,
+      description: task.description || "",
+      assigneeId: task.assigneeId || "",
+      deadline: new Date(task.deadline),
+      link: task.link || "",
+      status: task.status,
+    });
+  };
+
+  const handleUpdateTask = () => {
+    if (!editingTaskData.name.trim()) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập tên công việc",
+        variant: "destructive",
+      });
+      return;
+    }
+    updateTaskMutation.mutate(editingTaskData);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingTask(null);
+    setEditingTaskData(null);
   };
 
   // Get current project's tasks
@@ -414,55 +476,155 @@ export default function EditProjectModal({ project, isOpen, onClose }: EditProje
               {currentProjectTasks && currentProjectTasks.length > 0 ? (
                 currentProjectTasks.map((task: any) => (
                   <div key={task.id} className="border border-border rounded-lg p-4 bg-background">
-                    <div className="flex justify-between items-start mb-3">
-                      <div className="flex-1">
-                        <h5 className="font-medium text-foreground">{task.name}</h5>
-                        {task.description && (
-                          <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                    {editingTask === task.id ? (
+                      /* Edit Mode */
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center mb-4">
+                          <h5 className="font-medium text-foreground">Chỉnh sửa công việc</h5>
+                          <div className="flex space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleUpdateTask}
+                              className="text-green-600 hover:text-green-700 hover:bg-green-100"
+                              disabled={updateTaskMutation.isPending}
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleCancelEdit}
+                              className="text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid gap-4">
+                          <Input
+                            placeholder="Tên công việc *"
+                            value={editingTaskData?.name || ""}
+                            onChange={(e) => setEditingTaskData({...editingTaskData, name: e.target.value})}
+                          />
+                          <Textarea
+                            placeholder="Mô tả công việc"
+                            value={editingTaskData?.description || ""}
+                            onChange={(e) => setEditingTaskData({...editingTaskData, description: e.target.value})}
+                            className="min-h-[80px]"
+                          />
+                          <div className="grid grid-cols-2 gap-4">
+                            <Select 
+                              value={editingTaskData?.assigneeId || ""} 
+                              onValueChange={(value) => setEditingTaskData({...editingTaskData, assigneeId: value})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn người thực hiện" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {users.map((user: any) => (
+                                  <SelectItem key={user.id} value={user.id}>
+                                    {user.firstName} {user.lastName}
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <Select 
+                              value={editingTaskData?.status || ""} 
+                              onValueChange={(value) => setEditingTaskData({...editingTaskData, status: value})}
+                            >
+                              <SelectTrigger>
+                                <SelectValue placeholder="Chọn trạng thái" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="todo">Chờ thực hiện</SelectItem>
+                                <SelectItem value="in_progress">Đang thực hiện</SelectItem>
+                                <SelectItem value="completed">Hoàn thành</SelectItem>
+                                <SelectItem value="cancelled">Đã hủy</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="grid grid-cols-2 gap-4">
+                            <Input
+                              type="date"
+                              value={editingTaskData?.deadline ? editingTaskData.deadline.toISOString().split('T')[0] : ""}
+                              onChange={(e) => setEditingTaskData({...editingTaskData, deadline: new Date(e.target.value)})}
+                            />
+                            <Input
+                              placeholder="Link (tùy chọn)"
+                              value={editingTaskData?.link || ""}
+                              onChange={(e) => setEditingTaskData({...editingTaskData, link: e.target.value})}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      /* View Mode */
+                      <>
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex-1">
+                            <h5 className="font-medium text-foreground">{task.name}</h5>
+                            {task.description && (
+                              <p className="text-sm text-muted-foreground mt-1">{task.description}</p>
+                            )}
+                          </div>
+                          <div className="flex space-x-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleEditTask(task)}
+                              className="text-blue-600 hover:text-blue-700 hover:bg-blue-100"
+                              data-testid={`button-edit-task-${task.id}`}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => deleteTaskMutation.mutate(task.id)}
+                              className="text-red-500 hover:text-red-700 hover:bg-red-100"
+                              disabled={deleteTaskMutation.isPending}
+                              data-testid={`button-delete-task-${task.id}`}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-muted-foreground">
+                          <div className="flex items-center space-x-1">
+                            <User className="h-3 w-3" />
+                            <span>{task.assignee || 'Chưa phân công'}</span>
+                          </div>
+                          <div className="flex items-center space-x-1">
+                            <CalendarIcon className="h-3 w-3" />
+                            <span>{new Date(task.deadline).toLocaleDateString("vi-VN")}</span>
+                          </div>
+                          <div>
+                            <Badge variant="outline" className="text-xs">
+                              {task.status === 'todo' && 'Chờ thực hiện'}
+                              {task.status === 'in_progress' && 'Đang thực hiện'}
+                              {task.status === 'completed' && 'Hoàn thành'}
+                              {task.status === 'cancelled' && 'Đã hủy'}
+                            </Badge>
+                          </div>
+                        </div>
+                        
+                        {task.link && (
+                          <div className="mt-2">
+                            <a
+                              href={task.link}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs"
+                            >
+                              <ExternalLink className="h-3 w-3 mr-1" />
+                              Xem link
+                            </a>
+                          </div>
                         )}
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteTaskMutation.mutate(task.id)}
-                        className="text-red-500 hover:text-red-700 hover:bg-red-100"
-                        disabled={deleteTaskMutation.isPending}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-xs text-muted-foreground">
-                      <div className="flex items-center space-x-1">
-                        <User className="h-3 w-3" />
-                        <span>{task.assignee || 'Chưa phân công'}</span>
-                      </div>
-                      <div className="flex items-center space-x-1">
-                        <CalendarIcon className="h-3 w-3" />
-                        <span>{new Date(task.deadline).toLocaleDateString("vi-VN")}</span>
-                      </div>
-                      <div>
-                        <Badge variant="outline" className="text-xs">
-                          {task.status === 'todo' && 'Chờ thực hiện'}
-                          {task.status === 'in_progress' && 'Đang thực hiện'}
-                          {task.status === 'completed' && 'Hoàn thành'}
-                          {task.status === 'cancelled' && 'Đã hủy'}
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    {task.link && (
-                      <div className="mt-2">
-                        <a
-                          href={task.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center text-blue-600 hover:text-blue-700 text-xs"
-                        >
-                          <ExternalLink className="h-3 w-3 mr-1" />
-                          Xem link
-                        </a>
-                      </div>
+                      </>
                     )}
                   </div>
                 ))
