@@ -165,7 +165,13 @@ export default function ProjectsManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-purple-200 rounded-full animate-spin border-t-purple-600"></div>
+            <div className="absolute inset-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400 animate-pulse">Đang tải dự án...</p>
+        </div>
       </div>
     );
   }

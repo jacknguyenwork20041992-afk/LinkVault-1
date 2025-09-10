@@ -13,17 +13,14 @@ import NotificationsPage from "@/pages/notifications-page";
 import SupportTicketsPage from "@/pages/support-tickets-page";
 import AccountDeactivatedPage from "@/pages/account-deactivated";
 import PublicChat from "@/pages/PublicChat";
+import LoadingScreen from "@/components/LoadingScreen";
 
 function Router() {
   const { user, isLoading } = useAuth();
   const isAuthenticated = !!user;
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
+    return <LoadingScreen message="Đang xác thực người dùng..." />;
   }
 
   return (
