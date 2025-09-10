@@ -145,8 +145,17 @@ export default function UserNotificationsList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-yellow-900 dark:to-orange-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-yellow-200 rounded-full animate-spin border-t-yellow-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải thông báo</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Kiểm tra cập nhật mới nhất...</p>
+          </div>
+        </div>
       </div>
     );
   }
