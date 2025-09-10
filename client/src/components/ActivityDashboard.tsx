@@ -96,7 +96,7 @@ const getActivityColor = (type: string) => {
 export default function ActivityDashboard() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [type, setType] = useState("");
+  const [type, setType] = useState("all");
   const limit = 10; // Fixed to 10 items per page
   const { toast } = useToast();
 
@@ -107,7 +107,7 @@ export default function ActivityDashboard() {
         page: page.toString(),
         limit: limit.toString(),
         search,
-        type,
+        type: type === "all" ? "" : type,
       });
       const response = await apiRequest("GET", `/api/activities?${params}`);
       return response.json();
@@ -221,7 +221,7 @@ export default function ActivityDashboard() {
               <SelectValue placeholder="Lọc theo loại" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Tất cả</SelectItem>
+              <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="login">Đăng nhập</SelectItem>
               <SelectItem value="document_click">Xem tài liệu</SelectItem>
               <SelectItem value="logout">Đăng xuất</SelectItem>
