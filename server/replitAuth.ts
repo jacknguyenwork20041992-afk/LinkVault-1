@@ -40,8 +40,10 @@ export function getSession() {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: true,
+      secure: process.env.NODE_ENV === 'production', // Only secure in production HTTPS
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-domain support
       maxAge: sessionTtl,
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
     },
   });
 }
@@ -58,7 +60,7 @@ function updateUserSession(
 
 async function upsertUser(
   claims: any,
-): Promise<User> {
+) {
   return await storage.upsertUser({
     id: claims["sub"],
     email: claims["email"],
