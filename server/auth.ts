@@ -107,8 +107,9 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Lỗi đăng nhập" });
         }
 
-        // Track login activity
+        // Track login time and activity
         try {
+          await storage.updateUserLastLogin(user.id);
           await storage.createActivity({
             userId: user.id,
             type: "login",
@@ -147,12 +148,51 @@ export function setupAuth(app: Express) {
   });
 }
 
-// Authentication middleware
-export function isAuthenticated(req: any, res: any, next: any) {
+// Enhanced authentication middleware with activity tracking
+export async function isAuthenticated(req: any, res: any, next: any) {
   if (!req.isAuthenticated()) {
     return res.status(401).json({ message: "Unauthorized" });
   }
-  next();
+
+  try {
+    const user = req.user;
+    
+    // Check if user is still active in database
+    const dbUser = await storage.getUser(user.id);
+    if (!dbUser || !dbUser.isActive) {
+      return res.status(401).json({ 
+        message: "Account has been deactivated",
+        requireReactivation: true 
+      });
+    }
+
+    // Check if user needs to re-login (72 hours)
+    const now = new Date();
+    const maxSessionAge = 72 * 60 * 60 * 1000; // 72 hours in ms
+    
+    if (dbUser.lastLoginAt) {
+      const timeSinceLogin = now.getTime() - new Date(dbUser.lastLoginAt).getTime();
+      if (timeSinceLogin > maxSessionAge) {
+        return res.status(401).json({ 
+          message: "Session expired. Please login again.",
+          requireReLogin: true 
+        });
+      }
+    }
+
+    // Update last activity time (throttle to avoid too many DB calls)
+    const shouldUpdateActivity = !dbUser.lastActiveAt || 
+      (now.getTime() - new Date(dbUser.lastActiveAt).getTime()) > 5 * 60 * 1000; // 5 minutes
+    
+    if (shouldUpdateActivity) {
+      await storage.updateUserLastActivity(user.id);
+    }
+
+    next();
+  } catch (error) {
+    console.error("Error in isAuthenticated middleware:", error);
+    return res.status(500).json({ message: "Authentication check failed" });
+  }
 }
 
 // Admin middleware
