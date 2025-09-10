@@ -73,7 +73,7 @@ import {
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, asc, ilike, or, not, inArray } from "drizzle-orm";
+import { eq, desc, and, sql, asc, ilike, or, not, inArray, isNull, lt } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -91,6 +91,11 @@ export interface IStorage {
   updateUser(id: string, userData: Partial<User>): Promise<User>;
   toggleUserActive(id: string, isActive: boolean): Promise<User>;
   deleteUser(id: string): Promise<void>;
+  
+  // Session management operations  
+  updateUserLastLogin(id: string): Promise<User>;
+  updateUserLastActivity(id: string): Promise<User>;
+  findInactiveUsers(days: number): Promise<User[]>;
   
   // Program operations
   getAllPrograms(): Promise<Program[]>;
@@ -389,6 +394,50 @@ export class DatabaseStorage implements IStorage {
 
   async deleteUser(id: string): Promise<void> {
     await db.delete(users).where(eq(users.id, id));
+  }
+
+  // Session management operations
+  async updateUserLastLogin(id: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        lastLoginAt: new Date(),
+        lastActiveAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async updateUserLastActivity(id: string): Promise<User> {
+    const [user] = await db
+      .update(users)
+      .set({ 
+        lastActiveAt: new Date(),
+        updatedAt: new Date() 
+      })
+      .where(eq(users.id, id))
+      .returning();
+    return user;
+  }
+
+  async findInactiveUsers(days: number): Promise<User[]> {
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+    
+    return await db
+      .select()
+      .from(users)
+      .where(
+        and(
+          eq(users.isActive, true),
+          or(
+            isNull(users.lastLoginAt),
+            lt(users.lastLoginAt, cutoffDate)
+          )
+        )
+      );
   }
 
   // Program operations
