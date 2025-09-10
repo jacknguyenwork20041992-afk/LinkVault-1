@@ -538,7 +538,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get current user info for activity log
       const adminUser = req.user;
       
-      // Reactivate user
       const user = await storage.toggleUserActive(id, true);
       
       // Update last login to current time when reactivating

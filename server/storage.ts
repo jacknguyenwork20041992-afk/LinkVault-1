@@ -73,7 +73,7 @@ import {
   type CreateUser,
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, and, sql, asc, ilike, or, not, inArray, isNull, lt } from "drizzle-orm";
+import { eq, desc, and, sql, asc, ilike, or, not, inArray, isNull, lt, ne } from "drizzle-orm";
 import bcrypt from "bcrypt";
 
 // Interface for storage operations
@@ -432,6 +432,8 @@ export class DatabaseStorage implements IStorage {
       .where(
         and(
           eq(users.isActive, true),
+          // IMPORTANT: Never disable admin accounts!
+          ne(users.role, "admin"),
           or(
             isNull(users.lastLoginAt),
             lt(users.lastLoginAt, cutoffDate)
