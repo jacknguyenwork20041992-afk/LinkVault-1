@@ -16,7 +16,7 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
   });
 
   const { data: activities = [], isLoading: activitiesLoading } = useQuery<any[]>({
-    queryKey: ["/api/activities"],
+    queryKey: ["/api/activities/recent"],
     retry: false,
     refetchInterval: 30000, // Auto-refresh every 30 seconds
     refetchIntervalInBackground: true, // Continue refreshing even when tab is not active

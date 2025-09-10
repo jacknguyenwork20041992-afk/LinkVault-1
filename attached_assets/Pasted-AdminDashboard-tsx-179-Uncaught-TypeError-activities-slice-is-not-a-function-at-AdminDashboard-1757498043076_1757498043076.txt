@@ -1,0 +1,28 @@
+AdminDashboard.tsx:179 Uncaught TypeError: activities.slice is not a function
+    at AdminDashboard (AdminDashboard.tsx:179:29)
+AdminDashboard.tsx:179 Uncaught TypeError: activities.slice is not a function
+    at AdminDashboard (AdminDashboard.tsx:179:29)
+Console.js:61 The above error occurred in the <AdminDashboard> component:
+
+    at AdminDashboard (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/src/components/AdminDashboard.tsx:24:42)
+    at div
+    at div
+    at div
+    at main
+    at div
+    at div
+    at div
+    at Admin (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/src/pages/admin.tsx:48:48)
+    at Route (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/node_modules/.vite/deps/wouter.js?v=ffd016ba:265:16)
+    at Switch (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/node_modules/.vite/deps/wouter.js?v=ffd016ba:321:17)
+    at Router (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/src/App.tsx?v=HdeOMWbbOga-lN2JguXaH:36:31)
+    at Provider (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/node_modules/.vite/deps/chunk-ZZIMQBQA.js?v=ffd016ba:38:15)
+    at TooltipProvider (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ffd016ba:63:5)
+    at AuthProvider (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/src/hooks/use-auth.tsx:26:32)
+    at QueryClientProvider (https://a52605b2-6d22-4ab0-bd97-b67c08b042d3-00-1ce8zubuyp3e5.kirk.replit.dev/node_modules/.vite/deps/@tanstack_react-query.js?v=ffd016ba:2805:3)
+    at App
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-7SSXMLWA.js?v=ffd016ba:9129 Uncaught TypeError: activities.slice is not a function
+    at AdminDashboard (AdminDashboard.tsx:179:29)
