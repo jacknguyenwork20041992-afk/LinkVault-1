@@ -578,24 +578,26 @@ export default function Home() {
                           {tool.name}
                         </h3>
                         
-                        <div className="flex-1">
-                          {tool.description && (
-                            <p className="text-sm text-gray-600 dark:text-gray-300 mb-3 leading-tight">
-                              {tool.description}
-                            </p>
-                          )}
+                        <div className="flex-1 flex flex-col justify-between">
+                          <div>
+                            {tool.description && (
+                              <p className="text-sm text-gray-600 dark:text-gray-300 mb-4 leading-tight">
+                                {tool.description}
+                              </p>
+                            )}
+                          </div>
+                          
+                          <a
+                            href={tool.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center w-full justify-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md"
+                            data-testid={`link-support-tool-${tool.id}`}
+                          >
+                            <Wrench className="h-4 w-4 mr-2" />
+                            Mở công cụ
+                          </a>
                         </div>
-                        
-                        <a
-                          href={tool.link}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center w-full justify-center px-3 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm hover:shadow-md mt-auto"
-                          data-testid={`link-support-tool-${tool.id}`}
-                        >
-                          <Wrench className="h-4 w-4 mr-2" />
-                          Mở công cụ
-                        </a>
                       </div>
                     ))}
                   </div>
