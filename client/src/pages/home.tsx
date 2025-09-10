@@ -214,8 +214,17 @@ export default function Home() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-green-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-green-900 dark:to-blue-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-green-200 rounded-full animate-spin border-t-green-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-green-500 to-blue-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải trang chủ</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Chuẩn bị nội dung cho bạn...</p>
+          </div>
+        </div>
       </div>
     );
   }
