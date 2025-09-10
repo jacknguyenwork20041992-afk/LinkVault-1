@@ -40,7 +40,7 @@ interface TicketCardProps {
 
 function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
   // Only fetch responses when ticket is expanded (lazy loading for better performance)
-  const { data: responses = [] } = useQuery<any[]>({
+  const { data: responses = [], isLoading: responsesLoading } = useQuery<any[]>({
     queryKey: ["/api/support-tickets", ticket.id, "responses"],
     enabled: isExpanded, // Only fetch when expanded
     retry: false,
@@ -304,7 +304,30 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                 </div>
               )}
               
-              {isExpanded && responses.length === 0 && (
+              {isExpanded && responsesLoading && (
+                <div className="space-y-3 pt-3 border-t bg-blue-50 dark:bg-blue-950/20 -mx-6 px-6 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-6 h-6 border-2 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                        <div className="absolute inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                      </div>
+                      <span className="text-blue-600 dark:text-blue-400 font-medium animate-pulse">Đang tải phản hồi...</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onToggleExpanded}
+                      className="flex items-center gap-2"
+                      data-testid={`button-collapse-ticket-${ticket.id}`}
+                    >
+                      Ẩn
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {isExpanded && !responsesLoading && responses.length === 0 && (
                 <div className="space-y-3 pt-3 border-t bg-gray-50 dark:bg-gray-950/20 -mx-6 px-6 pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
