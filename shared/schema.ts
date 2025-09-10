@@ -49,6 +49,8 @@ export const programs = pgTable("programs", {
   description: text("description"),
   curriculum: varchar("curriculum").notNull(), // Giáo trình: "Face2Face", "English File", "New Headway", etc.
   ageRange: varchar("age_range").notNull(), // Độ tuổi: "3-6 tuổi", "7-12 tuổi", "13-17 tuổi", "18+ tuổi", etc.
+  iconName: varchar("icon_name").default("Book"), // Lucide icon name: "Book", "GraduationCap", "Globe", etc.
+  colorScheme: varchar("color_scheme").default("blue"), // Color scheme: "blue", "green", "purple", "red", etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
