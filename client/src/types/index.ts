@@ -136,6 +136,8 @@ export interface InsertProgram {
   description?: string;
   curriculum: string;
   ageRange: string;
+  iconName?: string;
+  colorScheme?: string;
 }
 
 export interface InsertCategory {

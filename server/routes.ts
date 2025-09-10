@@ -177,8 +177,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/programs", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      console.log("📥 Received program data:", req.body);
       const validatedData = insertProgramSchema.parse(req.body);
+      console.log("✅ Validated data:", validatedData);
       const program = await storage.createProgram(validatedData);
+      console.log("💾 Created program:", program);
       res.json(program);
     } catch (error) {
       console.error("Error creating program:", error);
