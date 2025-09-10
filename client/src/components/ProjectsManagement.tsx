@@ -173,20 +173,20 @@ export default function ProjectsManagement() {
   return (
     <div className="p-6">
       {/* Header with Search and Filter */}
-      <div className="flex justify-between items-center mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
-            <FolderOpen className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
+        <div className="flex items-center space-x-3 sm:space-x-4">
+          <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20">
+            <FolderOpen className="h-6 w-6 sm:h-8 sm:w-8 text-blue-600 dark:text-blue-400" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Quản lý dự án</h1>
-            <p className="text-muted-foreground mt-1">Theo dõi và quản lý các dự án của trung tâm</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Quản lý dự án</h1>
+            <p className="text-sm sm:text-base text-muted-foreground mt-1">Theo dõi và quản lý các dự án của trung tâm</p>
           </div>
         </div>
         
         <Button
           onClick={() => setIsCreateModalOpen(true)}
-          className="flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200"
+          className="flex items-center justify-center space-x-2 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800 shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
           data-testid="button-create-project"
         >
           <Plus className="h-4 w-4" />
@@ -195,7 +195,7 @@ export default function ProjectsManagement() {
       </div>
 
       {/* Search and Filter Bar */}
-      <div className="modern-card p-6 mb-8">
+      <div className="modern-card p-4 sm:p-6 mb-8">
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -253,7 +253,7 @@ export default function ProjectsManagement() {
           )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-1 lg:grid-cols-2 xl:grid-cols-2 gap-6">
           {filteredProjects.map((project) => {
             const isTasksExpanded = expandedTasks[project.id] || false;
             const toggleTasks = () => {
@@ -265,48 +265,50 @@ export default function ProjectsManagement() {
             
             return (
               <div key={project.id} className="modern-card hover-lift group" data-testid={`card-project-${project.id}`}>
-                <div className="p-6">
+                <div className="p-4 sm:p-6">
                   {/* Project Header */}
-                  <div className="flex justify-between items-start mb-6">
-                    <div className="flex items-start space-x-3 flex-1">
-                      <div className="p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
-                        <FolderOpen className="h-6 w-6 text-blue-600 dark:text-blue-400" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="text-xl font-bold text-foreground mb-2 group-hover:text-blue-600 transition-colors duration-200">
-                          {project.name}
-                        </h3>
-                        <div className="flex items-center justify-between mb-3">
-                          {getStatusBadge(project.status)}
-                          <StatusSelect
-                            currentStatus={project.status}
-                            onStatusChange={(status) => 
-                              updateProjectStatusMutation.mutate({ projectId: project.id, status })
-                            }
-                            type="project"
-                          />
+                  <div className="mb-6">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+                      <div className="flex items-start space-x-3 flex-1">
+                        <div className="p-2 sm:p-3 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 group-hover:from-blue-100 group-hover:to-blue-200 transition-all duration-300">
+                          <FolderOpen className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 dark:text-blue-400" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <h3 className="text-lg sm:text-xl font-bold text-foreground mb-2 group-hover:text-blue-600 transition-colors duration-200 break-words">
+                            {project.name}
+                          </h3>
+                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3 mb-3">
+                            {getStatusBadge(project.status)}
+                            <StatusSelect
+                              currentStatus={project.status}
+                              onStatusChange={(status) => 
+                                updateProjectStatusMutation.mutate({ projectId: project.id, status })
+                              }
+                              type="project"
+                            />
+                          </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setEditingProject(project)}
-                        className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700"
-                        data-testid={`button-edit-project-${project.id}`}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setProjectToDelete(project)}
-                        className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
-                        data-testid={`button-delete-project-${project.id}`}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                      <div className="flex space-x-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity duration-200 self-start">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditingProject(project)}
+                          className="h-8 w-8 p-0 hover:bg-blue-100 hover:text-blue-700"
+                          data-testid={`button-edit-project-${project.id}`}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setProjectToDelete(project)}
+                          className="h-8 w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-100"
+                          data-testid={`button-delete-project-${project.id}`}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
                   </div>
 
@@ -321,7 +323,7 @@ export default function ProjectsManagement() {
                       </p>
                     )}
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                       <div className="flex items-center space-x-3 p-3 bg-muted/10 rounded-lg">
                         <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                         <div>
@@ -401,7 +403,7 @@ export default function ProjectsManagement() {
                                 />
                               </div>
                               
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                                 <div className="flex items-center space-x-2">
                                   <User className="h-3 w-3 text-muted-foreground" />
                                   <span className="text-xs text-muted-foreground">{task.assignee}</span>
