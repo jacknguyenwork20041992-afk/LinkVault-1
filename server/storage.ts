@@ -128,7 +128,17 @@ export interface IStorage {
   // Activity operations
   createActivity(activityData: InsertActivity): Promise<Activity>;
   getActivitiesByUser(userId: string, limit?: number): Promise<Activity[]>;
-  getAllActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
+  getAllActivities(options?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+  }): Promise<{
+    activities: (Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }>;
   getRecentActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
   
   // Project operations
@@ -680,7 +690,49 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async getAllActivities(limit: number = 100): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
+  async getAllActivities(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+  } = {}): Promise<{
+    activities: (Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const { page = 1, limit = 10, search = '', type = '' } = options;
+    const offset = (page - 1) * limit;
+    
+    // Build where conditions
+    const whereConditions = [];
+    
+    if (type) {
+      whereConditions.push(eq(activities.type, type));
+    }
+    
+    // For search, we need to search in description and user names
+    if (search) {
+      // We'll handle search with OR conditions for description, user names, email
+      whereConditions.push(
+        or(
+          ilike(activities.description, `%${search}%`),
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`),
+          ilike(users.email, `%${search}%`)
+        )
+      );
+    }
+    
+    const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+    
+    // Get total count for pagination
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(activities)
+      .leftJoin(users, eq(activities.userId, users.id))
+      .where(whereClause);
+    // Get paginated results
     const result = await db
       .select({
         id: activities.id,
@@ -698,10 +750,12 @@ export class DatabaseStorage implements IStorage {
       })
       .from(activities)
       .leftJoin(users, eq(activities.userId, users.id))
+      .where(whereClause)
       .orderBy(desc(activities.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
 
-    return result.map(row => ({
+    const activitiesData = result.map(row => ({
       id: row.id,
       userId: row.userId,
       type: row.type,
@@ -717,10 +771,20 @@ export class DatabaseStorage implements IStorage {
         lastName: row.userLastName,
       } : null
     }));
+    
+    const totalPages = Math.ceil(count / limit);
+    
+    return {
+      activities: activitiesData,
+      total: count,
+      totalPages,
+      currentPage: page
+    };
   }
 
   async getRecentActivities(limit: number = 20): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
-    return await this.getAllActivities(limit);
+    const result = await this.getAllActivities({ limit });
+    return result.activities;
   }
 
   // Project operations

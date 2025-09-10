@@ -573,9 +573,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activity routes
   app.get("/api/activities", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-      const activities = await storage.getAllActivities(limit);
-      res.json(activities);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const search = req.query.search as string || "";
+      const type = req.query.type as string || "";
+      
+      const result = await storage.getAllActivities({
+        page,
+        limit,
+        search,
+        type
+      });
+      
+      res.json(result);
     } catch (error) {
       console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
