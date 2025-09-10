@@ -172,6 +172,9 @@ export const isAuthenticated: RequestHandler = async (req, res, next) => {
     
     return next();
   } catch (error) {
+    console.error("Token refresh failed:", error);
+    console.error("User claims:", user.claims);
+    console.error("Refresh token exists:", !!refreshToken);
     res.status(401).json({ message: "Unauthorized" });
     return;
   }
