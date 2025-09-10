@@ -254,7 +254,7 @@ export default function CreateProgramModal({
             {/* Icon Selection */}
             <FormField
               control={form.control}
-              name="iconName"
+              name="iconName" as any
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Biểu tượng</FormLabel>
@@ -290,7 +290,7 @@ export default function CreateProgramModal({
             {/* Color Selection */}
             <FormField
               control={form.control}
-              name="colorScheme"
+              name="colorScheme" as any
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Màu sắc</FormLabel>
