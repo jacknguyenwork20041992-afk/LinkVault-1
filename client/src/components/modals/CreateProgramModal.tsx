@@ -79,8 +79,6 @@ export default function CreateProgramModal({
   const isEditing = !!editingProgram;
 
   const form = useForm<InsertProgram>({
-    // Temporarily remove schema validation to test
-    // resolver: zodResolver(insertProgramSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -93,7 +91,6 @@ export default function CreateProgramModal({
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProgram) => {
-      console.log("🚀 Form data being sent:", data);
       if (isEditing) {
         await apiRequest("PUT", `/api/programs/${editingProgram.id}`, data);
       } else {
