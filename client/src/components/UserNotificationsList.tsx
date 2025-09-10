@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -21,6 +21,7 @@ export default function UserNotificationsList() {
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const limit = 10;
 
   const { data: paginatedData, isLoading, refetch } = useQuery({
@@ -239,12 +240,12 @@ export default function UserNotificationsList() {
                       data-testid={`notification-${notification.id}`}
                       onClick={() => {
                         if (isClickable) {
-                          // Mark as read first
+                          // Navigate immediately for better UX
+                          setLocation("/support-tickets");
+                          // Mark as read in background (don't wait for it)
                           if (isUnread) {
                             handleMarkAsRead(userNotification.id);
                           }
-                          // Navigate to support tickets page
-                          window.location.href = "/support-tickets";
                         }
                       }}
                     >
