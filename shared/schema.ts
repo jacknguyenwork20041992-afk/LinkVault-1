@@ -38,6 +38,8 @@ export const users = pgTable("users", {
   isActive: boolean("is_active").notNull().default(true), // true = active, false = deactivated
   authProvider: varchar("auth_provider").default("manual"), // "manual", "replit", "google"
   googleId: varchar("google_id"), // Google ID for Google auth users
+  lastLoginAt: timestamp("last_login_at"), // Track last login time
+  lastActiveAt: timestamp("last_active_at"), // Track last activity time
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
