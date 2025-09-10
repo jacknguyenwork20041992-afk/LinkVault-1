@@ -242,9 +242,12 @@ export default function AccountsTable() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-center space-y-2">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-muted-foreground">Đang tải danh sách tài khoản...</p>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-cyan-200 rounded-full animate-spin border-t-cyan-600"></div>
+            <div className="absolute inset-2 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Đang tải danh sách tài khoản...</p>
         </div>
       </div>
     );
