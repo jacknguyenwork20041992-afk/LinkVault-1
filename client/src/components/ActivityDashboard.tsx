@@ -21,6 +21,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { 
   Activity as ActivityIcon, 
   LogIn, 
@@ -28,7 +35,10 @@ import {
   LogOut,
   User,
   Clock,
-  RefreshCw
+  RefreshCw,
+  Search,
+  ChevronLeft,
+  ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
 import { vi } from "date-fns/locale";
@@ -48,6 +58,13 @@ interface Activity {
     firstName: string | null;
     lastName: string | null;
   } | null;
+}
+
+interface ActivityResponse {
+  activities: Activity[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
 }
 
 const getActivityIcon = (type: string) => {
@@ -77,18 +94,32 @@ const getActivityColor = (type: string) => {
 };
 
 export default function ActivityDashboard() {
-  const [limit, setLimit] = useState("100");
+  const [page, setPage] = useState(1);
+  const [search, setSearch] = useState("");
+  const [type, setType] = useState("");
+  const limit = 10; // Fixed to 10 items per page
   const { toast } = useToast();
 
-  const { data: activities = [], isLoading, refetch } = useQuery<Activity[]>({
-    queryKey: ["/api/activities", limit],
+  const { data: activityData, isLoading, refetch } = useQuery<ActivityResponse>({
+    queryKey: ["/api/activities", page, search, type, limit],
     queryFn: async () => {
-      const response = await apiRequest("GET", `/api/activities?limit=${limit}`);
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+        search,
+        type,
+      });
+      const response = await apiRequest("GET", `/api/activities?${params}`);
       return response.json();
     },
     refetchInterval: 30000, // Auto-refresh every 30 seconds
     refetchIntervalInBackground: true, // Continue refreshing even when tab is not active
   });
+
+  const activities = activityData?.activities || [];
+  const totalPages = activityData?.totalPages || 1;
+  const currentPage = activityData?.currentPage || 1;
+  const total = activityData?.total || 0;
 
   const trackActivityMutation = useMutation({
     mutationFn: async (data: { type: string; description: string; metadata?: any }) => {
@@ -113,6 +144,20 @@ export default function ActivityDashboard() {
 
   const handleRefresh = () => {
     refetch();
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1); // Reset to first page when searching
+  };
+
+  const handleTypeChange = (value: string) => {
+    setType(value);
+    setPage(1); // Reset to first page when filtering
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPage(newPage);
   };
 
   const formatDate = (dateString: string) => {
@@ -145,29 +190,43 @@ export default function ActivityDashboard() {
             Theo dõi các hoạt động của người dùng trong hệ thống
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2">
-            <Label htmlFor="limit">Số lượng:</Label>
+        <Button 
+          onClick={handleRefresh} 
+          variant="outline" 
+          size="sm"
+          data-testid="button-refresh-activities"
+        >
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Làm mới
+        </Button>
+      </div>
+
+      {/* Search and Filter Section */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="flex-1">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
             <Input
-              id="limit"
-              type="number"
-              value={limit}
-              onChange={(e) => setLimit(e.target.value)}
-              className="w-20"
-              min="1"
-              max="1000"
-              data-testid="input-activity-limit"
+              placeholder="Tìm kiếm theo tên, email hoặc mô tả..."
+              value={search}
+              onChange={(e) => handleSearchChange(e.target.value)}
+              className="pl-10"
+              data-testid="input-search-activities"
             />
           </div>
-          <Button 
-            onClick={handleRefresh} 
-            variant="outline" 
-            size="sm"
-            data-testid="button-refresh-activities"
-          >
-            <RefreshCw className="h-4 w-4 mr-2" />
-            Làm mới
-          </Button>
+        </div>
+        <div className="w-full sm:w-48">
+          <Select value={type} onValueChange={handleTypeChange}>
+            <SelectTrigger data-testid="select-activity-type">
+              <SelectValue placeholder="Lọc theo loại" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">Tất cả</SelectItem>
+              <SelectItem value="login">Đăng nhập</SelectItem>
+              <SelectItem value="document_click">Xem tài liệu</SelectItem>
+              <SelectItem value="logout">Đăng xuất</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -179,7 +238,7 @@ export default function ActivityDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold" data-testid="text-total-activities">
-              {activities.length}
+              {total}
             </div>
           </CardContent>
         </Card>
@@ -284,6 +343,67 @@ export default function ActivityDashboard() {
               </TableBody>
             </Table>
           </div>
+          
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between px-2 py-4">
+              <div className="text-sm text-muted-foreground">
+                Trang {currentPage} / {totalPages} - Hiển thị {activities.length} / {total} hoạt động
+              </div>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage <= 1}
+                  data-testid="button-prev-page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Trước
+                </Button>
+                
+                {/* Page numbers */}
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={pageNum === currentPage ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => handlePageChange(pageNum)}
+                        className="w-8 h-8 p-0"
+                        data-testid={`button-page-${pageNum}`}
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage >= totalPages}
+                  data-testid="button-next-page"
+                >
+                  Sau
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
