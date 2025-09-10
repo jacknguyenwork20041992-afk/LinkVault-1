@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
 import { insertProgramSchema, type InsertProgram, type Program } from "@/types";
-import { X } from "lucide-react";
+import { X, Book, GraduationCap, Globe, Lightbulb, Target, Award, Heart, Star, Sparkles, Zap, Users, Rocket, Trophy } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -24,6 +24,44 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { 
+  Select, 
+  SelectContent, 
+  SelectItem, 
+  SelectTrigger, 
+  SelectValue 
+} from "@/components/ui/select";
+
+// Icon options for programs
+const iconOptions = [
+  { value: "Book", label: "📚 Sách", icon: Book },
+  { value: "GraduationCap", label: "🎓 Mũ tốt nghiệp", icon: GraduationCap },
+  { value: "Globe", label: "🌍 Địa cầu", icon: Globe },
+  { value: "Lightbulb", label: "💡 Bóng đèn", icon: Lightbulb },
+  { value: "Target", label: "🎯 Mục tiêu", icon: Target },
+  { value: "Award", label: "🏆 Giải thưởng", icon: Award },
+  { value: "Heart", label: "❤️ Trái tim", icon: Heart },
+  { value: "Star", label: "⭐ Ngôi sao", icon: Star },
+  { value: "Sparkles", label: "✨ Lấp lánh", icon: Sparkles },
+  { value: "Zap", label: "⚡ Tia chớp", icon: Zap },
+  { value: "Users", label: "👥 Người dùng", icon: Users },
+  { value: "Rocket", label: "🚀 Tên lửa", icon: Rocket },
+  { value: "Trophy", label: "🏆 Cúp", icon: Trophy },
+];
+
+// Color scheme options
+const colorOptions = [
+  { value: "blue", label: "Xanh dương", gradient: "from-blue-500 to-blue-600" },
+  { value: "green", label: "Xanh lá", gradient: "from-green-500 to-green-600" },
+  { value: "purple", label: "Tím", gradient: "from-purple-500 to-purple-600" },
+  { value: "red", label: "Đỏ", gradient: "from-red-500 to-red-600" },
+  { value: "orange", label: "Cam", gradient: "from-orange-500 to-orange-600" },
+  { value: "yellow", label: "Vàng", gradient: "from-yellow-500 to-yellow-600" },
+  { value: "pink", label: "Hồng", gradient: "from-pink-500 to-pink-600" },
+  { value: "indigo", label: "Chàm", gradient: "from-indigo-500 to-indigo-600" },
+  { value: "teal", label: "Xanh ngọc", gradient: "from-teal-500 to-teal-600" },
+  { value: "cyan", label: "Lam", gradient: "from-cyan-500 to-cyan-600" },
+];
 
 interface CreateProgramModalProps {
   isOpen: boolean;
@@ -47,6 +85,8 @@ export default function CreateProgramModal({
       description: "",
       curriculum: "",
       ageRange: "",
+      iconName: "Book",
+      colorScheme: "blue",
     },
   });
 
@@ -102,6 +142,8 @@ export default function CreateProgramModal({
         description: editingProgram.description || "",
         curriculum: editingProgram.curriculum,
         ageRange: editingProgram.ageRange,
+        iconName: editingProgram.iconName || "Book",
+        colorScheme: editingProgram.colorScheme || "blue",
       });
     } else {
       form.reset({
@@ -109,6 +151,8 @@ export default function CreateProgramModal({
         description: "",
         curriculum: "",
         ageRange: "",
+        iconName: "Book",
+        colorScheme: "blue",
       });
     }
   }, [editingProgram, isEditing, form]);
@@ -200,6 +244,77 @@ export default function CreateProgramModal({
                       data-testid="input-program-age-range"
                       {...field}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Icon Selection */}
+            <FormField
+              control={form.control}
+              name="iconName"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Biểu tượng</FormLabel>
+                  <FormControl>
+                    <Select 
+                      value={field.value || "Book"} 
+                      onValueChange={field.onChange}
+                      data-testid="select-program-icon"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn biểu tượng" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {iconOptions.map((option) => {
+                          const IconComponent = option.icon;
+                          return (
+                            <SelectItem key={option.value} value={option.value}>
+                              <div className="flex items-center space-x-2">
+                                <IconComponent className="h-4 w-4" />
+                                <span>{option.label}</span>
+                              </div>
+                            </SelectItem>
+                          );
+                        })}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* Color Selection */}
+            <FormField
+              control={form.control}
+              name="colorScheme"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Màu sắc</FormLabel>
+                  <FormControl>
+                    <Select 
+                      value={field.value || "blue"} 
+                      onValueChange={field.onChange}
+                      data-testid="select-program-color"
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Chọn màu sắc" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {colorOptions.map((option) => (
+                          <SelectItem key={option.value} value={option.value}>
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className={`w-4 h-4 rounded-full bg-gradient-to-r ${option.gradient}`}
+                              />
+                              <span>{option.label}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
