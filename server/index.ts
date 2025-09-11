@@ -23,6 +23,7 @@ const corsOrigins = process.env.ALLOWED_ORIGINS
   : [
       'http://localhost:5173',  // Dev frontend
       'http://localhost:5000',  // Same origin for Replit
+      'http://127.0.0.1:5000',  // Localhost alternative
       'https://f8d286cb-c19d-43ef-aa57-9e8be0444613-00-3pu2wdcb3e78w.kirk.replit.dev', // Current Replit domain
       process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.dev` : null, // Current Replit dev URL
       process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER || 'default'}.replit.app` : null, // Current Replit app URL

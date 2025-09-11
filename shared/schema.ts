@@ -40,6 +40,8 @@ export const users = pgTable("users", {
   googleId: varchar("google_id"), // Google ID for Google auth users
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  lastLoginAt: timestamp("last_login_at"),
+  lastActiveAt: timestamp("last_active_at"),
 });
 
 // Programs table
@@ -51,6 +53,8 @@ export const programs = pgTable("programs", {
   ageRange: varchar("age_range").notNull(), // Độ tuổi: "3-6 tuổi", "7-12 tuổi", "13-17 tuổi", "18+ tuổi", etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  iconName: varchar("icon_name"),
+  colorScheme: varchar("color_scheme"),
 });
 
 // Categories table
