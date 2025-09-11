@@ -15,13 +15,16 @@ try {
     pool = new Pool({ 
       connectionString: process.env.DATABASE_URL,
       ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
-      // Connection timeout and pool settings to prevent ETIMEDOUT
-      connectionTimeoutMillis: 10000, // 10 seconds timeout
+      // Connection timeout and pool settings optimized for Render + Supabase pooler
+      connectionTimeoutMillis: 15000, // 15 seconds timeout for IPv4 compatibility
       idleTimeoutMillis: 30000, // 30 seconds idle timeout
-      max: 20, // max connections in pool
-      min: 2, // min connections in pool
+      max: 10, // reduced max connections for pooler compatibility
+      min: 1, // reduced min connections for free tier
       maxUses: 7500, // max uses per connection before refresh
-      allowExitOnIdle: true // allow pool to close when idle
+      allowExitOnIdle: true, // allow pool to close when idle
+      // Additional settings for better Render + Supabase compatibility
+      query_timeout: 10000, // 10 second query timeout
+      statement_timeout: 10000, // 10 second statement timeout
     });
     db = drizzle(pool, { schema });
     isDbConnected = true;
