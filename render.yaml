@@ -10,30 +10,39 @@ services:
         value: production
       - key: DATABASE_URL
         sync: false
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ALLOWED_ORIGINS
+        value: "https://via-english-academy-fullstack.onrender.com"
+      # Google OAuth
       - key: GOOGLE_CLIENT_ID
         sync: false
       - key: GOOGLE_CLIENT_SECRET
         sync: false
-      - key: SESSION_SECRET
-        generateValue: true
+      # Gmail Service
+      - key: GMAIL_USER
+        sync: false
+      - key: GMAIL_APP_PASSWORD
+        sync: false
+      # Cloudinary Service
+      - key: CLOUDINARY_CLOUD_NAME
+        sync: false
+      - key: CLOUDINARY_API_KEY
+        sync: false
+      - key: CLOUDINARY_API_SECRET
+        sync: false
+      # Gemini AI
+      - key: GEMINI_API_KEY
+        sync: false
+      # Optional Legacy Keys (if needed)
+      - key: OPENAI_API_KEY
+        sync: false
       - key: OBJECT_STORAGE_BUCKET
         sync: false
       - key: OBJECT_STORAGE_KEY_ID
         sync: false
       - key: OBJECT_STORAGE_SECRET
         sync: false
-      - key: GOOGLE_DRIVE_CLIENT_ID
-        sync: false
-      - key: GOOGLE_DRIVE_CLIENT_SECRET
-        sync: false
-      - key: GOOGLE_DRIVE_REFRESH_TOKEN
-        sync: false
-      - key: GOOGLE_DRIVE_FOLDER_ID
-        sync: false
-      - key: OPENAI_API_KEY
-        sync: false
-      - key: ALLOWED_ORIGINS
-        value: "https://via-english-academy-fullstack.onrender.com"
     healthCheckPath: /api/health
     domains:
       - via-english-academy-fullstack.onrender.com
