@@ -54,21 +54,39 @@ export function setupAuth(app: Express) {
   passport.use(
     new LocalStrategy(
       {
-        usernameField: "email",
+        usernameField: "email", // IMPORTANT: Frontend must send 'email' field, not 'username'
         passwordField: "password",
       },
       async (email, password, done) => {
+        console.log(`🔐 LOGIN ATTEMPT: email="${email}" password="${password ? '[REDACTED]' : 'undefined'}"`);
+        
+        if (!email || !password) {
+          console.log(`❌ LOGIN FAILED: Missing credentials - email: ${!!email}, password: ${!!password}`);
+          return done(null, false, { message: 'Email and password are required' });
+        }
+        
         try {
+          console.log(`🔍 Looking up user by email: ${email}`);
           const user = await storage.getUserByEmail(email);
           if (!user) {
+            console.log(`❌ LOGIN FAILED: User not found for email: ${email}`);
             return done(null, false, { message: "Email không tồn tại" });
+          }
+
+          console.log(`✅ User found: ${user.email} (${user.role}), isActive: ${user.isActive}`);
+          
+          if (!user.isActive) {
+            console.log(`❌ LOGIN FAILED: User account is deactivated: ${email}`);
+            return done(null, false, { message: "Tài khoản đã bị vô hiệu hóa" });
           }
 
           const isValidPassword = await bcrypt.compare(password, user.password || "");
           if (!isValidPassword) {
+            console.log(`❌ LOGIN FAILED: Invalid password for user: ${email}`);
             return done(null, false, { message: "Mật khẩu không đúng" });
           }
 
+          console.log(`✅ LOGIN SUCCESS: ${user.email} authenticated successfully`);
           return done(null, user);
         } catch (error) {
           return done(error);
