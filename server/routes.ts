@@ -87,6 +87,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     });
   });
 
+  // Test endpoint for production verification
+  app.get("/api/test", (_req, res) => {
+    res.json({ 
+      message: "Backend is working!",
+      timestamp: new Date().toISOString(),
+      env: process.env.NODE_ENV || "development"
+    });
+  });
+
   // Setup multiple authentication methods
   const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
   const { setupGoogleAuth } = await import("./googleAuth");
