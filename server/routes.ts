@@ -531,6 +531,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get current user info for activity log
       const adminUser = req.user;
+      if (!adminUser) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
       
       const user = await storage.toggleUserActive(id, true);
       
