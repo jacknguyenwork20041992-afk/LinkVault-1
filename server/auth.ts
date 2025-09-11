@@ -107,23 +107,27 @@ export function setupAuth(app: Express) {
           return res.status(500).json({ message: "Lỗi đăng nhập" });
         }
 
-        // Track login time and activity
+        // Track login time and activity (production-safe)
         try {
-          await storage.updateUserLastLogin(user.id);
-          await storage.createActivity({
-            userId: user.id,
-            type: "login",
-            description: `Người dùng ${user.firstName} ${user.lastName} đã đăng nhập`,
-            metadata: {
-              email: user.email,
-              role: user.role,
-            },
-            ipAddress: req.ip || req.connection?.remoteAddress || null,
-            userAgent: req.get('User-Agent') || null,
-          });
+          if (storage.updateUserLastLogin && typeof storage.updateUserLastLogin === 'function') {
+            await storage.updateUserLastLogin(user.id);
+          }
+          if (storage.createActivity && typeof storage.createActivity === 'function') {
+            await storage.createActivity({
+              userId: user.id,
+              type: "login",
+              description: `Người dùng ${user.firstName} ${user.lastName} đã đăng nhập`,
+              metadata: {
+                email: user.email,
+                role: user.role,
+              },
+              ipAddress: req.ip || req.connection?.remoteAddress || null,
+              userAgent: req.get('User-Agent') || null,
+            });
+          }
         } catch (activityError) {
-          console.error("Error tracking login activity:", activityError);
-          // Don't fail login if activity tracking fails
+          console.error("Error tracking login activity (non-critical):", activityError);
+          // Don't fail login if activity tracking fails - production safety
         }
 
         return res.json(user);
@@ -185,7 +189,14 @@ export async function isAuthenticated(req: any, res: any, next: any) {
       (now.getTime() - new Date(dbUser.lastActiveAt).getTime()) > 5 * 60 * 1000; // 5 minutes
     
     if (shouldUpdateActivity) {
-      await storage.updateUserLastActivity(user.id);
+      try {
+        if (storage.updateUserLastActivity && typeof storage.updateUserLastActivity === 'function') {
+          await storage.updateUserLastActivity(user.id);
+        }
+      } catch (error) {
+        console.error("Error updating user activity (non-critical):", error);
+        // Don't fail request if activity tracking fails - production safety
+      }
     }
 
     next();

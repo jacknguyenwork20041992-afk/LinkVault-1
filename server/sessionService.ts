@@ -47,7 +47,11 @@ export class SessionService {
     try {
       console.log("🔍 Checking for inactive users...");
 
-      // Find users inactive for 7 days (168 hours)
+      // Find users inactive for 7 days (168 hours) - production-safe
+      if (!storage.findInactiveUsers || typeof storage.findInactiveUsers !== 'function') {
+        console.log("⚠️ Session management unavailable - storage.findInactiveUsers not found");
+        return;
+      }
       const inactiveUsers = await storage.findInactiveUsers(7);
       
       if (inactiveUsers.length === 0) {
@@ -61,22 +65,26 @@ export class SessionService {
       let disabledCount = 0;
       for (const user of inactiveUsers) {
         try {
-          await storage.toggleUserActive(user.id, false);
+          if (storage.toggleUserActive && typeof storage.toggleUserActive === 'function') {
+            await storage.toggleUserActive(user.id, false);
+          }
           
           // Log the deactivation activity
-          await storage.createActivity({
-            userId: user.id,
-            type: "system",
-            description: `Tài khoản ${user.firstName} ${user.lastName} bị vô hiệu hóa tự động do không hoạt động quá 7 ngày`,
-            metadata: {
-              email: user.email,
-              lastLoginAt: user.lastLoginAt,
-              reason: "auto_disable_inactive",
-              disabledAt: new Date().toISOString(),
-            },
-            ipAddress: null,
-            userAgent: "System Auto-Disable Service",
-          });
+          if (storage.createActivity && typeof storage.createActivity === 'function') {
+            await storage.createActivity({
+              userId: user.id,
+              type: "system",
+              description: `Tài khoản ${user.firstName} ${user.lastName} bị vô hiệu hóa tự động do không hoạt động quá 7 ngày`,
+              metadata: {
+                email: user.email,
+                lastLoginAt: user.lastLoginAt,
+                reason: "auto_disable_inactive",
+                disabledAt: new Date().toISOString(),
+              },
+              ipAddress: null,
+              userAgent: "System Auto-Disable Service",
+            });
+          }
 
           disabledCount++;
           console.log(`🔒 Disabled user: ${user.email} (last login: ${user.lastLoginAt || 'never'})`);
@@ -94,26 +102,34 @@ export class SessionService {
   // Manual check - can be called by admin
   public async forceCheck(): Promise<{ disabled: number; errors: string[] }> {
     try {
+      if (!storage.findInactiveUsers || typeof storage.findInactiveUsers !== 'function') {
+        return { disabled: 0, errors: ["Session management functions not available"] };
+      }
+      
       const inactiveUsers = await storage.findInactiveUsers(7);
       const errors: string[] = [];
       let disabledCount = 0;
 
       for (const user of inactiveUsers) {
         try {
-          await storage.toggleUserActive(user.id, false);
-          await storage.createActivity({
-            userId: user.id,
-            type: "admin",
-            description: `Tài khoản ${user.firstName} ${user.lastName} bị vô hiệu hóa thủ công do không hoạt động`,
-            metadata: {
-              email: user.email,
-              lastLoginAt: user.lastLoginAt,
-              reason: "manual_disable_inactive",
-              disabledAt: new Date().toISOString(),
-            },
-            ipAddress: null,
-            userAgent: "Manual Admin Action",
-          });
+          if (storage.toggleUserActive && typeof storage.toggleUserActive === 'function') {
+            await storage.toggleUserActive(user.id, false);
+          }
+          if (storage.createActivity && typeof storage.createActivity === 'function') {
+            await storage.createActivity({
+              userId: user.id,
+              type: "admin",
+              description: `Tài khoản ${user.firstName} ${user.lastName} bị vô hiệu hóa thủ công do không hoạt động`,
+              metadata: {
+                email: user.email,
+                lastLoginAt: user.lastLoginAt,
+                reason: "manual_disable_inactive",
+                disabledAt: new Date().toISOString(),
+              },
+              ipAddress: null,
+              userAgent: "Manual Admin Action",
+            });
+          }
           disabledCount++;
         } catch (error) {
           errors.push(`Error disabling ${user.email}: ${error}`);
