@@ -34,7 +34,6 @@ import { TextExtractor } from "./textExtractor";
 import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
-import { sessionService } from "./sessionService";
 import { z } from "zod";
 
 // Demo chat responses when OpenAI is unavailable
@@ -134,16 +133,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      // Return sanitized user without password hash
-      const { password, ...safeUser } = req.user;
-      res.json(safeUser);
+      res.json(req.user);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Removed duplicate - already handled in auth.ts with proper sanitization
+  // Alias route for frontend compatibility
+  app.get('/api/user', isAuthenticated, async (req: any, res) => {
+    try {
+      res.json(req.user);
+    } catch (error) {
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
+    }
+  });
 
   // Program routes
   app.get("/api/programs", isAuthenticated, async (req, res) => {
@@ -491,78 +496,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting user:", error);
       res.status(500).json({ message: "Failed to delete user" });
-    }
-  });
-
-  // Session management routes (admin only)
-  app.get("/api/admin/session/inactive-users", isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      const days = parseInt(req.query.days as string) || 7;
-      const inactiveUsers = await storage.findInactiveUsers(days);
-      res.json({
-        users: inactiveUsers,
-        count: inactiveUsers.length,
-        daysSinceLastLogin: days
-      });
-    } catch (error) {
-      console.error("Error fetching inactive users:", error);
-      res.status(500).json({ message: "Failed to fetch inactive users" });
-    }
-  });
-
-  app.post("/api/admin/session/force-check", isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      const result = await sessionService.forceCheck();
-      res.json({
-        message: "Session check completed",
-        disabledUsers: result.disabled,
-        errors: result.errors
-      });
-    } catch (error) {
-      console.error("Error forcing session check:", error);
-      res.status(500).json({ message: "Failed to run session check" });
-    }
-  });
-
-  app.put("/api/admin/users/:id/reactivate", isAuthenticated, isAdmin, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { reason } = req.body;
-      
-      // Get current user info for activity log
-      const adminUser = req.user;
-      if (!adminUser) {
-        return res.status(401).json({ message: "Unauthorized" });
-      }
-      
-      const user = await storage.toggleUserActive(id, true);
-      
-      // Update last login to current time when reactivating
-      await storage.updateUserLastLogin(id);
-      
-      // Log reactivation activity
-      await storage.createActivity({
-        userId: id,
-        type: "admin",
-        description: `Tài khoản ${user.firstName} ${user.lastName} được kích hoạt lại bởi admin ${adminUser.firstName} ${adminUser.lastName}`,
-        metadata: {
-          email: user.email,
-          adminId: adminUser.id,
-          adminEmail: adminUser.email,
-          reason: reason || "Manual reactivation by admin",
-          reactivatedAt: new Date().toISOString(),
-        },
-        ipAddress: req.ip || req.connection?.remoteAddress || null,
-        userAgent: req.get('User-Agent') || null,
-      });
-      
-      res.json({
-        user,
-        message: "User reactivated successfully"
-      });
-    } catch (error) {
-      console.error("Error reactivating user:", error);
-      res.status(500).json({ message: "Failed to reactivate user" });
     }
   });
 

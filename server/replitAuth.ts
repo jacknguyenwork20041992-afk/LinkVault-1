@@ -25,7 +25,7 @@ const getOidcConfig = memoize(
 );
 
 export function getSession() {
-  const sessionTtl = 72 * 60 * 60 * 1000; // 72 hours (3 days) - require re-login after this
+  const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
   const pgStore = connectPg(session);
   const sessionStore = new pgStore({
     conString: process.env.DATABASE_URL,

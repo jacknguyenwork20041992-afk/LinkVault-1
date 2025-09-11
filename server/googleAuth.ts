@@ -78,33 +78,7 @@ export function setupGoogleAuth(app: Express) {
     passport.authenticate("google", { 
       failureRedirect: `${process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:3000'}/auth?error=google`
     }),
-    async (req, res) => {
-      // Track login time for Google auth users (production-safe)
-      try {
-        if (req.user && req.user.id) {
-          if (storage.updateUserLastLogin && typeof storage.updateUserLastLogin === 'function') {
-            await storage.updateUserLastLogin(req.user.id);
-          }
-          if (storage.createActivity && typeof storage.createActivity === 'function') {
-            await storage.createActivity({
-              userId: req.user.id,
-              type: "login",
-              description: `Người dùng ${req.user.firstName} ${req.user.lastName} đã đăng nhập qua Google`,
-              metadata: {
-                email: req.user.email,
-                role: req.user.role,
-                authProvider: "google",
-              },
-              ipAddress: req.ip || req.connection?.remoteAddress || null,
-              userAgent: req.get('User-Agent') || null,
-            });
-          }
-        }
-      } catch (error) {
-        console.error("Error tracking Google login activity (non-critical):", error);
-        // Don't fail login if activity tracking fails - production safety
-      }
-      
+    (req, res) => {
       // Successful authentication, redirect to frontend domain.
       const frontendUrl = process.env.ALLOWED_ORIGINS?.split(',')[0] || 'http://localhost:3000';
       res.redirect(frontendUrl);

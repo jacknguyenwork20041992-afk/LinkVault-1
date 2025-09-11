@@ -2,22 +2,6 @@ import "dotenv/config";
 import express, { type Request, Response, NextFunction } from "express";
 import cors from "cors";
 import { registerRoutes } from "./routes";
-import { sessionService } from "./sessionService";
-
-// Unhandled promise rejection handler
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('🚨 UNHANDLED PROMISE REJECTION 🚨');
-  console.error('Promise:', promise);
-  console.error('Reason:', reason);
-  console.error('Stack:', reason instanceof Error ? reason.stack : 'No stack');
-});
-
-// Uncaught exception handler  
-process.on('uncaughtException', (error) => {
-  console.error('🚨 UNCAUGHT EXCEPTION 🚨');
-  console.error('Error:', error.message);
-  console.error('Stack:', error.stack);
-});
 
 // Simple logging function for production
 function log(message: string, source = "express") {
@@ -33,111 +17,38 @@ function log(message: string, source = "express") {
 const app = express();
 
 // CORS configuration - Cho phép frontend kết nối
-let allowedOrigins;
-if (process.env.NODE_ENV === 'production') {
-  // In production, require explicit ALLOWED_ORIGINS
-  if (!process.env.ALLOWED_ORIGINS) {
-    throw new Error('ALLOWED_ORIGINS environment variable is required in production');
-  }
-  allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
-} else {
-  // Development fallback with broad patterns for ease of development
-  allowedOrigins = process.env.ALLOWED_ORIGINS 
-    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-    : [
-        'http://localhost:5173',  // Dev frontend
-        'http://localhost:5000',  // Dev backend
-        'http://localhost:3000',  // Alternative dev port
-        /^https:\/\/.*\.vercel\.app$/,  // Vercel domains (dev only)
-        /^https:\/\/.*\.replit\.dev$/,  // Replit domains (dev only)
-        /^https:\/\/.*\.kirk\.replit\.dev$/,  // Replit IDE domains (dev only)
-      ];
-}
+const allowedOrigins = process.env.ALLOWED_ORIGINS 
+  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+  : [
+      'http://localhost:5173',  // Dev frontend
+      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
+    ];
 
-// Secure CORS configuration
+// Temporary CORS fix for production debugging
 app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests) only in development
-    if (!origin && process.env.NODE_ENV !== 'production') {
-      return callback(null, true);
-    }
-    
-    // Check if origin is in allowed list
-    const isAllowed = allowedOrigins.some(allowed => {
-      if (typeof allowed === 'string') {
-        return allowed === origin;
-      } else if (allowed instanceof RegExp) {
-        return allowed.test(origin || '');
-      }
-      return false;
-    });
-    
-    if (isAllowed) {
-      callback(null, true);
-    } else {
-      console.warn(`🚫 Blocked CORS request from: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,  // Allow all origins temporarily
   credentials: true,  // Cho phép gửi cookies
 }));
 
-// Add request size limits and better error handling
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false, limit: '10mb' }));
-
-// Request logging middleware - only detailed logging in development
-app.use((req, res, next) => {
-  const startTime = Date.now();
-  
-  // Only detailed logging in development
-  if (process.env.NODE_ENV !== 'production') {
-    console.log(`📍 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
-    
-    // Only log body for POST/PUT/PATCH and if it's not too large
-    if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-      const bodyStr = JSON.stringify(req.body);
-      if (bodyStr.length < 500) {
-        console.log(`📦 Body:`, req.body);
-      } else {
-        console.log(`📦 Body: [Large body ${bodyStr.length} chars]`);
-      }
-    }
-  }
-  
-  // Log response when finished
-  res.on('finish', () => {
-    const duration = Date.now() - startTime;
-    if (process.env.NODE_ENV !== 'production') {
-      const statusEmoji = res.statusCode >= 400 ? '❌' : '✅';
-      console.log(`${statusEmoji} ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`);
-    }
-  });
-  
-  next();
-});
+app.use(express.json());
+app.use(express.urlencoded({ extended: false }));
 
 app.use((req, res, next) => {
   const start = Date.now();
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  // Only capture response body in development for debugging
-  if (process.env.NODE_ENV !== 'production') {
-    const originalResJson = res.json;
-    res.json = function (bodyJson, ...args) {
-      capturedJsonResponse = bodyJson;
-      return originalResJson.apply(res, [bodyJson, ...args]);
-    };
-  }
+  const originalResJson = res.json;
+  res.json = function (bodyJson, ...args) {
+    capturedJsonResponse = bodyJson;
+    return originalResJson.apply(res, [bodyJson, ...args]);
+  };
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      
-      // Only include response body in development logs  
-      if (process.env.NODE_ENV !== 'production' && capturedJsonResponse) {
+      if (capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
@@ -156,49 +67,15 @@ app.use((req, res, next) => {
   try {
     const server = await registerRoutes(app);
 
-    app.use((err: any, req: Request, res: Response, _next: NextFunction) => {
+    app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
 
-      // Production-safe error logging
-      if (process.env.NODE_ENV !== 'production') {
-        // Detailed logging only in development
-        console.error('=== DEVELOPMENT ERROR LOG ===');
-        console.error('Timestamp:', new Date().toISOString());
-        console.error('Method:', req.method);
-        console.error('URL:', req.originalUrl);
-        console.error('Headers:', JSON.stringify(req.headers, null, 2));
-        console.error('Body:', JSON.stringify(req.body, null, 2));
-        console.error('Query:', JSON.stringify(req.query, null, 2));
-        console.error('User:', req.user ? `${req.user.email} (${req.user.role})` : 'Not authenticated');
-        console.error('Error Status:', status);
-        console.error('Error Message:', message);
-        console.error('Error Stack:', err.stack);
-        console.error('===============================');
-      } else {
-        // Production: minimal logging without PII
-        console.error('Production Error:', {
-          timestamp: new Date().toISOString(),
-          method: req.method,
-          url: req.originalUrl,
-          status,
-          message: message,
-          userAgent: req.get('User-Agent'),
-          ip: req.ip
-        });
-      }
+      // Log the error for debugging but don't throw it to prevent uncaught exceptions
+      log(`Error handling request: ${message}`);
+      console.error(err);
 
-      // Log short version for normal logging
-      log(`ERROR ${status}: ${req.method} ${req.originalUrl} - ${message}`);
-
-      // Send response
-      res.status(status).json({ 
-        message,
-        ...(process.env.NODE_ENV !== 'production' && { 
-          stack: err.stack,
-          details: err 
-        })
-      });
+      res.status(status).json({ message });
     });
 
     // Only setup vite in development
@@ -224,13 +101,6 @@ app.use((req, res, next) => {
       reusePort: true,
     }, () => {
       log(`serving on port ${port}`);
-      
-      // Start session management service
-      try {
-        sessionService.start();
-      } catch (error) {
-        console.error("⚠️ Failed to start session service:", error);
-      }
     });
   } catch (error) {
     console.error("❌ Failed to start server:", error);
