@@ -25,6 +25,7 @@ const corsOrigins = process.env.ALLOWED_ORIGINS
       'http://localhost:5000',  // Same origin for Replit
       'http://127.0.0.1:5000',  // Localhost alternative
       'https://f8d286cb-c19d-43ef-aa57-9e8be0444613-00-3pu2wdcb3e78w.kirk.replit.dev', // Current Replit domain
+      'https://via-english-academy-fullstack.onrender.com', // Render production domain
       process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.dev` : null, // Current Replit dev URL
       process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER || 'default'}.replit.app` : null, // Current Replit app URL
     ].filter(Boolean); // Remove null values
@@ -106,6 +107,15 @@ app.use((req, res, next) => {
         await setupVite(app, server);
       } catch (e) {
         console.warn("Failed to setup Vite:", e);
+      }
+    } else {
+      // In production, serve static files
+      try {
+        const { serveStatic } = await import("./vite");
+        serveStatic(app);
+        log("Production mode: serving static files from dist/public");
+      } catch (e) {
+        console.warn("Failed to setup static file serving:", e);
       }
     }
     

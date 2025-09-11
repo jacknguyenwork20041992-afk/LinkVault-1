@@ -1,10 +1,10 @@
 services:
   - type: web
-    name: via-english-academy-backend
+    name: via-english-academy-fullstack
     env: node
-    plan: starter
-    buildCommand: npm install
-    startCommand: NODE_ENV=production node production.js
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
     envVars:
       - key: NODE_ENV
         value: production
@@ -33,10 +33,10 @@ services:
       - key: OPENAI_API_KEY
         sync: false
       - key: ALLOWED_ORIGINS
-        value: "https://your-frontend-domain.vercel.app"
+        value: "https://via-english-academy-fullstack.onrender.com"
     healthCheckPath: /api/health
     domains:
-      - via-english-academy-api.onrender.com
+      - via-english-academy-fullstack.onrender.com
     scaling:
       minInstances: 1
       maxInstances: 3
