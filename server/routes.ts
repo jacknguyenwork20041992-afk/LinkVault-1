@@ -134,22 +134,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      res.json(req.user);
+      // Return sanitized user without password hash
+      const { password, ...safeUser } = req.user;
+      res.json(safeUser);
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  // Alias route for frontend compatibility
-  app.get('/api/user', isAuthenticated, async (req: any, res) => {
-    try {
-      res.json(req.user);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      res.status(500).json({ message: "Failed to fetch user" });
-    }
-  });
+  // Removed duplicate - already handled in auth.ts with proper sanitization
 
   // Program routes
   app.get("/api/programs", isAuthenticated, async (req, res) => {

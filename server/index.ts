@@ -33,16 +33,52 @@ function log(message: string, source = "express") {
 const app = express();
 
 // CORS configuration - Cho phép frontend kết nối
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
-  ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
-  : [
-      'http://localhost:5173',  // Dev frontend
-      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
-    ];
+let allowedOrigins;
+if (process.env.NODE_ENV === 'production') {
+  // In production, require explicit ALLOWED_ORIGINS
+  if (!process.env.ALLOWED_ORIGINS) {
+    throw new Error('ALLOWED_ORIGINS environment variable is required in production');
+  }
+  allowedOrigins = process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim());
+} else {
+  // Development fallback with broad patterns for ease of development
+  allowedOrigins = process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
+    : [
+        'http://localhost:5173',  // Dev frontend
+        'http://localhost:5000',  // Dev backend
+        'http://localhost:3000',  // Alternative dev port
+        /^https:\/\/.*\.vercel\.app$/,  // Vercel domains (dev only)
+        /^https:\/\/.*\.replit\.dev$/,  // Replit domains (dev only)
+        /^https:\/\/.*\.kirk\.replit\.dev$/,  // Replit IDE domains (dev only)
+      ];
+}
 
-// Temporary CORS fix for production debugging
+// Secure CORS configuration
 app.use(cors({
-  origin: true,  // Allow all origins temporarily
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests) only in development
+    if (!origin && process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // Check if origin is in allowed list
+    const isAllowed = allowedOrigins.some(allowed => {
+      if (typeof allowed === 'string') {
+        return allowed === origin;
+      } else if (allowed instanceof RegExp) {
+        return allowed.test(origin || '');
+      }
+      return false;
+    });
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      console.warn(`🚫 Blocked CORS request from: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,  // Cho phép gửi cookies
 }));
 
@@ -50,26 +86,32 @@ app.use(cors({
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: false, limit: '10mb' }));
 
-// Request logging middleware for debugging
+// Request logging middleware - only detailed logging in development
 app.use((req, res, next) => {
   const startTime = Date.now();
-  console.log(`📍 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
   
-  // Only log body for POST/PUT/PATCH and if it's not too large
-  if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
-    const bodyStr = JSON.stringify(req.body);
-    if (bodyStr.length < 500) {
-      console.log(`📦 Body:`, req.body);
-    } else {
-      console.log(`📦 Body: [Large body ${bodyStr.length} chars]`);
+  // Only detailed logging in development
+  if (process.env.NODE_ENV !== 'production') {
+    console.log(`📍 ${new Date().toISOString()} - ${req.method} ${req.originalUrl}`);
+    
+    // Only log body for POST/PUT/PATCH and if it's not too large
+    if (['POST', 'PUT', 'PATCH'].includes(req.method) && req.body) {
+      const bodyStr = JSON.stringify(req.body);
+      if (bodyStr.length < 500) {
+        console.log(`📦 Body:`, req.body);
+      } else {
+        console.log(`📦 Body: [Large body ${bodyStr.length} chars]`);
+      }
     }
   }
   
   // Log response when finished
   res.on('finish', () => {
     const duration = Date.now() - startTime;
-    const statusEmoji = res.statusCode >= 400 ? '❌' : '✅';
-    console.log(`${statusEmoji} ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`);
+    if (process.env.NODE_ENV !== 'production') {
+      const statusEmoji = res.statusCode >= 400 ? '❌' : '✅';
+      console.log(`${statusEmoji} ${req.method} ${req.originalUrl} → ${res.statusCode} (${duration}ms)`);
+    }
   });
   
   next();
@@ -80,17 +122,22 @@ app.use((req, res, next) => {
   const path = req.path;
   let capturedJsonResponse: Record<string, any> | undefined = undefined;
 
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
-    return originalResJson.apply(res, [bodyJson, ...args]);
-  };
+  // Only capture response body in development for debugging
+  if (process.env.NODE_ENV !== 'production') {
+    const originalResJson = res.json;
+    res.json = function (bodyJson, ...args) {
+      capturedJsonResponse = bodyJson;
+      return originalResJson.apply(res, [bodyJson, ...args]);
+    };
+  }
 
   res.on("finish", () => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
+      
+      // Only include response body in development logs  
+      if (process.env.NODE_ENV !== 'production' && capturedJsonResponse) {
         logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
       }
 
@@ -113,20 +160,33 @@ app.use((req, res, next) => {
       const status = err.status || err.statusCode || 500;
       const message = err.message || "Internal Server Error";
 
-      // COMPREHENSIVE ERROR LOGGING FOR PRODUCTION DEBUG
-      console.error('=== COMPREHENSIVE ERROR LOG ===');
-      console.error('Timestamp:', new Date().toISOString());
-      console.error('Method:', req.method);
-      console.error('URL:', req.originalUrl);
-      console.error('Headers:', JSON.stringify(req.headers, null, 2));
-      console.error('Body:', JSON.stringify(req.body, null, 2));
-      console.error('Query:', JSON.stringify(req.query, null, 2));
-      console.error('User:', req.user ? `${req.user.email} (${req.user.role})` : 'Not authenticated');
-      console.error('Error Status:', status);
-      console.error('Error Message:', message);
-      console.error('Error Stack:', err.stack);
-      console.error('Error Object:', JSON.stringify(err, Object.getOwnPropertyNames(err), 2));
-      console.error('===============================');
+      // Production-safe error logging
+      if (process.env.NODE_ENV !== 'production') {
+        // Detailed logging only in development
+        console.error('=== DEVELOPMENT ERROR LOG ===');
+        console.error('Timestamp:', new Date().toISOString());
+        console.error('Method:', req.method);
+        console.error('URL:', req.originalUrl);
+        console.error('Headers:', JSON.stringify(req.headers, null, 2));
+        console.error('Body:', JSON.stringify(req.body, null, 2));
+        console.error('Query:', JSON.stringify(req.query, null, 2));
+        console.error('User:', req.user ? `${req.user.email} (${req.user.role})` : 'Not authenticated');
+        console.error('Error Status:', status);
+        console.error('Error Message:', message);
+        console.error('Error Stack:', err.stack);
+        console.error('===============================');
+      } else {
+        // Production: minimal logging without PII
+        console.error('Production Error:', {
+          timestamp: new Date().toISOString(),
+          method: req.method,
+          url: req.originalUrl,
+          status,
+          message: message,
+          userAgent: req.get('User-Agent'),
+          ip: req.ip
+        });
+      }
 
       // Log short version for normal logging
       log(`ERROR ${status}: ${req.method} ${req.originalUrl} - ${message}`);

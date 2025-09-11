@@ -25,13 +25,23 @@ declare global {
 
 export function setupAuth(app: Express) {
   const sessionTtl = 72 * 60 * 60 * 1000; // 72 hours (3 days) - require re-login after this
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  
+  // Environment-aware session store
+  let sessionStore;
+  if (process.env.DATABASE_URL && process.env.NODE_ENV === 'production') {
+    console.log('🗄️ Using PostgreSQL session store for production');
+    const pgStore = connectPg(session);
+    sessionStore = new pgStore({
+      conString: process.env.DATABASE_URL,
+      createTableIfMissing: true, // Enable auto-creation for production
+      ttl: Math.floor(sessionTtl / 1000), // Convert milliseconds to seconds for PG store
+      tableName: "sessions",
+      pruneSessionInterval: 60 * 60, // Clean up expired sessions every hour
+    });
+  } else {
+    console.log('💾 Using MemoryStore for development (sessions will not persist across restarts)');
+    sessionStore = new session.MemoryStore();
+  }
 
   const sessionSettings: session.SessionOptions = {
     secret: process.env.SESSION_SECRET!,
@@ -40,10 +50,13 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // HTTPS required in production
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-domain support
+      secure: process.env.NODE_ENV === 'production', // Secure cookies only in production
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-domain support for production
       maxAge: sessionTtl,
     },
+    name: 'via.sid',
+    rolling: true, // Reset expiry on each request
+    proxy: process.env.NODE_ENV === 'production', // Trust proxy headers in production
   };
 
   app.set("trust proxy", 1);
@@ -58,35 +71,51 @@ export function setupAuth(app: Express) {
         passwordField: "password",
       },
       async (email, password, done) => {
-        console.log(`🔐 LOGIN ATTEMPT: email="${email}" password="${password ? '[REDACTED]' : 'undefined'}"`);
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`🔐 LOGIN ATTEMPT: email="${email}" password="${password ? '[REDACTED]' : 'undefined'}"`);
+        }
         
         if (!email || !password) {
-          console.log(`❌ LOGIN FAILED: Missing credentials - email: ${!!email}, password: ${!!password}`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`❌ LOGIN FAILED: Missing credentials - email: ${!!email}, password: ${!!password}`);
+          }
           return done(null, false, { message: 'Email and password are required' });
         }
         
         try {
-          console.log(`🔍 Looking up user by email: ${email}`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`🔍 Looking up user by email: ${email}`);
+          }
           const user = await storage.getUserByEmail(email);
           if (!user) {
-            console.log(`❌ LOGIN FAILED: User not found for email: ${email}`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`❌ LOGIN FAILED: User not found for email: ${email}`);
+            }
             return done(null, false, { message: "Email không tồn tại" });
           }
 
-          console.log(`✅ User found: ${user.email} (${user.role}), isActive: ${user.isActive}`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ User found: ${user.email} (${user.role}), isActive: ${user.isActive}`);
+          }
           
           if (!user.isActive) {
-            console.log(`❌ LOGIN FAILED: User account is deactivated: ${email}`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`❌ LOGIN FAILED: User account is deactivated: ${email}`);
+            }
             return done(null, false, { message: "Tài khoản đã bị vô hiệu hóa" });
           }
 
           const isValidPassword = await bcrypt.compare(password, user.password || "");
           if (!isValidPassword) {
-            console.log(`❌ LOGIN FAILED: Invalid password for user: ${email}`);
+            if (process.env.NODE_ENV !== 'production') {
+              console.log(`❌ LOGIN FAILED: Invalid password for user: ${email}`);
+            }
             return done(null, false, { message: "Mật khẩu không đúng" });
           }
 
-          console.log(`✅ LOGIN SUCCESS: ${user.email} authenticated successfully`);
+          if (process.env.NODE_ENV !== 'production') {
+            console.log(`✅ LOGIN SUCCESS: ${user.email} authenticated successfully`);
+          }
           return done(null, user);
         } catch (error) {
           return done(error);
@@ -95,23 +124,45 @@ export function setupAuth(app: Express) {
     )
   );
 
-  passport.serializeUser((user, done) => done(null, user.id));
+  passport.serializeUser((user, done) => {
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`📝 SERIALIZING USER: ${user.email} (${user.id})`);
+    }
+    done(null, user.id);
+  });
+  
   passport.deserializeUser(async (id: string, done) => {
     try {
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`🔍 DESERIALIZING USER: ${id}`);
+      }
       const user = await storage.getUser(id);
       if (!user) {
-        // User not found, clear the session
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`❌ DESERIALIZE FAILED: User not found for ID: ${id}`);
+        }
         return done(null, false);
+      }
+      
+      if (!user.isActive) {
+        if (process.env.NODE_ENV !== 'production') {
+          console.log(`❌ DESERIALIZE FAILED: User account is deactivated: ${user.email}`);
+        }
+        return done(null, false);
+      }
+      
+      if (process.env.NODE_ENV !== 'production') {
+        console.log(`✅ DESERIALIZE SUCCESS: ${user.email} (${user.role})`);
       }
       done(null, user);
     } catch (error) {
-      console.error("Error deserializing user:", error);
+      console.error("❌ Error deserializing user:", error);
       // Don't fail, just clear the session
       done(null, false);
     }
   });
 
-  // Login route
+  // Login route with session fixation protection
   app.post("/api/login", (req, res, next) => {
     passport.authenticate("local", async (err: any, user: User, info: any) => {
       if (err) {
@@ -120,10 +171,17 @@ export function setupAuth(app: Express) {
       if (!user) {
         return res.status(401).json({ message: info?.message || "Đăng nhập thất bại" });
       }
-      req.logIn(user, async (err) => {
+      
+      // Regenerate session to prevent session fixation attacks
+      req.session.regenerate((err) => {
         if (err) {
-          return res.status(500).json({ message: "Lỗi đăng nhập" });
+          return res.status(500).json({ message: "Lỗi tạo session" });
         }
+        
+        req.logIn(user, async (err) => {
+          if (err) {
+            return res.status(500).json({ message: "Lỗi đăng nhập" });
+          }
 
         // Track login time and activity (production-safe)
         try {
@@ -148,16 +206,44 @@ export function setupAuth(app: Express) {
           // Don't fail login if activity tracking fails - production safety
         }
 
-        return res.json(user);
+          // Return sanitized user without password hash
+          const { password, ...safeUser } = user;
+          return res.json(safeUser);
+        });
       });
     })(req, res, next);
   });
 
-  // Logout route
-  app.post("/api/logout", (req, res, next) => {
+  // Logout route with proper session cleanup
+  app.post("/api/logout", (req, res) => {
+    if (!req.user) {
+      return res.status(401).json({ message: "Chưa đăng nhập" });
+    }
+
+    const sessionOpts = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+      path: '/'
+    } as const;
+
     req.logout((err) => {
-      if (err) return next(err);
-      res.json({ message: "Đăng xuất thành công" });
+      if (err) {
+        console.error("Error during logout:", err);
+        return res.status(500).json({ message: "Lỗi đăng xuất" });
+      }
+      
+      // Destroy session and clear cookie
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Error destroying session:", err);
+          return res.status(500).json({ message: "Lỗi đăng xuất" });
+        }
+        
+        // Clear the session cookie
+        res.clearCookie('via.sid', sessionOpts);
+        res.json({ message: "Đăng xuất thành công" });
+      });
     });
   });
 
@@ -166,7 +252,9 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    res.json(req.user);
+    // Return sanitized user without password hash
+    const { password, ...safeUser } = req.user;
+    res.json(safeUser);
   });
 }
 
