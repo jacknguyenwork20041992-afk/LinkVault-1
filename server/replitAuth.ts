@@ -6,7 +6,9 @@ import session from "express-session";
 import type { Express, RequestHandler } from "express";
 import memoize from "memoizee";
 import connectPg from "connect-pg-simple";
+import memorystore from "memorystore";
 import { storage } from "./storage";
+import { pool } from "./db";
 
 // Set default domain if not provided
 if (!process.env.REPLIT_DOMAINS) {
@@ -24,26 +26,164 @@ const getOidcConfig = memoize(
   { maxAge: 3600 * 1000 }
 );
 
+// Resilient Session Store Wrapper Class
+class ResilientSessionStore {
+  private pgStore: any = null;
+  private memoryStore: any;
+  private useFallback = false;
+  private lastHealthCheck = 0;
+  private healthCheckInterval = 30000; // 30 seconds
+  
+  constructor(sessionTtl: number) {
+    const MemoryStore = memorystore(session);
+    this.memoryStore = new MemoryStore({ checkPeriod: sessionTtl });
+    
+    // Try to initialize PostgreSQL store
+    if (pool) {
+      try {
+        const PgStore = connectPg(session);
+        this.pgStore = new PgStore({
+          pool: pool,
+          createTableIfMissing: true, // Create table if missing
+          ttl: sessionTtl,
+          tableName: "sessions"
+        });
+        console.log("✅ Session store using PostgreSQL with shared pool");
+        
+        // Monitor pool health
+        pool.on('error', (err: Error) => {
+          console.error("⚠️  Database pool error, switching to memory fallback:", err.message);
+          this.useFallback = true;
+        });
+        
+      } catch (error) {
+        console.error("⚠️  PostgreSQL session store failed, using memory store:", (error as Error).message);
+        this.useFallback = true;
+      }
+    } else {
+      console.warn("⚠️  No database pool available, using memory store for sessions");
+      this.useFallback = true;
+    }
+  }
+  
+  // Health check to recover from fallback
+  private async healthCheck() {
+    if (!this.useFallback || Date.now() - this.lastHealthCheck < this.healthCheckInterval) {
+      return;
+    }
+    
+    this.lastHealthCheck = Date.now();
+    try {
+      if (pool) {
+        await pool.query('SELECT 1');
+        console.log("✅ Database recovered, switching back from memory fallback");
+        this.useFallback = false;
+      }
+    } catch (error) {
+      // Still unhealthy, keep using fallback
+    }
+  }
+  
+  // Resilient get operation
+  get(sid: string, callback: (err?: any, session?: any) => void) {
+    this.healthCheck();
+    
+    if (this.useFallback || !this.pgStore) {
+      return this.memoryStore.get(sid, callback);
+    }
+    
+    this.pgStore.get(sid, (err: any, session: any) => {
+      if (err && this.isConnectionError(err)) {
+        console.error("⚠️  Database connection error during session get, falling back to memory:", err.message);
+        this.useFallback = true;
+        return this.memoryStore.get(sid, callback);
+      }
+      callback(err, session);
+    });
+  }
+  
+  // Resilient set operation
+  set(sid: string, session: any, callback?: (err?: any) => void) {
+    this.healthCheck();
+    
+    if (this.useFallback || !this.pgStore) {
+      return this.memoryStore.set(sid, session, callback);
+    }
+    
+    this.pgStore.set(sid, session, (err: any) => {
+      if (err && this.isConnectionError(err)) {
+        console.error("⚠️  Database connection error during session set, falling back to memory:", err.message);
+        this.useFallback = true;
+        return this.memoryStore.set(sid, session, callback);
+      }
+      if (callback) callback(err);
+    });
+  }
+  
+  // Resilient destroy operation
+  destroy(sid: string, callback?: (err?: any) => void) {
+    this.healthCheck();
+    
+    if (this.useFallback || !this.pgStore) {
+      return this.memoryStore.destroy(sid, callback);
+    }
+    
+    this.pgStore.destroy(sid, (err: any) => {
+      if (err && this.isConnectionError(err)) {
+        console.error("⚠️  Database connection error during session destroy, falling back to memory:", err.message);
+        this.useFallback = true;
+        return this.memoryStore.destroy(sid, callback);
+      }
+      if (callback) callback(err);
+    });
+  }
+  
+  // Resilient touch operation
+  touch(sid: string, session: any, callback?: (err?: any) => void) {
+    this.healthCheck();
+    
+    if (this.useFallback || !this.pgStore || !this.pgStore.touch) {
+      // Memory store doesn't have touch, use set
+      return this.memoryStore.set(sid, session, callback);
+    }
+    
+    this.pgStore.touch(sid, session, (err: any) => {
+      if (err && this.isConnectionError(err)) {
+        console.error("⚠️  Database connection error during session touch, falling back to memory:", err.message);
+        this.useFallback = true;
+        return this.memoryStore.set(sid, session, callback);
+      }
+      if (callback) callback(err);
+    });
+  }
+  
+  // Check if error is a connection-related error
+  private isConnectionError(err: any): boolean {
+    const connectionErrors = [
+      'ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', 
+      'ENOTFOUND', 'ENETUNREACH', '57P01'
+    ];
+    return connectionErrors.some(code => 
+      err.code === code || err.message?.includes(code)
+    );
+  }
+}
+
 export function getSession() {
   const sessionTtl = 7 * 24 * 60 * 60 * 1000; // 1 week
-  const pgStore = connectPg(session);
-  const sessionStore = new pgStore({
-    conString: process.env.DATABASE_URL,
-    createTableIfMissing: false,
-    ttl: sessionTtl,
-    tableName: "sessions",
-  });
+  const resilientStore = new ResilientSessionStore(sessionTtl);
+  
   return session({
     secret: process.env.SESSION_SECRET!,
-    store: sessionStore,
+    store: resilientStore as any, // Cast to session store interface
     resave: false,
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production', // Only secure in production HTTPS
-      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax', // Cross-domain support
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: sessionTtl,
-      domain: process.env.NODE_ENV === 'production' ? undefined : undefined, // Let browser handle domain
+      domain: process.env.NODE_ENV === 'production' ? undefined : undefined,
     },
   });
 }
