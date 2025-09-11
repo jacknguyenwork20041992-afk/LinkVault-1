@@ -1,0 +1,133 @@
+6:06:11 AM [express] POST /api/login 500 in 328ms :: {"message":"Internal Server Error"}
+6:06:39 AM [express] POST /api/login 200 in 3181ms :: {"id":"a4c117cd-e306-4687-84ad-b5afea2a5a94","…
+6:06:41 AM [express] GET /api/themes/active 200 in 651ms :: {"id":"88970903-45f6-4749-b802-691a500d1…
+6:06:41 AM [express] GET /api/notifications/unread 200 in 1331ms :: []
+6:06:41 AM [express] GET /api/programs 304 in 652ms :: [{"id":"f5906225-015c-4474-898d-2a8463671501"…
+6:06:41 AM [express] GET /api/support-tools 304 in 1330ms :: [{"id":"aa7fd11a-b8af-457d-8b0b-1f04aa5…
+New WebSocket connection
+6:06:42 AM [express] GET /api/important-documents 304 in 2276ms :: [{"id":"1da7cf17-814e-4b5b-b942-8…
+User a4c117cd-e306-4687-84ad-b5afea2a5a94 connected to WebSocket
+6:06:42 AM [express] GET /api/documents/recent 304 in 2337ms :: [{"id":"8ebb6511-340d-4d2f-82b4-5f1e…
+User a4c117cd-e306-4687-84ad-b5afea2a5a94 disconnected from WebSocket
+New WebSocket connection
+6:06:49 AM [express] GET /api/activities/recent 200 in 1008ms :: [{"id":"428f34d8-af24-4534-88e8-f2a…
+User a4c117cd-e306-4687-84ad-b5afea2a5a94 connected to WebSocket
+6:06:49 AM [express] GET /api/admin/stats 200 in 670ms :: {"totalPrograms":4,"totalDocuments":46,"to…
+New WebSocket connection
+User a4c117cd-e306-4687-84ad-b5afea2a5a94 connected to WebSocket
+6:07:03 AM [express] Error handling request: Internal Server Error
+AggregateError [ECONNREFUSED]: 
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:21) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    }
+  ]
+}
+6:07:03 AM [express] GET /api/notifications/unread 500 in 342ms :: {"message":"Internal Server Error…
+6:07:20 AM [express] Error handling request: Internal Server Error
+AggregateError [ETIMEDOUT]: 
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:21) {
+  code: 'ETIMEDOUT',
+  [errors]: [
+    Error: connect ETIMEDOUT 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at Timeout.internalConnectMultipleTimeout (node:net:1736:38)
+        at listOnTimeout (node:internal/timers:590:11)
+        at process.processTimers (node:internal/timers:523:7) {
+      errno: -110,
+      code: 'ETIMEDOUT',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    }
+  ]
+}
+6:07:20 AM [express] GET /api/notifications/unread 500 in 418ms :: {"message":"Internal Server Error…
+6:07:23 AM [express] Error handling request: Internal Server Error
+6:07:23 AM [express] GET /api/admin/support-tickets 500 in 416ms :: {"message":"Internal Server Erro…
+AggregateError [ETIMEDOUT]: 
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:21) {
+  code: 'ETIMEDOUT',
+  [errors]: [
+    Error: connect ETIMEDOUT 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at Timeout.internalConnectMultipleTimeout (node:net:1736:38)
+        at listOnTimeout (node:internal/timers:590:11)
+        at process.processTimers (node:internal/timers:523:7) {
+      errno: -110,
+      code: 'ETIMEDOUT',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    }
+  ]
+}
+AggregateError [ECONNREFUSED]: 
+6:07:36 AM [express] Error handling request: Internal Server Error
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async PGStore._asyncQuery (/opt/render/project/src/node_modules/connect-pg-simple/index.js:322:21) {
+  code: 'ECONNREFUSED',
+  [errors]: [
+    Error: connect ECONNREFUSED 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    }
+  ]
+}
+6:07:36 AM [express] GET /api/notifications/unread 500 in 332ms :: {"message":"Internal Server Error…
