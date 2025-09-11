@@ -22,8 +22,6 @@ export interface Program {
   description?: string | null;
   curriculum: string;
   ageRange: string;
-  iconName?: string | null;
-  colorScheme?: string | null;
   createdAt?: Date | null;
   updatedAt?: Date | null;
 }
@@ -136,8 +134,6 @@ export interface InsertProgram {
   description?: string;
   curriculum: string;
   ageRange: string;
-  iconName?: string;
-  colorScheme?: string;
 }
 
 export interface InsertCategory {
