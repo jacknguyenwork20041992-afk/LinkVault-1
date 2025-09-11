@@ -36,6 +36,13 @@ import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
 
+// Safe user data for API responses - NEVER include password
+function toSafeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 // Demo chat responses when OpenAI is unavailable
 function getDemoResponse(message: string, knowledgeContext: any): string {
   const lowerMessage = message.toLowerCase();
@@ -133,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      res.json(req.user);
+      res.json(toSafeUser(req.user));
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -143,7 +150,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Alias route for frontend compatibility
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {
-      res.json(req.user);
+      res.json(toSafeUser(req.user));
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -452,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const validatedData = createUserSchema.parse(req.body);
       const user = await storage.createUser(validatedData);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(400).json({ message: "Failed to create user" });
@@ -464,7 +471,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const updateData = req.body;
       const user = await storage.updateUser(id, updateData);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });
@@ -481,7 +488,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = await storage.toggleUserActive(id, isActive);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error toggling user active status:", error);
       res.status(500).json({ message: "Failed to update user status" });
