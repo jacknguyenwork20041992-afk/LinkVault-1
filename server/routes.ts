@@ -35,6 +35,7 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
+import { checkDatabaseHealth, reconnectDatabase, isDbConnected } from "./db";
 
 // Safe user data for API responses - NEVER include password
 function toSafeUser(user: any) {
@@ -85,13 +86,48 @@ function getDemoResponse(message: string, knowledgeContext: any): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Health check endpoint - FIRST to avoid Vite override
-  app.get("/api/health", (_req, res) => {
-    res.json({ 
-      status: "ok", 
-      timestamp: new Date().toISOString(),
-      env: process.env.NODE_ENV || "development"
-    });
+  // Enhanced health check endpoint for Render Free Tier - FIRST to avoid Vite override
+  app.get("/api/health", async (_req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      // Check database health and attempt reconnection if needed
+      let dbHealth = await checkDatabaseHealth();
+      
+      // If database is unhealthy, try reconnection (for sleep mode recovery)
+      if (dbHealth.status === 'error' && isDbConnected === false) {
+        console.log("🔄 Attempting database reconnection for sleep mode recovery...");
+        const reconnected = await reconnectDatabase();
+        if (reconnected) {
+          dbHealth = await checkDatabaseHealth();
+        }
+      }
+      
+      const responseTime = Date.now() - startTime;
+      
+      res.json({ 
+        status: dbHealth.status === 'healthy' ? "ok" : "degraded",
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || "development",
+        database: dbHealth,
+        responseTime: `${responseTime}ms`,
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        // Render Free Tier specific info
+        renderFreeTier: {
+          sleepMode: process.env.NODE_ENV === 'production' ? 'supported' : 'n/a',
+          keepAliveEndpoint: '/api/health'
+        }
+      });
+    } catch (error) {
+      console.error("Health check error:", error);
+      res.status(503).json({ 
+        status: "error", 
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || "development",
+        message: error instanceof Error ? error.message : "Health check failed"
+      });
+    }
   });
 
   // Setup multiple authentication methods
