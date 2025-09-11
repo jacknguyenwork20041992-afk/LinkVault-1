@@ -1,0 +1,58 @@
+Error removing online user: AggregateError [ETIMEDOUT]: 
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DatabaseStorage.removeOnlineUser (file:///opt/render/project/src/dist/index.js:1348:9)
+    at async WebSocket.<anonymous> (file:///opt/render/project/src/dist/index.js:5572:11) {
+  code: 'ETIMEDOUT',
+  [errors]: [
+    Error: connect ETIMEDOUT 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at Timeout.internalConnectMultipleTimeout (node:net:1736:38)
+        at listOnTimeout (node:internal/timers:590:11)
+        at process.processTimers (node:internal/timers:523:7) {
+      errno: -110,
+      code: 'ETIMEDOUT',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    }
+  ]
+}
+Error removing online user: AggregateError [ETIMEDOUT]: 
+    at /opt/render/project/src/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async DatabaseStorage.removeOnlineUser (file:///opt/render/project/src/dist/index.js:1348:9)
+    at async WebSocket.<anonymous> (file:///opt/render/project/src/dist/index.js:5572:11) {
+  code: 'ETIMEDOUT',
+  [errors]: [
+    Error: connect ETIMEDOUT 13.213.241.248:6543
+        at createConnectionError (node:net:1677:14)
+        at Timeout.internalConnectMultipleTimeout (node:net:1736:38)
+        at listOnTimeout (node:internal/timers:590:11)
+        at process.processTimers (node:internal/timers:523:7) {
+      errno: -110,
+      code: 'ETIMEDOUT',
+      syscall: 'connect',
+      address: '13.213.241.248',
+      port: 6543
+    },
+    Error: connect ECONNREFUSED 3.1.167.181:6543
+        at createConnectionError (node:net:1677:14)
+        at afterConnectMultiple (node:net:1707:16) {
+      errno: -111,
+      code: 'ECONNREFUSED',
+      syscall: 'connect',
+      address: '3.1.167.181',
+      port: 6543
+    }
+  ]
+}

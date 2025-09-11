@@ -14,7 +14,14 @@ try {
   } else {
     pool = new Pool({ 
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
+      ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+      // Connection timeout and pool settings to prevent ETIMEDOUT
+      connectionTimeoutMillis: 10000, // 10 seconds timeout
+      idleTimeoutMillis: 30000, // 30 seconds idle timeout
+      max: 20, // max connections in pool
+      min: 2, // min connections in pool
+      maxUses: 7500, // max uses per connection before refresh
+      allowExitOnIdle: true // allow pool to close when idle
     });
     db = drizzle(pool, { schema });
     isDbConnected = true;

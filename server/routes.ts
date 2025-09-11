@@ -2453,25 +2453,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (userId) {
             activeConnections.set(userId, ws);
             
-            // Add user to online users table
-            try {
-              await storage.addOnlineUser({
-                userId,
-                socketId: Math.random().toString(36).substring(7),
-                userAgent: req.headers['user-agent'] || null,
-                ipAddress: req.socket.remoteAddress || null,
-              });
-              
-              console.log(`User ${userId} connected to WebSocket`);
-              
-              // Notify admins about new online user
+            // Add user to online users table (optional - non-critical)
+            const onlineUser = await storage.addOnlineUser({
+              userId,
+              socketId: Math.random().toString(36).substring(7),
+              userAgent: req.headers['user-agent'] || null,
+              ipAddress: req.socket.remoteAddress || null,
+            });
+            
+            console.log(`User ${userId} connected to WebSocket`);
+            
+            // Notify admins about new online user (only if tracking succeeded)
+            if (onlineUser) {
               broadcastToAdmins({
                 type: 'user_online',
                 userId,
               });
-              
-            } catch (error) {
-              console.error('Error adding online user:', error);
             }
           }
         } else if (data.type === 'new_message') {

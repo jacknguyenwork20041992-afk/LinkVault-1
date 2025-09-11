@@ -292,7 +292,7 @@ export interface IStorage {
 
   // Real-time chat operations
   getOnlineUsers(): Promise<OnlineUser[]>;
-  addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser>;
+  addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser | null>;
   removeOnlineUser(userId: string): Promise<void>;
   getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]>;
   sendAdminUserMessage(messageData: { userId: string; senderId: string; senderRole: string; message: string }): Promise<AdminUserMessage>;
@@ -1174,19 +1174,30 @@ export class DatabaseStorage implements IStorage {
     return usersWithUnread;
   }
 
-  async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser> {
-    // Remove any existing entry for this user first
-    await db.delete(onlineUsers).where(eq(onlineUsers.userId, userData.userId));
-    
-    const [user] = await db.insert(onlineUsers)
-      .values(userData)
-      .returning();
-    return user;
+  async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser | null> {
+    try {
+      // Remove any existing entry for this user first
+      await db.delete(onlineUsers).where(eq(onlineUsers.userId, userData.userId));
+      
+      const [user] = await db.insert(onlineUsers)
+        .values(userData)
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error adding online user (non-fatal):", error);
+      // Don't throw - presence is best-effort, not critical
+      return null;
+    }
   }
 
   async removeOnlineUser(userId: string): Promise<void> {
-    await db.delete(onlineUsers)
-      .where(eq(onlineUsers.userId, userId));
+    try {
+      await db.delete(onlineUsers)
+        .where(eq(onlineUsers.userId, userId));
+    } catch (error) {
+      console.error("Error removing online user:", error);
+      // Don't throw - WebSocket disconnection shouldn't crash the server
+    }
   }
 
   async getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]> {
