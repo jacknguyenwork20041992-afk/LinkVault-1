@@ -176,50 +176,30 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
     setFileUploading(true);
     
     try {
-      // Get upload URL with meaningful name
-      const formValues = form.getValues();
-      const response = await fetch("/api/account-requests/upload-url", {
+      // Upload to Cloudinary
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL || window.location.origin}/api/upload/file`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          requestType: formValues.requestType,
-          branchName: formValues.branchName
-        }),
+        body: formData,
+        credentials: "include",
       });
       
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
+      if (!uploadResponse.ok) {
+        throw new Error(`Upload failed: ${uploadResponse.statusText}`);
       }
       
-      const data = await response.json();
-      const uploadURL = data.uploadURL;
+      const responseData = await uploadResponse.json();
+      const { fileUrl } = responseData as { fileUrl: string };
       
-      if (!uploadURL) {
-        throw new Error('No upload URL received from server');
-      }
+      setUploadedFile(file);
+      setUploadedFileUrl(fileUrl);
       
-      // Upload file
-      const uploadResponse = await fetch(uploadURL, {
-        method: 'PUT',
-        body: file,
-        headers: {
-          'Content-Type': file.type,
-        },
+      toast({
+        title: "Thành công",
+        description: "File đã được upload thành công",
       });
-      
-      if (uploadResponse.ok) {
-        setUploadedFile(file);
-        setUploadedFileUrl(uploadURL);
-        
-        toast({
-          title: "Thành công",
-          description: "File đã được upload thành công",
-        });
-      } else {
-        throw new Error(`Upload failed with status: ${uploadResponse.status}`);
-      }
     } catch (error) {
       console.error('Upload error:', error);
       toast({
@@ -454,7 +434,7 @@ export default function AccountRequestModal({ isOpen, onClose }: AccountRequestM
                   border: '2px solid #2563eb',
                   cursor: 'pointer',
                   display: 'block !important',
-                  visibility: 'visible !important',
+                  visibility: 'visible',
                   fontSize: '14px'
                 }}
               >

@@ -7,6 +7,7 @@ import {
   userNotifications,
   activities,
   projects,
+  projectTasks,
   importantDocuments,
   accounts,
   chatConversations,
@@ -18,6 +19,7 @@ import {
   supportTickets,
   supportResponses,
   accountRequests,
+  supportTools,
   themeSettings,
   adminUserChats,
   adminUserMessages,
@@ -126,7 +128,17 @@ export interface IStorage {
   // Activity operations
   createActivity(activityData: InsertActivity): Promise<Activity>;
   getActivitiesByUser(userId: string, limit?: number): Promise<Activity[]>;
-  getAllActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
+  getAllActivities(options?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+  }): Promise<{
+    activities: (Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }>;
   getRecentActivities(limit?: number): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]>;
   
   // Project operations
@@ -280,7 +292,7 @@ export interface IStorage {
 
   // Real-time chat operations
   getOnlineUsers(): Promise<OnlineUser[]>;
-  addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser>;
+  addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser | null>;
   removeOnlineUser(userId: string): Promise<void>;
   getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]>;
   sendAdminUserMessage(messageData: { userId: string; senderId: string; senderRole: string; message: string }): Promise<AdminUserMessage>;
@@ -338,6 +350,10 @@ export class DatabaseStorage implements IStorage {
 
   async getAllUsers(): Promise<User[]> {
     return await db.select().from(users).orderBy(desc(users.createdAt));
+  }
+
+  async getAdminUsers(): Promise<User[]> {
+    return await db.select().from(users).where(eq(users.role, "admin")).orderBy(users.firstName);
   }
 
   async getUsersByRole(role: string): Promise<User[]> {
@@ -403,6 +419,11 @@ export class DatabaseStorage implements IStorage {
     await db.delete(programs).where(eq(programs.id, id));
   }
 
+  async createPrograms(programsData: InsertProgram[]): Promise<Program[]> {
+    const createdPrograms = await db.insert(programs).values(programsData).returning();
+    return createdPrograms;
+  }
+
   // Category operations
   async getCategoriesByProgram(programId: string): Promise<Category[]> {
     return await db
@@ -465,17 +486,18 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAllDocuments(): Promise<(Document & { category: Category | null, program: Program | null })[]> {
-    return await db
+    const results = await db
       .select()
       .from(documents)
       .leftJoin(categories, eq(documents.categoryId, categories.id))
       .leftJoin(programs, eq(documents.programId, programs.id))
-      .orderBy(desc(documents.createdAt))
-      .then(results => results.map(result => ({
-        ...result.documents,
-        category: result.categories,
-        program: result.programs
-      })));
+      .orderBy(desc(documents.createdAt));
+    
+    return results.map(result => ({
+      ...result.documents,
+      category: result.categories,
+      program: result.programs
+    }));
   }
 
   async getRecentDocuments(limit: number): Promise<(Document & { category: Category | null, program: Program | null })[]> {
@@ -494,20 +516,22 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createDocument(documentData: InsertDocument): Promise<Document> {
-    // Handle empty categoryId or "none" by setting it to null
+    // Handle empty categoryId/programId or "none" by setting it to null
     const cleanData = {
       ...documentData,
-      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null
+      categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null,
+      programId: documentData.programId && documentData.programId.trim() !== "" && documentData.programId !== "none" ? documentData.programId : null
     };
     const [document] = await db.insert(documents).values(cleanData).returning();
     return document;
   }
 
   async createDocuments(documentsData: InsertDocument[]): Promise<Document[]> {
-    // Handle empty categoryId or "none" by setting it to null for all documents
+    // Handle empty categoryId/programId or "none" by setting it to null for all documents
     const cleanedData = documentsData.map(doc => ({
       ...doc,
-      categoryId: doc.categoryId && doc.categoryId.trim() !== "" && doc.categoryId !== "none" ? doc.categoryId : null
+      categoryId: doc.categoryId && doc.categoryId.trim() !== "" && doc.categoryId !== "none" ? doc.categoryId : null,
+      programId: doc.programId && doc.programId.trim() !== "" && doc.programId !== "none" ? doc.programId : null
     }));
     const createdDocuments = await db.insert(documents).values(cleanedData).returning();
     return createdDocuments;
@@ -519,10 +543,11 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateDocument(id: string, documentData: Partial<InsertDocument>): Promise<Document> {
-    // Handle empty categoryId or "none" by setting it to null
+    // Handle empty categoryId/programId or "none" by setting it to null
     const cleanData = {
       ...documentData,
       categoryId: documentData.categoryId && documentData.categoryId.trim() !== "" && documentData.categoryId !== "none" ? documentData.categoryId : null,
+      programId: documentData.programId && documentData.programId.trim() !== "" && documentData.programId !== "none" ? documentData.programId : null,
       updatedAt: new Date()
     };
     const [document] = await db
@@ -665,7 +690,49 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async getAllActivities(limit: number = 100): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
+  async getAllActivities(options: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    type?: string;
+  } = {}): Promise<{
+    activities: (Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[];
+    total: number;
+    totalPages: number;
+    currentPage: number;
+  }> {
+    const { page = 1, limit = 10, search = '', type = '' } = options;
+    const offset = (page - 1) * limit;
+    
+    // Build where conditions
+    const whereConditions = [];
+    
+    if (type) {
+      whereConditions.push(eq(activities.type, type));
+    }
+    
+    // For search, we need to search in description and user names
+    if (search) {
+      // We'll handle search with OR conditions for description, user names, email
+      whereConditions.push(
+        or(
+          ilike(activities.description, `%${search}%`),
+          ilike(users.firstName, `%${search}%`),
+          ilike(users.lastName, `%${search}%`),
+          ilike(users.email, `%${search}%`)
+        )
+      );
+    }
+    
+    const whereClause = whereConditions.length > 0 ? and(...whereConditions) : undefined;
+    
+    // Get total count for pagination
+    const [{ count }] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(activities)
+      .leftJoin(users, eq(activities.userId, users.id))
+      .where(whereClause);
+    // Get paginated results
     const result = await db
       .select({
         id: activities.id,
@@ -683,10 +750,12 @@ export class DatabaseStorage implements IStorage {
       })
       .from(activities)
       .leftJoin(users, eq(activities.userId, users.id))
+      .where(whereClause)
       .orderBy(desc(activities.createdAt))
-      .limit(limit);
+      .limit(limit)
+      .offset(offset);
 
-    return result.map(row => ({
+    const activitiesData = result.map(row => ({
       id: row.id,
       userId: row.userId,
       type: row.type,
@@ -702,20 +771,192 @@ export class DatabaseStorage implements IStorage {
         lastName: row.userLastName,
       } : null
     }));
+    
+    const totalPages = Math.ceil(count / limit);
+    
+    return {
+      activities: activitiesData,
+      total: count,
+      totalPages,
+      currentPage: page
+    };
   }
 
   async getRecentActivities(limit: number = 20): Promise<(Activity & { user: Pick<User, 'id' | 'email' | 'firstName' | 'lastName'> | null })[]> {
-    return await this.getAllActivities(limit);
+    const result = await this.getAllActivities({ limit });
+    return result.activities;
   }
 
   // Project operations
   async getAllProjects(): Promise<Project[]> {
-    return await db.select().from(projects).orderBy(desc(projects.createdAt));
+    const results = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .orderBy(desc(projects.createdAt));
+
+    return results.map(row => ({
+      ...row,
+      assignee: row.assignee && row.assigneeLastName 
+        ? `${row.assignee} ${row.assigneeLastName}` 
+        : row.assignee || 'Chưa phân công'
+    }));
+  }
+
+  // Get all projects with their tasks
+  async getAllProjectsWithTasks(): Promise<any[]> {
+    const projectResults = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .orderBy(desc(projects.createdAt));
+
+    const tasksResults = await db
+      .select({
+        id: projectTasks.id,
+        projectId: projectTasks.projectId,
+        name: projectTasks.name,
+        description: projectTasks.description,
+        assigneeId: projectTasks.assigneeId,
+        deadline: projectTasks.deadline,
+        status: projectTasks.status,
+        link: projectTasks.link,
+        createdAt: projectTasks.createdAt,
+        updatedAt: projectTasks.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projectTasks)
+      .leftJoin(users, eq(projectTasks.assigneeId, users.id))
+      .orderBy(projectTasks.createdAt);
+
+    return projectResults.map(project => ({
+      ...project,
+      assignee: project.assignee && project.assigneeLastName 
+        ? `${project.assignee} ${project.assigneeLastName}` 
+        : project.assignee || 'Chưa phân công',
+      tasks: tasksResults
+        .filter(task => task.projectId === project.id)
+        .map(task => ({
+          ...task,
+          assignee: task.assignee && task.assigneeLastName 
+            ? `${task.assignee} ${task.assigneeLastName}` 
+            : task.assignee || 'Chưa phân công'
+        }))
+    }));
+  }
+
+  // Update project status
+  async updateProjectStatus(id: string, status: string): Promise<Project> {
+    const [project] = await db
+      .update(projects)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(projects.id, id))
+      .returning();
+    return project;
+  }
+
+  // Update task status
+  async updateTaskStatus(id: string, status: string): Promise<any> {
+    const [task] = await db
+      .update(projectTasks)
+      .set({ status, updatedAt: new Date() })
+      .where(eq(projectTasks.id, id))
+      .returning();
+    return task;
+  }
+
+  // Create task
+  async createTask(taskData: any): Promise<any> {
+    const [task] = await db
+      .insert(projectTasks)
+      .values({
+        ...taskData,
+        deadline: new Date(taskData.deadline),
+      })
+      .returning();
+    return task;
+  }
+
+  // Delete task
+  async deleteTask(id: string): Promise<void> {
+    await db.delete(projectTasks).where(eq(projectTasks.id, id));
+  }
+
+  // Support Tools methods
+  async getAllSupportTools(): Promise<any[]> {
+    return db.select().from(supportTools).orderBy(supportTools.createdAt);
+  }
+
+  async createSupportTool(toolData: any): Promise<any> {
+    const [tool] = await db.insert(supportTools).values(toolData).returning();
+    return tool;
+  }
+
+  async updateSupportTool(id: string, toolData: any): Promise<any> {
+    const [tool] = await db
+      .update(supportTools)
+      .set({ ...toolData, updatedAt: new Date() })
+      .where(eq(supportTools.id, id))
+      .returning();
+    return tool;
+  }
+
+  async deleteSupportTool(id: string): Promise<void> {
+    await db.delete(supportTools).where(eq(supportTools.id, id));
   }
 
   async getProject(id: string): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
-    return project;
+    const [result] = await db
+      .select({
+        id: projects.id,
+        name: projects.name,
+        description: projects.description,
+        assigneeId: projects.assigneeId,
+        deadline: projects.deadline,
+        status: projects.status,
+        link: projects.link,
+        createdAt: projects.createdAt,
+        updatedAt: projects.updatedAt,
+        assignee: users.firstName,
+        assigneeLastName: users.lastName,
+      })
+      .from(projects)
+      .leftJoin(users, eq(projects.assigneeId, users.id))
+      .where(eq(projects.id, id));
+
+    if (!result) return undefined;
+
+    return {
+      ...result,
+      assignee: result.assignee && result.assigneeLastName 
+        ? `${result.assignee} ${result.assigneeLastName}` 
+        : result.assignee || 'Chưa phân công'
+    };
   }
 
   async createProject(projectData: InsertProject): Promise<Project> {
@@ -737,6 +978,40 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProject(id: string): Promise<void> {
     await db.delete(projects).where(eq(projects.id, id));
+  }
+
+  // Create project with tasks in a transaction
+  async createProjectWithTasks(projectData: any, tasksData: any[]): Promise<any> {
+    return await db.transaction(async (tx) => {
+      // Create the project first
+      const [project] = await tx
+        .insert(projects)
+        .values(projectData)
+        .returning();
+
+      // Create tasks with projectId
+      if (tasksData.length > 0) {
+        const tasksWithProjectId = tasksData.map(task => ({
+          ...task,
+          projectId: project.id
+        }));
+
+        const createdTasks = await tx
+          .insert(projectTasks)
+          .values(tasksWithProjectId)
+          .returning();
+
+        return {
+          project,
+          tasks: createdTasks
+        };
+      }
+
+      return {
+        project,
+        tasks: []
+      };
+    });
   }
 
   // Important document operations
@@ -899,19 +1174,30 @@ export class DatabaseStorage implements IStorage {
     return usersWithUnread;
   }
 
-  async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser> {
-    // Remove any existing entry for this user first
-    await db.delete(onlineUsers).where(eq(onlineUsers.userId, userData.userId));
-    
-    const [user] = await db.insert(onlineUsers)
-      .values(userData)
-      .returning();
-    return user;
+  async addOnlineUser(userData: InsertOnlineUser): Promise<OnlineUser | null> {
+    try {
+      // Remove any existing entry for this user first
+      await db.delete(onlineUsers).where(eq(onlineUsers.userId, userData.userId));
+      
+      const [user] = await db.insert(onlineUsers)
+        .values(userData)
+        .returning();
+      return user;
+    } catch (error) {
+      console.error("Error adding online user (non-fatal):", error);
+      // Don't throw - presence is best-effort, not critical
+      return null;
+    }
   }
 
   async removeOnlineUser(userId: string): Promise<void> {
-    await db.delete(onlineUsers)
-      .where(eq(onlineUsers.userId, userId));
+    try {
+      await db.delete(onlineUsers)
+        .where(eq(onlineUsers.userId, userId));
+    } catch (error) {
+      console.error("Error removing online user:", error);
+      // Don't throw - WebSocket disconnection shouldn't crash the server
+    }
   }
 
   async getAdminUserChatHistory(userId: string): Promise<AdminUserMessage[]> {
@@ -1693,6 +1979,7 @@ export class DatabaseStorage implements IStorage {
         ticketId: supportResponses.ticketId,
         responderId: supportResponses.responderId,
         response: supportResponses.response,
+        imageUrls: supportResponses.imageUrls,
         isInternal: supportResponses.isInternal,
         createdAt: supportResponses.createdAt,
         responderEmail: users.email,
@@ -1709,6 +1996,7 @@ export class DatabaseStorage implements IStorage {
         ticketId: row.ticketId,
         responderId: row.responderId,
         response: row.response,
+        imageUrls: row.imageUrls,
         isInternal: row.isInternal,
         createdAt: row.createdAt,
         responder: {

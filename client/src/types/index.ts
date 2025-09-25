@@ -154,10 +154,8 @@ export interface InsertDocument {
 
 export interface InsertNotification {
   title: string;
-  content: string;
-  type: string;
+  message: string;
   isGlobal?: boolean;
-  createdBy: string;
 }
 
 // Additional types
@@ -165,23 +163,46 @@ export interface Project {
   id: string;
   name: string;
   description?: string | null;
+  assignee?: string;
+  assigneeId?: string;
   status: string;
-  priority: string;
-  dueDate?: Date | null;
-  assignedTo?: string | null;
-  createdBy: string;
+  deadline: Date;
+  link?: string;
   createdAt?: Date | null;
   updatedAt?: Date | null;
+  tasks?: any[];
 }
 
 export interface InsertProject {
   name: string;
   description?: string;
+  assigneeId: string; // Changed to assigneeId to match new schema
   status?: string;
-  priority?: string;
-  dueDate?: Date;
-  assignedTo?: string;
-  createdBy: string;
+  link?: string;
+  deadline?: Date; // Optional vì được handle riêng qua date state
+}
+
+export interface ProjectTask {
+  id: string;
+  projectId: string;
+  name: string;
+  assigneeId: string;
+  description?: string;
+  link?: string;
+  deadline: Date;
+  status: string;
+  createdAt?: Date;
+  updatedAt?: Date;
+}
+
+export interface InsertProjectTask {
+  projectId: string;
+  name: string;
+  assigneeId: string;
+  description?: string;
+  link?: string;
+  deadline: Date;
+  status?: string;
 }
 
 export interface Account {
@@ -217,6 +238,23 @@ export interface ChatMessage {
   content: string;
   role: string;
   createdAt?: Date | null;
+}
+
+export interface SupportTool {
+  id: string;
+  name: string;
+  link: string;
+  description?: string | null;
+  createdBy: string;
+  createdAt?: Date | null;
+  updatedAt?: Date | null;
+}
+
+export interface InsertSupportTool {
+  name: string;
+  link: string;
+  description?: string;
+  createdBy: string;
 }
 
 // Form schemas (Zod)
@@ -268,10 +306,8 @@ export const insertDocumentSchema = z.object({
 
 export const insertNotificationSchema = z.object({
   title: z.string().min(1),
-  content: z.string().min(1),
-  type: z.string().min(1),
-  isGlobal: z.boolean().optional().default(false),
-  createdBy: z.string().min(1)
+  message: z.string().min(1),
+  isGlobal: z.boolean().optional().default(false)
 });
 
 // Bulk creation types
@@ -325,11 +361,18 @@ export const documentLinkSchema = z.object({
 export const insertProjectSchema = z.object({
   name: z.string().min(1),
   description: z.string().optional(),
-  status: z.string().optional().default("planning"),
-  priority: z.string().optional().default("medium"),
-  dueDate: z.date().optional(),
-  assignedTo: z.string().optional(),
-  createdBy: z.string().min(1)
+  assigneeId: z.string().min(1),
+  status: z.string().optional().default("todo"),
+  link: z.string().optional()
+});
+
+export const insertProjectTaskSchema = z.object({
+  projectId: z.string().min(1),
+  name: z.string().min(1),
+  assigneeId: z.string().min(1),
+  description: z.string().optional(),
+  link: z.string().optional(),
+  status: z.string().optional().default("todo")
 });
 
 export const insertAccountSchema = z.object({
@@ -338,4 +381,11 @@ export const insertAccountSchema = z.object({
   balance: z.number().optional().default(0),
   currency: z.string().optional().default("VND"),
   isActive: z.boolean().optional().default(true)
+});
+
+export const insertSupportToolSchema = z.object({
+  name: z.string().min(1, "Tên công cụ là bắt buộc"),
+  link: z.string().url("Link phải là URL hợp lệ"),
+  description: z.string().optional(),
+  createdBy: z.string().min(1)
 });

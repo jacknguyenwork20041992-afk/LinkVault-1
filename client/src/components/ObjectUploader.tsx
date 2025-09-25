@@ -75,7 +75,7 @@ export function ObjectUploader({
         getUploadParameters: onGetUploadParameters,
       })
       .on("complete", (result) => {
-        setTimeout(() => setShowModal(false), 1000); // Allow user to see success
+        setTimeout(() => setShowModal(false), 1000);
         onComplete?.(result);
       })
       .on("upload-success", () => {

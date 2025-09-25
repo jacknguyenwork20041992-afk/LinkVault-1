@@ -11,6 +11,10 @@ import {
 
 const REPLIT_SIDECAR_ENDPOINT = "http://127.0.0.1:1106";
 
+// Check if we're running on Replit (has sidecar) or external deployment
+const isReplitEnvironment = process.env.REPLIT_ENVIRONMENT || process.env.REPL_ID;
+const isProductionDeployment = !isReplitEnvironment;
+
 // The object storage client is used to interact with the object storage service.
 export const objectStorageClient = new Storage({
   credentials: {
@@ -147,6 +151,7 @@ export class ObjectStorageService {
   // Gets the upload URL for an object entity.
   async getObjectEntityUploadURL(): Promise<string> {
     console.log("Starting getObjectEntityUploadURL...");
+    
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {
@@ -178,6 +183,7 @@ export class ObjectStorageService {
   // Gets the upload URL for an object entity with meaningful name.
   async getObjectEntityUploadURLWithName(requestType: string, branchName: string): Promise<string> {
     console.log("Starting getObjectEntityUploadURLWithName...");
+    
     const privateObjectDir = this.getPrivateObjectDir();
     console.log("Private object dir:", privateObjectDir);
     if (!privateObjectDir || privateObjectDir === "/default-bucket/uploads") {

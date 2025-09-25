@@ -18,12 +18,14 @@ import TrainingFilesPage from "@/pages/admin/training-files";
 import SupportTicketsManagement from "@/components/SupportTicketsManagement";
 import AccountRequestsManagement from "@/components/AccountRequestsManagement";
 import ThemeManagement from "@/components/ThemeManagement";
+import SupportToolsManagement from "@/components/SupportToolsManagement";
 import { ChatWidget } from "@/components/chat/ChatWidget";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger, DropdownMenuSeparator } from "@/components/ui/dropdown-menu";
 import { Home, Menu, Bell, Clock, User, CheckCheck } from "lucide-react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function Admin() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -50,16 +52,14 @@ export default function Admin() {
     item.notification?.title === "Yêu cầu tài khoản SWE mới"
   );
 
+
   // Tổng số notifications
   const totalNotifications = supportTicketNotifications.length + accountRequestNotifications.length;
 
   const handleNotificationClick = async (notification: any) => {
     // Đánh dấu notification đã đọc
     try {
-      await fetch(`/api/notifications/${notification.notification.id}/read`, {
-        method: 'PUT',
-        credentials: 'include'
-      });
+      await apiRequest("PUT", `/api/notifications/${notification.notification.id}/read`);
       // Invalidate queries để refresh notifications
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
     } catch (error) {
@@ -76,12 +76,11 @@ export default function Admin() {
 
   const handleMarkAllAsRead = async () => {
     try {
-      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications];
+      // Combine và sort by createdAt để đảm bảo thứ tự đúng theo thời gian
+      const allUnreadNotifications = [...supportTicketNotifications, ...accountRequestNotifications]
+        .sort((a, b) => new Date(b.notification.createdAt).getTime() - new Date(a.notification.createdAt).getTime());
       for (const item of allUnreadNotifications) {
-        await fetch(`/api/notifications/${item.notification.id}/read`, {
-          method: 'PUT',
-          credentials: 'include'
-        });
+        await apiRequest("PUT", `/api/notifications/${item.notification.id}/read`);
       }
       // Invalidate queries để refresh notifications
       queryClient.invalidateQueries({ queryKey: ["/api/notifications/unread"] });
@@ -107,8 +106,17 @@ export default function Admin() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 dark:from-gray-900 dark:via-purple-900 dark:to-blue-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-purple-200 rounded-full animate-spin border-t-purple-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải trang quản trị</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Kiểm tra quyền truy cập...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -127,6 +135,8 @@ export default function Admin() {
         return <CategoriesManagement />;
       case "documents":
         return <DocumentsManagement />;
+      case "support-tools":
+        return <SupportToolsManagement />;
       case "important-documents":
         return <ImportantDocumentsTable />;
       case "projects":
@@ -164,6 +174,8 @@ export default function Admin() {
         return "Quản lý khóa học";
       case "documents":
         return "Quản lý tài liệu";
+      case "support-tools":
+        return "Công cụ hỗ trợ";
       case "important-documents":
         return "Tài liệu quan trọng";
       case "projects":
@@ -298,64 +310,54 @@ export default function Admin() {
                           </div>
                         </div>
                         
-                        {/* Support Ticket Notifications */}
+                        {/* All Notifications - Sorted by Time */}
                         <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                          {supportTicketNotifications.map((notification: any) => (
-                            <DropdownMenuItem 
-                              key={notification.notification.id}
-                              onClick={() => handleNotificationClick(notification)}
-                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                              data-testid={`notification-support-${notification.notification.id}`}
-                            >
-                              <div className="flex items-start space-x-3 w-full">
-                                <div className="bg-orange-100 dark:bg-orange-900/30 p-2.5 rounded-lg flex-shrink-0">
-                                  <User className="h-4 w-4 text-orange-600 dark:text-orange-400" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                                    {notification.notification.title}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                    {notification.notification.message}
-                                  </p>
-                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                          {[...supportTicketNotifications, ...accountRequestNotifications]
+                            .sort((a, b) => {
+                              const timeA = new Date(a.notification.createdAt).getTime();
+                              const timeB = new Date(b.notification.createdAt).getTime();
+                              return timeB - timeA; // Newest first (descending order)
+                            })
+                            .map((notification: any) => {
+                              const isSupportTicket = notification.notification.title === "Yêu cầu hỗ trợ mới";
+                              return (
+                                <DropdownMenuItem 
+                                  key={notification.notification.id}
+                                  onClick={() => handleNotificationClick(notification)}
+                                  className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
+                                  data-testid={`notification-${isSupportTicket ? 'support' : 'account'}-${notification.notification.id}`}
+                                >
+                                  <div className="flex items-start space-x-3 w-full">
+                                    <div className={`p-2.5 rounded-lg flex-shrink-0 ${
+                                      isSupportTicket 
+                                        ? "bg-orange-100 dark:bg-orange-900/30" 
+                                        : "bg-blue-100 dark:bg-blue-900/30"
+                                    }`}>
+                                      <User className={`h-4 w-4 ${
+                                        isSupportTicket 
+                                          ? "text-orange-600 dark:text-orange-400" 
+                                          : "text-blue-600 dark:text-blue-400"
+                                      }`} />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
+                                        {notification.notification.title}
+                                      </p>
+                                      <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
+                                        {notification.notification.message}
+                                      </p>
+                                      <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                        <Clock className="h-3 w-3 mr-1" />
+                                        {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
+                                      </div>
+                                    </div>
+                                    <div className={`h-2 w-2 rounded-full flex-shrink-0 mt-1 ${
+                                      isSupportTicket ? "bg-orange-500" : "bg-blue-500"
+                                    }`}></div>
                                   </div>
-                                </div>
-                                <div className="h-2 w-2 bg-orange-500 rounded-full flex-shrink-0 mt-1"></div>
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
-
-                          {/* Account Request Notifications */}
-                          {accountRequestNotifications.map((notification: any) => (
-                            <DropdownMenuItem 
-                              key={notification.notification.id}
-                              onClick={() => handleNotificationClick(notification)}
-                              className="p-4 cursor-pointer hover:bg-gray-50 focus:bg-gray-50 dark:hover:bg-gray-700/50 dark:focus:bg-gray-700/50 transition-colors duration-150"
-                              data-testid={`notification-account-${notification.notification.id}`}
-                            >
-                              <div className="flex items-start space-x-3 w-full">
-                                <div className="bg-blue-100 dark:bg-blue-900/30 p-2.5 rounded-lg flex-shrink-0">
-                                  <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="font-medium text-sm text-gray-900 dark:text-white truncate">
-                                    {notification.notification.title}
-                                  </p>
-                                  <p className="text-xs text-gray-600 dark:text-gray-300 mt-1 line-clamp-2">
-                                    {notification.notification.message}
-                                  </p>
-                                  <div className="flex items-center mt-2 text-xs text-gray-500 dark:text-gray-400">
-                                    <Clock className="h-3 w-3 mr-1" />
-                                    {new Date(notification.notification.createdAt).toLocaleString('vi-VN')}
-                                  </div>
-                                </div>
-                                <div className="h-2 w-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></div>
-                              </div>
-                            </DropdownMenuItem>
-                          ))}
+                                </DropdownMenuItem>
+                              );
+                            })}
                         </div>
                       </>
                     )}

@@ -138,49 +138,27 @@ export default function SupportTicketModal({
           
           for (let i = 0; i < selectedImages.length; i++) {
             const image = selectedImages[i];
-            console.log(`Getting upload URL for image ${i + 1}...`);
+            console.log(`Uploading image ${i + 1} to Cloudinary...`);
             
-            // Get upload URL from backend
-            const uploadResponse = await apiRequest("POST", "/api/objects/upload");
+            // Upload to Cloudinary
+            const formData = new FormData();
+            formData.append('image', image);
             
-            // Check if object storage is available
-            if (uploadResponse.status === 503) {
-              console.warn("Object storage not available, proceeding without images");
-              // Show warning to user but continue
-              toast({
-                title: "Thông báo",
-                description: "Không thể tải hình ảnh lên. Yêu cầu sẽ được gửi mà không có hình ảnh.",
-              });
-              break; // Skip image upload
-            }
+            const uploadResponse = await fetch(`${import.meta.env.VITE_API_URL || window.location.origin}/api/upload/image`, {
+              method: "POST",
+              body: formData,
+              credentials: "include",
+            });
             
             if (!uploadResponse.ok) {
-              console.error("Failed to get upload URL:", uploadResponse.status);
-              throw new Error(`Failed to get upload URL: ${uploadResponse.status}`);
+              throw new Error(`Upload failed for image ${i + 1}: ${uploadResponse.statusText}`);
             }
             
             const responseData = await uploadResponse.json();
-            const { uploadURL } = responseData;
-            
-            // Upload image to object storage
-            console.log(`Uploading image ${i + 1} to storage...`);
-            const uploadResult = await fetch(uploadURL, {
-              method: "PUT",
-              body: image,
-              headers: {
-                "Content-Type": image.type,
-              },
-            });
-            
-            if (!uploadResult.ok) {
-              const errorText = await uploadResult.text();
-              console.error(`Upload failed for image ${i + 1}:`, errorText);
-              throw new Error(`Failed to upload image ${i + 1}: ${uploadResult.status}`);
-            }
-            
-            const imageUrl = uploadURL ? uploadURL.split("?")[0] : "";
+            const { imageUrl } = responseData as { imageUrl: string };
             imageUrls.push(imageUrl);
-            console.log(`Image ${i + 1} uploaded successfully:`, imageUrl);
+            
+            console.log(`Image ${i + 1} uploaded successfully to Cloudinary`);
           }
         } catch (error: unknown) {
           console.error("Error uploading images:", error);

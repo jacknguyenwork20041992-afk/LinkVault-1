@@ -40,6 +40,8 @@ export const users = pgTable("users", {
   googleId: varchar("google_id"), // Google ID for Google auth users
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  lastLoginAt: timestamp("last_login_at"),
+  lastActiveAt: timestamp("last_active_at"),
 });
 
 // Programs table
@@ -51,6 +53,8 @@ export const programs = pgTable("programs", {
   ageRange: varchar("age_range").notNull(), // Độ tuổi: "3-6 tuổi", "7-12 tuổi", "13-17 tuổi", "18+ tuổi", etc.
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
+  iconName: varchar("icon_name"),
+  colorScheme: varchar("color_scheme"),
 });
 
 // Categories table
@@ -124,10 +128,24 @@ export const projects = pgTable("projects", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: varchar("name").notNull(),
   description: text("description"),
-  assignee: varchar("assignee").notNull(), // Người thực hiện
+  assigneeId: varchar("assignee_id").references(() => users.id, { onDelete: "set null" }), // Project leader
   deadline: timestamp("deadline").notNull(),
   status: varchar("status").notNull().default("todo"), // todo, in_progress, completed, cancelled
   link: varchar("link"), // Link project (optional)
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Project tasks table for task management within projects
+export const projectTasks = pgTable("project_tasks", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  projectId: varchar("project_id").references(() => projects.id, { onDelete: "cascade" }).notNull(),
+  name: varchar("name").notNull(), // Tên công việc
+  assigneeId: varchar("assignee_id").references(() => users.id, { onDelete: "set null" }), // Người thực hiện
+  description: text("description"), // Mô tả (optional)
+  link: varchar("link"), // Link (optional)
+  deadline: timestamp("deadline").notNull(),
+  status: varchar("status").notNull().default("todo"), // todo, in_progress, completed, cancelled
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -141,6 +159,17 @@ export const accounts = pgTable("accounts", {
   username: varchar("username").notNull(),
   password: varchar("password").notNull(),
   description: text("description"),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+// Support Tools table
+export const supportTools = pgTable("support_tools", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  name: varchar("name").notNull(),
+  link: text("link").notNull(),
+  description: text("description"),
+  createdBy: varchar("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -234,6 +263,7 @@ export const supportResponses = pgTable("support_responses", {
   ticketId: varchar("ticket_id").references(() => supportTickets.id, { onDelete: "cascade" }).notNull(),
   responderId: varchar("responder_id").references(() => users.id).notNull(), // Admin responding
   response: text("response").notNull(),
+  imageUrls: jsonb("image_urls").$type<string[]>(),
   isInternal: boolean("is_internal").default(false), // true for internal admin notes
   createdAt: timestamp("created_at").defaultNow(),
 });
@@ -303,6 +333,8 @@ export const usersRelations = relations(users, ({ many }) => ({
   userNotifications: many(userNotifications),
   activities: many(activities),
   chatConversations: many(chatConversations),
+  assignedProjects: many(projects),
+  assignedTasks: many(projectTasks),
 }));
 
 export const programsRelations = relations(programs, ({ many }) => ({
@@ -363,6 +395,25 @@ export const chatMessagesRelations = relations(chatMessages, ({ one }) => ({
   conversation: one(chatConversations, {
     fields: [chatMessages.conversationId],
     references: [chatConversations.id],
+  }),
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  assignee: one(users, {
+    fields: [projects.assigneeId],
+    references: [users.id],
+  }),
+  tasks: many(projectTasks),
+}));
+
+export const projectTasksRelations = relations(projectTasks, ({ one }) => ({
+  project: one(projects, {
+    fields: [projectTasks.projectId],
+    references: [projects.id],
+  }),
+  assignee: one(users, {
+    fields: [projectTasks.assigneeId],
+    references: [users.id],
   }),
 }));
 
@@ -456,7 +507,7 @@ export const insertCategorySchema = createInsertSchema(categories).omit({
 // Document link schema
 export const documentLinkSchema = z.object({
   url: z.string().url("Link phải là URL hợp lệ"),
-  description: z.string().min(1, "Mô tả link là bắt buộc"),
+  description: z.string().optional(), // Mô tả link có thể để trống
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).omit({
@@ -464,7 +515,7 @@ export const insertDocumentSchema = createInsertSchema(documents).omit({
   createdAt: true,
   updatedAt: true,
 }).extend({
-  links: z.array(documentLinkSchema).min(1, "Phải có ít nhất 1 link"),
+  links: z.array(documentLinkSchema).optional(), // Links có thể để trống
 });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
@@ -505,6 +556,16 @@ export const insertProjectSchema = createInsertSchema(projects).omit({
   id: true,
   createdAt: true,
   updatedAt: true,
+}).extend({
+  deadline: z.string().datetime().transform((str) => new Date(str)),
+});
+
+export const insertProjectTaskSchema = createInsertSchema(projectTasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+}).extend({
+  deadline: z.string().datetime().transform((str) => new Date(str)),
 });
 
 export const insertImportantDocumentSchema = createInsertSchema(importantDocuments).omit({
@@ -514,6 +575,12 @@ export const insertImportantDocumentSchema = createInsertSchema(importantDocumen
 });
 
 export const insertAccountSchema = createInsertSchema(accounts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertSupportToolSchema = createInsertSchema(supportTools).omit({
   id: true,
   createdAt: true,
   updatedAt: true,

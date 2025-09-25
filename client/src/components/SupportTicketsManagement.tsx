@@ -22,6 +22,7 @@ import {
   Filter,
   X,
   Brain,
+  Upload,
 } from "lucide-react";
 import {
   Dialog,
@@ -50,6 +51,7 @@ export default function SupportTicketsManagement() {
   const [selectedTicket, setSelectedTicket] = useState<any>(null);
   const [isViewModalOpen, setIsViewModalOpen] = useState(false);
   const [responseText, setResponseText] = useState("");
+  const [responseImages, setResponseImages] = useState<string[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [priorityFilter, setPriorityFilter] = useState("all");
   const [searchTerm, setSearchTerm] = useState("");
@@ -69,8 +71,8 @@ export default function SupportTicketsManagement() {
 
   // Respond to ticket mutation
   const respondMutation = useMutation({
-    mutationFn: async ({ ticketId, response }: { ticketId: string; response: string }) => {
-      await apiRequest("POST", `/api/support-tickets/${ticketId}/respond`, { response });
+    mutationFn: async ({ ticketId, response, imageUrls }: { ticketId: string; response: string; imageUrls?: string[] }) => {
+      await apiRequest("POST", `/api/support-tickets/${ticketId}/respond`, { response, imageUrls });
     },
     onSuccess: () => {
       toast({
@@ -78,6 +80,7 @@ export default function SupportTicketsManagement() {
         description: "Đã gửi phản hồi",
       });
       setResponseText("");
+      setResponseImages([]);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/support-tickets"] });
       queryClient.invalidateQueries({ queryKey: ["/api/support-tickets", selectedTicket?.id, "responses"] });
     },
@@ -263,7 +266,60 @@ export default function SupportTicketsManagement() {
 
   const handleRespond = () => {
     if (!responseText.trim() || !selectedTicket) return;
-    respondMutation.mutate({ ticketId: selectedTicket.id, response: responseText });
+    respondMutation.mutate({ 
+      ticketId: selectedTicket.id, 
+      response: responseText,
+      imageUrls: responseImages.length > 0 ? responseImages : undefined
+    });
+  };
+
+  const handleImageUpload = async (files: FileList | null) => {
+    if (!files || files.length === 0) return;
+    
+    try {
+      const uploadedImages: string[] = [];
+      
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (!file.type.startsWith('image/')) {
+          toast({
+            title: "Lỗi",
+            description: `File ${file.name} không phải là hình ảnh`,
+            variant: "destructive",
+          });
+          continue;
+        }
+        
+        // Upload using existing API endpoint
+        const formData = new FormData();
+        formData.append('image', file);
+        
+        const response = await apiRequest("POST", "/api/upload/image", formData);
+        const uploadResponse = await response.json();
+        
+        if (uploadResponse.imageUrl) {
+          uploadedImages.push(uploadResponse.imageUrl);
+        }
+      }
+      
+      setResponseImages(prev => [...prev, ...uploadedImages]);
+      
+      toast({
+        title: "Thành công",
+        description: `Đã upload ${uploadedImages.length} hình ảnh`,
+      });
+    } catch (error) {
+      console.error('Error uploading images:', error);
+      toast({
+        title: "Lỗi", 
+        description: "Không thể upload hình ảnh. Vui lòng thử lại.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveImage = (index: number) => {
+    setResponseImages(prev => prev.filter((_, i) => i !== index));
   };
 
   const handleUpdateStatus = (status: string) => {
@@ -280,7 +336,13 @@ export default function SupportTicketsManagement() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-amber-200 rounded-full animate-spin border-t-amber-600"></div>
+            <div className="absolute inset-2 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Đang tải yêu cầu hỗ trợ...</p>
+        </div>
       </div>
     );
   }
@@ -543,7 +605,7 @@ export default function SupportTicketsManagement() {
                           <span className="font-medium">Hình ảnh vấn đề ({selectedTicket.imageUrls.length}):</span>
                         </div>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {selectedTicket.imageUrls.map((imageUrl, index) => (
+                          {selectedTicket.imageUrls.map((imageUrl: string, index: number) => (
                             <div key={index} className="border rounded-lg p-3 bg-gray-50">
                               <div className="mb-2">
                                 <span className="text-sm font-medium text-gray-600">Hình ảnh {index + 1}</span>
@@ -552,18 +614,17 @@ export default function SupportTicketsManagement() {
                                 className="relative cursor-pointer group"
                                 onClick={() => {
                                   // Open image in new tab
-                                  const imageId = imageUrl.split('uploads/')[1]?.split('?')[0] || '';
-                                  window.open(`/api/support-images/${imageId}`, '_blank');
+                                  window.open(imageUrl, '_blank');
                                 }}
                               >
                                 <img 
-                                  src={`/api/support-images/${imageUrl.split('uploads/')[1]?.split('?')[0] || ''}`}
+                                  src={imageUrl}
                                   alt={`Hình ảnh vấn đề ${index + 1}`}
                                   className="w-full h-48 md:h-64 object-cover rounded-md shadow-md transition-transform group-hover:scale-105"
                                   onError={(e) => {
                                     console.error('Image load error for:', imageUrl);
                                     e.currentTarget.style.display = 'none';
-                                    e.currentTarget.nextElementSibling!.style.display = 'block';
+                                    (e.currentTarget.nextElementSibling as HTMLElement)!.style.display = 'block';
                                   }}
                                 />
                                 <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 transition-all duration-200 rounded-md flex items-center justify-center">
@@ -606,6 +667,22 @@ export default function SupportTicketsManagement() {
                             </span>
                           </div>
                           <p className="text-foreground whitespace-pre-wrap">{response.response}</p>
+                          
+                          {/* Display response images */}
+                          {response.imageUrls && response.imageUrls.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                              {response.imageUrls.map((imageUrl: string, index: number) => (
+                                <div key={index} className="relative">
+                                  <img
+                                    src={imageUrl}
+                                    alt={`Response image ${index + 1}`}
+                                    className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                    onClick={() => window.open(imageUrl, '_blank')}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </div>
@@ -621,6 +698,58 @@ export default function SupportTicketsManagement() {
                       className="min-h-[100px]"
                       data-testid="textarea-response"
                     />
+                    
+                    {/* Image Upload */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Đính kèm hình ảnh:</label>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="file"
+                          multiple
+                          accept="image/*"
+                          onChange={(e) => handleImageUpload(e.target.files)}
+                          className="hidden"
+                          id="response-image-upload"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('response-image-upload')?.click()}
+                          className="text-blue-600 hover:text-blue-700 border-blue-200 hover:border-blue-300"
+                        >
+                          <Upload className="h-4 w-4 mr-2" />
+                          Chọn hình ảnh
+                        </Button>
+                        <span className="text-xs text-muted-foreground">
+                          Có thể chọn nhiều hình ảnh cùng lúc
+                        </span>
+                      </div>
+                      
+                      {/* Preview uploaded images */}
+                      {responseImages.length > 0 && (
+                        <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3">
+                          {responseImages.map((imageUrl: string, index: number) => (
+                            <div key={index} className="relative group">
+                              <img
+                                src={imageUrl}
+                                alt={`Response image ${index + 1}`}
+                                className="w-full h-20 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                onClick={() => window.open(imageUrl, '_blank')}
+                              />
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveImage(index)}
+                                className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-600"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                    
                     <Button
                       onClick={handleRespond}
                       disabled={!responseText.trim() || respondMutation.isPending}

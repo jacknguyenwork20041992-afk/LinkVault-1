@@ -22,10 +22,7 @@ export default function NotificationsManagement({ onViewChange }: NotificationsM
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["/api/admin/notifications"],
     queryFn: async () => {
-      const response = await fetch("/api/notifications");
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
+      const response = await apiRequest("GET", "/api/notifications");
       return response.json();
     },
     retry: false,
@@ -128,7 +125,13 @@ export default function NotificationsManagement({ onViewChange }: NotificationsM
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-12">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <div className="flex flex-col items-center space-y-4">
+          <div className="relative">
+            <div className="w-12 h-12 border-4 border-red-200 rounded-full animate-spin border-t-red-600"></div>
+            <div className="absolute inset-2 bg-gradient-to-r from-red-500 to-rose-500 rounded-full animate-pulse"></div>
+          </div>
+          <p className="text-sm text-muted-foreground animate-pulse">Đang tải thông báo...</p>
+        </div>
       </div>
     );
   }

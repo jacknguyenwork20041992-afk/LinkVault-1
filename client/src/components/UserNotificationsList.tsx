@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
@@ -21,17 +21,13 @@ export default function UserNotificationsList() {
   const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const limit = 10;
 
   const { data: paginatedData, isLoading, refetch } = useQuery({
     queryKey: ["/api/notifications/user", currentPage],
     queryFn: async (): Promise<PaginatedNotifications> => {
-      const response = await fetch(`/api/notifications/user?page=${currentPage}&limit=${limit}`, {
-        credentials: "include"
-      });
-      if (!response.ok) {
-        throw new Error("Failed to fetch notifications");
-      }
+      const response = await apiRequest("GET", `/api/notifications/user?page=${currentPage}&limit=${limit}`);
       return response.json();
     },
     retry: false,
@@ -150,8 +146,17 @@ export default function UserNotificationsList() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Loader2 className="h-8 w-8 animate-spin text-border" />
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-50 via-orange-50 to-red-50 dark:from-gray-900 dark:via-yellow-900 dark:to-orange-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-yellow-200 rounded-full animate-spin border-t-yellow-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải thông báo</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Kiểm tra cập nhật mới nhất...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -235,12 +240,12 @@ export default function UserNotificationsList() {
                       data-testid={`notification-${notification.id}`}
                       onClick={() => {
                         if (isClickable) {
-                          // Mark as read first
+                          // Navigate immediately for better UX
+                          setLocation("/support-tickets");
+                          // Mark as read in background (don't wait for it)
                           if (isUnread) {
                             handleMarkAsRead(userNotification.id);
                           }
-                          // Navigate to support tickets page
-                          window.location.href = "/support-tickets";
                         }
                       }}
                     >

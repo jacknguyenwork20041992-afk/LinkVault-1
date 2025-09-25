@@ -165,8 +165,17 @@ export default function ProgramDetails() {
 
   if (isLoading || programLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-blue-900 dark:to-purple-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải chương trình học</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Vui lòng đợi trong giây lát...</p>
+          </div>
+        </div>
       </div>
     );
   }
@@ -299,7 +308,13 @@ export default function ProgramDetails() {
 
           {documentsLoading ? (
             <div className="flex items-center justify-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex flex-col items-center space-y-4">
+                <div className="relative">
+                  <div className="w-12 h-12 border-4 border-green-200 rounded-full animate-spin border-t-green-600"></div>
+                  <div className="absolute inset-2 bg-gradient-to-r from-green-500 to-blue-500 rounded-full animate-pulse"></div>
+                </div>
+                <p className="text-sm text-gray-600 dark:text-gray-400 animate-pulse">Đang tải tài liệu...</p>
+              </div>
             </div>
           ) : documents.length === 0 ? (
             <Card>

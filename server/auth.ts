@@ -7,6 +7,13 @@ import type { User } from "@shared/schema";
 import connectPg from "connect-pg-simple";
 import { storage } from "./storage";
 
+// Safe user data for API responses - NEVER include password
+function toSafeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
+
 declare global {
   namespace Express {
     interface User {
@@ -40,7 +47,8 @@ export function setupAuth(app: Express) {
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      secure: false, // Set to true in production with HTTPS
+      secure: process.env.NODE_ENV === 'production', // HTTPS required in production
+      sameSite: 'lax', // Secure default - prevents CSRF attacks
       maxAge: sessionTtl,
     },
   };
@@ -124,7 +132,7 @@ export function setupAuth(app: Express) {
           // Don't fail login if activity tracking fails
         }
 
-        return res.json(user);
+        return res.json(toSafeUser(user));
       });
     })(req, res, next);
   });
@@ -142,7 +150,7 @@ export function setupAuth(app: Express) {
     if (!req.isAuthenticated()) {
       return res.status(401).json({ message: "Unauthorized" });
     }
-    res.json(req.user);
+    res.json(toSafeUser(req.user));
   });
 }
 

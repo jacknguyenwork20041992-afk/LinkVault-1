@@ -47,7 +47,8 @@ export function DocumentUploader({
         shouldUseMultipart: false,
         getUploadParameters: async (file) => {
           console.log("Getting upload parameters for:", file.name);
-          const response = await fetch("/api/objects/upload", {
+          const API_BASE_URL = import.meta.env.VITE_API_URL || window.location.origin;
+          const response = await fetch(API_BASE_URL + "/api/objects/upload", {
             method: "POST",
             headers: {
               "Content-Type": "application/json",

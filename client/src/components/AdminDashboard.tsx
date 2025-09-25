@@ -16,7 +16,7 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
   });
 
   const { data: activities = [], isLoading: activitiesLoading } = useQuery<any[]>({
-    queryKey: ["/api/activities"],
+    queryKey: ["/api/activities/recent"],
     retry: false,
     refetchInterval: 30000, // Auto-refresh every 30 seconds
     refetchIntervalInBackground: true, // Continue refreshing even when tab is not active
@@ -166,8 +166,14 @@ export default function AdminDashboard({ onNavigateToView }: AdminDashboardProps
         <Card>
           <CardContent className="p-6">
             {activitiesLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <div className="flex items-center justify-center py-8">
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    <div className="w-12 h-12 border-4 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                    <div className="absolute inset-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-full animate-pulse"></div>
+                  </div>
+                  <p className="text-sm text-muted-foreground animate-pulse">Đang tải hoạt động...</p>
+                </div>
               </div>
             ) : activities.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">

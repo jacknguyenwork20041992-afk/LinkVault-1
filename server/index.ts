@@ -16,17 +16,36 @@ function log(message: string, source = "express") {
 
 const app = express();
 
-// CORS configuration - Cho phép frontend kết nối
-const allowedOrigins = process.env.ALLOWED_ORIGINS 
+// CORS configuration - Secure whitelist approach
+// Secure CORS origins - only allow specific domains
+const corsOrigins = process.env.ALLOWED_ORIGINS 
   ? process.env.ALLOWED_ORIGINS.split(',').map(origin => origin.trim())
   : [
       'http://localhost:5173',  // Dev frontend
-      /^https:\/\/.*\.vercel\.app$/,  // Tất cả vercel domains
-    ];
+      'http://localhost:5000',  // Same origin for Replit
+      'http://127.0.0.1:5000',  // Localhost alternative
+      'https://f8d286cb-c19d-43ef-aa57-9e8be0444613-00-3pu2wdcb3e78w.kirk.replit.dev', // Current Replit domain
+      'https://via-english-academy-fullstack.onrender.com', // Render production domain
+      process.env.REPL_ID ? `https://${process.env.REPL_ID}.replit.dev` : null, // Current Replit dev URL
+      process.env.REPL_SLUG ? `https://${process.env.REPL_SLUG}-${process.env.REPL_OWNER || 'default'}.replit.app` : null, // Current Replit app URL
+    ].filter(Boolean); // Remove null values
 
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,  // Cho phép gửi cookies
+  origin: (origin, callback) => {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    // Check if origin is in allowed list (all are strings now)
+    const isAllowed = corsOrigins.includes(origin);
+    
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      log(`CORS blocked request from origin: ${origin}`, 'security');
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,  // Allow cookies but with secure origin checking
 }));
 
 app.use(express.json());
@@ -47,8 +66,12 @@ app.use((req, res, next) => {
     const duration = Date.now() - start;
     if (path.startsWith("/api")) {
       let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
-      if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      
+      // Only log error messages in production, not full response bodies
+      if (capturedJsonResponse && (res.statusCode >= 400 || process.env.NODE_ENV === 'development')) {
+        // Only log message field, not sensitive data
+        const safeLog = capturedJsonResponse.message ? { message: capturedJsonResponse.message } : {};
+        logLine += ` :: ${JSON.stringify(safeLog)}`;
       }
 
       if (logLine.length > 80) {
@@ -85,16 +108,17 @@ app.use((req, res, next) => {
       } catch (e) {
         console.warn("Failed to setup Vite:", e);
       }
+    } else {
+      // In production, serve static files
+      try {
+        const { serveStatic } = await import("./vite");
+        serveStatic(app);
+        log("Production mode: serving static files from dist/public");
+      } catch (e) {
+        console.warn("Failed to setup static file serving:", e);
+      }
     }
     
-    // In production, add a basic health check
-    app.get("/api/health", (_req, res) => {
-      res.json({ 
-        status: "ok", 
-        timestamp: new Date().toISOString(),
-        env: process.env.NODE_ENV 
-      });
-    });
 
     // ALWAYS serve the app on the port specified in the environment variable PORT
     // Other ports are firewalled. Default to 5000 if not specified.

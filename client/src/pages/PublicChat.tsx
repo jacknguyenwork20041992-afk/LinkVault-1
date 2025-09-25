@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function PublicChat() {
   const [messages, setMessages] = useState<Array<{ content: string; isUser: boolean }>>([]);
@@ -23,22 +24,21 @@ export default function PublicChat() {
     setRateLimitWarning(false);
     
     try {
-      const response = await fetch('/api/public-chat', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ message })
-      });
-      
-      const data = await response.json();
-      
-      if (response.status === 429) {
-        setRateLimitWarning(true);
-      } else if (response.ok) {
-        addMessage(data.message, false);
-      } else {
-        addMessage('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.', false);
+      try {
+        const response = await apiRequest('POST', '/api/public-chat', { message });
+        const data = await response.json();
+        
+        if (response.status === 429) {
+          setRateLimitWarning(true);
+        } else {
+          addMessage(data.message, false);
+        }
+      } catch (error: any) {
+        if (error.message.includes('429')) {
+          setRateLimitWarning(true);
+        } else {
+          addMessage('Xin lỗi, đã có lỗi xảy ra. Vui lòng thử lại sau.', false);
+        }
       }
     } catch (error) {
       addMessage('Không thể kết nối đến server. Vui lòng kiểm tra kết nối mạng.', false);

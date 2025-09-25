@@ -4,8 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { isUnauthorizedError } from "@/lib/authUtils";
 import { apiRequest } from "@/lib/queryClient";
-import { insertNotificationSchema, type InsertNotification, type User } from "@/types";
-import { X, Users } from "lucide-react";
+import { insertNotificationSchema, type InsertNotification } from "@/types";
+import { useAuth } from "@/hooks/useAuth";
+import { X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -46,13 +47,7 @@ export default function CreateNotificationModal({
 }: CreateNotificationModalProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
-
-  // Fetch users for selection
-  const { data: users = [], isLoading: usersLoading } = useQuery<User[]>({
-    queryKey: ["/api/users"],
-    enabled: isOpen, // Only fetch when modal is open
-  });
+  const { user } = useAuth();
 
   const form = useForm<InsertNotification>({
     resolver: zodResolver(insertNotificationSchema),
@@ -60,7 +55,6 @@ export default function CreateNotificationModal({
       title: "",
       message: "",
       isGlobal: true,
-      targetUserIds: [],
     },
   });
 
@@ -101,41 +95,11 @@ export default function CreateNotificationModal({
 
   const handleClose = () => {
     form.reset();
-    setSelectedUserIds([]);
     onClose();
   };
 
   const onSubmit = (data: InsertNotification) => {
-    // Validate user selection for non-global notifications
-    if (!data.isGlobal && selectedUserIds.length === 0) {
-      toast({
-        title: "Lỗi",
-        description: "Vui lòng chọn ít nhất một người dùng để gửi thông báo",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Include selected users if not global
-    const submissionData = {
-      ...data,
-      targetUserIds: data.isGlobal ? [] : selectedUserIds,
-    };
-    createMutation.mutate(submissionData);
-  };
-
-  const handleUserSelect = (userId: string) => {
-    setSelectedUserIds(prev => {
-      if (prev.includes(userId)) {
-        return prev.filter(id => id !== userId);
-      } else {
-        return [...prev, userId];
-      }
-    });
-  };
-
-  const removeUser = (userId: string) => {
-    setSelectedUserIds(prev => prev.filter(id => id !== userId));
+    createMutation.mutate(data);
   };
 
   const isGlobal = form.watch("isGlobal");
@@ -190,7 +154,7 @@ export default function CreateNotificationModal({
                     <Textarea
                       placeholder="Nội dung thông báo..."
                       rows={4}
-                      data-testid="input-notification-message"
+                      data-testid="input-notification-content"
                       {...field}
                     />
                   </FormControl>
@@ -198,6 +162,7 @@ export default function CreateNotificationModal({
                 </FormItem>
               )}
             />
+
 
             <FormField
               control={form.control}
@@ -207,12 +172,7 @@ export default function CreateNotificationModal({
                   <FormControl>
                     <Checkbox
                       checked={field.value || false}
-                      onCheckedChange={(checked) => {
-                        field.onChange(checked);
-                        if (checked) {
-                          setSelectedUserIds([]);
-                        }
-                      }}
+                      onCheckedChange={field.onChange}
                       data-testid="checkbox-notification-global"
                       className="border-2 border-gray-400 bg-white data-[state=checked]:bg-orange-600 data-[state=checked]:border-orange-600 data-[state=checked]:text-white"
                     />
@@ -229,73 +189,6 @@ export default function CreateNotificationModal({
               )}
             />
 
-            {/* User Selection - Only show when not global */}
-            {!isGlobal && (
-              <div className="space-y-3">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-muted-foreground" />
-                  <label className="text-sm font-medium">Chọn người dùng nhận thông báo</label>
-                </div>
-                
-                {usersLoading ? (
-                  <div className="text-sm text-muted-foreground">Đang tải danh sách người dùng...</div>
-                ) : (
-                  <div className="space-y-3">
-                    <Select onValueChange={handleUserSelect} data-testid="select-users">
-                      <SelectTrigger>
-                        <SelectValue placeholder="Chọn người dùng..." />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {users.filter(user => !selectedUserIds.includes(user.id)).map((user) => (
-                          <SelectItem key={user.id} value={user.id}>
-                            <div className="flex items-center space-x-2">
-                              <span>{user.firstName} {user.lastName}</span>
-                              <span className="text-xs text-muted-foreground">({user.email})</span>
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-
-                    {/* Selected users display */}
-                    {selectedUserIds.length > 0 && (
-                      <div className="space-y-2">
-                        <div className="text-sm font-medium">Người dùng đã chọn ({selectedUserIds.length}):</div>
-                        <div className="flex flex-wrap gap-2 max-h-32 overflow-y-auto">
-                          {selectedUserIds.map((userId) => {
-                            const user = users.find(u => u.id === userId);
-                            return user ? (
-                              <Badge
-                                key={userId}
-                                variant="secondary"
-                                className="flex items-center space-x-1"
-                                data-testid={`badge-user-${userId}`}
-                              >
-                                <span>{user.firstName} {user.lastName}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => removeUser(userId)}
-                                  className="ml-1 hover:text-destructive"
-                                  data-testid={`button-remove-user-${userId}`}
-                                >
-                                  <X className="h-3 w-3" />
-                                </button>
-                              </Badge>
-                            ) : null;
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {selectedUserIds.length === 0 && (
-                      <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-lg">
-                        Vui lòng chọn ít nhất một người dùng để gửi thông báo
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
 
             <div className="flex justify-end space-x-3 pt-4">
               <Button

@@ -1,15 +1,13 @@
 import { AlertTriangle, LogOut } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function AccountDeactivatedPage() {
   const handleBackToLogin = async () => {
     try {
       // Gọi API logout
-      await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
+      await apiRequest("POST", "/api/logout");
       
       // Clear localStorage nếu có
       localStorage.clear();

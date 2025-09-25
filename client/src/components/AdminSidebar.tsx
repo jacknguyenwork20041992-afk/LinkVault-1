@@ -17,10 +17,12 @@ import {
   Upload,
   HelpCircle,
   UserPlus,
-  Palette
+  Palette,
+  Wrench
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { apiRequest } from "@/lib/queryClient";
 import type { User } from "@/types";
 
 interface AdminSidebarProps {
@@ -40,18 +42,12 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
   };
   const handleLogout = async () => {
     try {
-      const response = await fetch("/api/logout", {
-        method: "POST",
-        credentials: "include"
-      });
-      
-      if (response.ok) {
-        window.location.href = "/";
-      } else {
-        console.error("Logout failed");
-      }
+      await apiRequest("POST", "/api/logout");
+      window.location.href = "/";
     } catch (error) {
       console.error("Logout error:", error);
+      // Force redirect even if logout fails
+      window.location.href = "/";
     }
   };
 
@@ -76,6 +72,7 @@ export default function AdminSidebar({ activeView, onViewChange, user, isMobile,
         { id: "programs", label: "Chương trình", icon: Book },
         { id: "categories", label: "Khóa học", icon: Tags },
         { id: "documents", label: "Tài liệu", icon: FileText },
+        { id: "support-tools", label: "Công cụ hỗ trợ", icon: Wrench },
         { id: "important-documents", label: "Tài liệu quan trọng", icon: AlertTriangle },
       ]
     },

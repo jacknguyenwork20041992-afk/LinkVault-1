@@ -40,7 +40,7 @@ interface TicketCardProps {
 
 function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
   // Only fetch responses when ticket is expanded (lazy loading for better performance)
-  const { data: responses = [] } = useQuery<any[]>({
+  const { data: responses = [], isLoading: responsesLoading } = useQuery<any[]>({
     queryKey: ["/api/support-tickets", ticket.id, "responses"],
     enabled: isExpanded, // Only fetch when expanded
     retry: false,
@@ -193,11 +193,11 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                     {ticket.imageUrls.slice(0, 4).map((imageUrl, index) => (
                       <div key={index} className="relative group">
                         <img 
-                          src={`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`}
+                          src={imageUrl}
                           alt={`Hình ảnh ${index + 1}`}
                           className="w-full h-20 object-cover rounded-md border cursor-pointer hover:opacity-80 transition-opacity"
                           onClick={() => {
-                            window.open(`/api/support-images/${imageUrl.split('/').pop()?.split('?')[0] || ''}`, '_blank');
+                            window.open(imageUrl, '_blank');
                           }}
                         />
                         {ticket.imageUrls && ticket.imageUrls.length > 4 && index === 3 && (
@@ -258,6 +258,29 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                             <p className="text-muted-foreground text-sm mb-2 bg-green-50 dark:bg-green-950/30 p-3 rounded-md border-l-4 border-green-500">
                               {response.response}
                             </p>
+                            
+                            {/* Display response images */}
+                            {response.imageUrls && response.imageUrls.length > 0 && (
+                              <div className="mt-3 space-y-2">
+                                <div className="flex items-center gap-2 text-sm text-green-600">
+                                  <Image className="h-4 w-4" />
+                                  <span className="font-medium">Hình ảnh đính kèm ({response.imageUrls.length}):</span>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                                  {response.imageUrls.map((imageUrl: string, index: number) => (
+                                    <div key={index} className="relative group">
+                                      <img
+                                        src={imageUrl}
+                                        alt={`Response image ${index + 1}`}
+                                        className="w-full h-24 object-cover rounded border cursor-pointer hover:opacity-75 transition-opacity"
+                                        onClick={() => window.open(imageUrl, '_blank')}
+                                      />
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                            
                             <span className="text-xs text-muted-foreground">
                               {formatDateTime(response.createdAt)}
                             </span>
@@ -281,7 +304,30 @@ function TicketCard({ ticket, isExpanded, onToggleExpanded }: TicketCardProps) {
                 </div>
               )}
               
-              {isExpanded && responses.length === 0 && (
+              {isExpanded && responsesLoading && (
+                <div className="space-y-3 pt-3 border-t bg-blue-50 dark:bg-blue-950/20 -mx-6 px-6 pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="relative">
+                        <div className="w-6 h-6 border-2 border-blue-200 rounded-full animate-spin border-t-blue-600"></div>
+                        <div className="absolute inset-1 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+                      </div>
+                      <span className="text-blue-600 dark:text-blue-400 font-medium animate-pulse">Đang tải phản hồi...</span>
+                    </div>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={onToggleExpanded}
+                      className="flex items-center gap-2"
+                      data-testid={`button-collapse-ticket-${ticket.id}`}
+                    >
+                      Ẩn
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {isExpanded && !responsesLoading && responses.length === 0 && (
                 <div className="space-y-3 pt-3 border-t bg-gray-50 dark:bg-gray-950/20 -mx-6 px-6 pb-3">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -491,8 +537,17 @@ export default function SupportTicketsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-orange-50 via-yellow-50 to-red-50 dark:from-gray-900 dark:via-orange-900 dark:to-red-900">
+        <div className="flex flex-col items-center space-y-6">
+          <div className="relative">
+            <div className="w-16 h-16 border-4 border-orange-200 rounded-full animate-spin border-t-orange-600"></div>
+            <div className="absolute inset-3 bg-gradient-to-r from-orange-500 to-red-500 rounded-full animate-pulse"></div>
+          </div>
+          <div className="text-center space-y-2">
+            <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 animate-pulse">Đang tải yêu cầu hỗ trợ</h3>
+            <p className="text-sm text-gray-500 dark:text-gray-400">Vui lòng đợi trong giây lát...</p>
+          </div>
+        </div>
       </div>
     );
   }

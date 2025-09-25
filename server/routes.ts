@@ -10,6 +10,7 @@ import {
   insertNotificationSchema,
   insertActivitySchema,
   insertProjectSchema,
+  insertProjectTaskSchema,
   insertImportantDocumentSchema,
   insertAccountSchema,
   insertChatConversationSchema,
@@ -34,6 +35,14 @@ import { ObjectStorageService, ObjectNotFoundError } from "./objectStorage";
 import { ObjectPermission } from "./objectAcl";
 import { sendEmail, generateAccountRequestEmail } from "./emailService";
 import { z } from "zod";
+import { checkDatabaseHealth, reconnectDatabase, isDbConnected } from "./db";
+
+// Safe user data for API responses - NEVER include password
+function toSafeUser(user: any) {
+  if (!user) return user;
+  const { password, ...safeUser } = user;
+  return safeUser;
+}
 
 // Demo chat responses when OpenAI is unavailable
 function getDemoResponse(message: string, knowledgeContext: any): string {
@@ -77,6 +86,50 @@ function getDemoResponse(message: string, knowledgeContext: any): string {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Enhanced health check endpoint for Render Free Tier - FIRST to avoid Vite override
+  app.get("/api/health", async (_req, res) => {
+    const startTime = Date.now();
+    
+    try {
+      // Check database health and attempt reconnection if needed
+      let dbHealth = await checkDatabaseHealth();
+      
+      // If database is unhealthy, try reconnection (for sleep mode recovery)
+      if (dbHealth.status === 'error' && isDbConnected === false) {
+        console.log("🔄 Attempting database reconnection for sleep mode recovery...");
+        const reconnected = await reconnectDatabase();
+        if (reconnected) {
+          dbHealth = await checkDatabaseHealth();
+        }
+      }
+      
+      const responseTime = Date.now() - startTime;
+      
+      res.json({ 
+        status: dbHealth.status === 'healthy' ? "ok" : "degraded",
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || "development",
+        database: dbHealth,
+        responseTime: `${responseTime}ms`,
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        // Render Free Tier specific info
+        renderFreeTier: {
+          sleepMode: process.env.NODE_ENV === 'production' ? 'supported' : 'n/a',
+          keepAliveEndpoint: '/api/health'
+        }
+      });
+    } catch (error) {
+      console.error("Health check error:", error);
+      res.status(503).json({ 
+        status: "error", 
+        timestamp: new Date().toISOString(),
+        env: process.env.NODE_ENV || "development",
+        message: error instanceof Error ? error.message : "Health check failed"
+      });
+    }
+  });
+
   // Setup multiple authentication methods
   const { setupAuth: setupLocalAuth, isAuthenticated, isAdmin } = await import("./auth");
   const { setupGoogleAuth } = await import("./googleAuth");
@@ -110,7 +163,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       fileSize: 100 * 1024 * 1024, // 100MB limit (increased from 50MB)
     },
     fileFilter: (req, file, cb) => {
-      const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx'];
+      const allowedTypes = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.ppt', '.pptx', '.jpg', '.jpeg', '.png', '.gif', '.webp'];
       const ext = '.' + file.originalname.split('.').pop()?.toLowerCase();
       if (allowedTypes.includes(ext)) {
         cb(null, true);
@@ -123,7 +176,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Standard auth route (compatible with frontend)
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      res.json(req.user);
+      res.json(toSafeUser(req.user));
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -133,7 +186,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Alias route for frontend compatibility
   app.get('/api/user', isAuthenticated, async (req: any, res) => {
     try {
-      res.json(req.user);
+      res.json(toSafeUser(req.user));
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -196,6 +249,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error deleting program:", error);
       res.status(500).json({ message: "Failed to delete program" });
+    }
+  });
+
+  // Bulk create programs
+  app.post("/api/programs/create-many", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { programs } = req.body;
+      if (!Array.isArray(programs) || programs.length === 0) {
+        return res.status(400).json({ message: "Programs array is required" });
+      }
+      
+      const validatedPrograms = programs.map(program => insertProgramSchema.parse(program));
+      const createdPrograms = await storage.createPrograms(validatedPrograms);
+      res.json(createdPrograms);
+    } catch (error) {
+      console.error("Error creating bulk programs:", error);
+      res.status(400).json({ message: "Failed to create programs" });
     }
   });
 
@@ -317,7 +387,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Documents array is required" });
       }
       
-      const validatedDocuments = documents.map(doc => insertDocumentSchema.parse(doc));
+      const processedDocuments = documents.map(doc => ({
+        title: doc.title || "",
+        description: doc.description || "",
+        programId: doc.programId || null,
+        categoryId: doc.categoryId || null,
+        links: doc.links || [],
+        isPublic: doc.isPublic !== undefined ? doc.isPublic : true,
+        isRequired: doc.isRequired !== undefined ? doc.isRequired : false
+      }));
+      
+      const createdDocuments = await storage.createDocuments(processedDocuments);
+      res.json(createdDocuments);
+    } catch (error) {
+      console.error("Error creating bulk documents:", error);
+      res.status(400).json({ message: "Failed to create documents" });
+    }
+  });
+
+  // Alias for bulk document upload (same as bulk create)
+  app.post("/api/documents/bulk-upload", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { documents } = req.body;
+      if (!Array.isArray(documents) || documents.length === 0) {
+        return res.status(400).json({ message: "Documents array is required" });
+      }
+      
+      // Skip validation temporarily - just ensure required fields exist
+      const validatedDocuments = documents.map(doc => ({
+        ...doc,
+        programId: doc.programId || undefined,
+        categoryId: doc.categoryId || undefined,  
+        description: doc.description || "",
+        links: doc.links || []
+      }));
       const createdDocuments = await storage.createDocuments(validatedDocuments);
       res.json(createdDocuments);
     } catch (error) {
@@ -377,11 +480,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get admin users for dropdowns
+  app.get("/api/admin-users", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const adminUsers = await storage.getAdminUsers();
+      res.json(adminUsers);
+    } catch (error) {
+      console.error("Error fetching admin users:", error);
+      res.status(500).json({ message: "Failed to fetch admin users" });
+    }
+  });
+
   app.post("/api/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const validatedData = createUserSchema.parse(req.body);
       const user = await storage.createUser(validatedData);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error creating user:", error);
       res.status(400).json({ message: "Failed to create user" });
@@ -393,7 +507,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { id } = req.params;
       const updateData = req.body;
       const user = await storage.updateUser(id, updateData);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error updating user:", error);
       res.status(500).json({ message: "Failed to update user" });
@@ -410,7 +524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const user = await storage.toggleUserActive(id, isActive);
-      res.json(user);
+      res.json(toSafeUser(user));
     } catch (error) {
       console.error("Error toggling user active status:", error);
       res.status(500).json({ message: "Failed to update user status" });
@@ -502,9 +616,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Activity routes
   app.get("/api/activities", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 100;
-      const activities = await storage.getAllActivities(limit);
-      res.json(activities);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const search = req.query.search as string || "";
+      const type = req.query.type as string || "";
+      
+      const result = await storage.getAllActivities({
+        page,
+        limit,
+        search,
+        type
+      });
+      
+      res.json(result);
     } catch (error) {
       console.error("Error fetching activities:", error);
       res.status(500).json({ message: "Failed to fetch activities" });
@@ -573,6 +697,112 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all projects with tasks
+  app.get("/api/projects-with-tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const projects = await storage.getAllProjectsWithTasks();
+      res.json(projects);
+    } catch (error) {
+      console.error("Error fetching projects with tasks:", error);
+      res.status(500).json({ message: "Failed to fetch projects with tasks" });
+    }
+  });
+
+  // Update project status
+  app.patch("/api/projects/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const project = await storage.updateProjectStatus(id, status);
+      res.json(project);
+    } catch (error) {
+      console.error("Error updating project status:", error);
+      res.status(500).json({ message: "Failed to update project status" });
+    }
+  });
+
+  // Update task status
+  app.patch("/api/tasks/:id/status", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { status } = req.body;
+      const task = await storage.updateTaskStatus(id, status);
+      res.json(task);
+    } catch (error) {
+      console.error("Error updating task status:", error);
+      res.status(500).json({ message: "Failed to update task status" });
+    }
+  });
+
+  // Create new task
+  app.post("/api/tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const taskData = req.body;
+      const task = await storage.createTask(taskData);
+      res.json(task);
+    } catch (error) {
+      console.error("Error creating task:", error);
+      res.status(500).json({ message: "Failed to create task" });
+    }
+  });
+
+  // Delete task
+  app.delete("/api/tasks/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteTask(id);
+      res.json({ message: "Task deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      res.status(500).json({ message: "Failed to delete task" });
+    }
+  });
+
+  // Support Tools routes
+  app.get("/api/support-tools", async (req, res) => {
+    try {
+      const tools = await storage.getAllSupportTools();
+      res.json(tools);
+    } catch (error) {
+      console.error("Error fetching support tools:", error);
+      res.status(500).json({ message: "Failed to fetch support tools" });
+    }
+  });
+
+  app.post("/api/support-tools", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const toolData = req.body;
+      const tool = await storage.createSupportTool(toolData);
+      res.json(tool);
+    } catch (error) {
+      console.error("Error creating support tool:", error);
+      res.status(500).json({ message: "Failed to create support tool" });
+    }
+  });
+
+  app.put("/api/support-tools/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const toolData = req.body;
+      const tool = await storage.updateSupportTool(id, toolData);
+      res.json(tool);
+    } catch (error) {
+      console.error("Error updating support tool:", error);
+      res.status(500).json({ message: "Failed to update support tool" });
+    }
+  });
+
+  app.delete("/api/support-tools/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteSupportTool(id);
+      res.json({ message: "Support tool deleted successfully" });
+    } catch (error) {
+      console.error("Error deleting support tool:", error);
+      res.status(500).json({ message: "Failed to delete support tool" });
+    }
+  });
+
   app.get("/api/projects/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
@@ -595,6 +825,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error creating project:", error);
       res.status(400).json({ message: "Failed to create project" });
+    }
+  });
+
+  // Create project with tasks
+  app.post("/api/projects-with-tasks", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { project, tasks } = req.body;
+      const validatedProject = insertProjectSchema.parse(project);
+      const validatedTasks = tasks.map((task: any) => insertProjectTaskSchema.parse(task));
+      
+      const result = await storage.createProjectWithTasks(validatedProject, validatedTasks);
+      res.json(result);
+    } catch (error) {
+      console.error("Error creating project with tasks:", error);
+      res.status(400).json({ message: "Failed to create project with tasks" });
     }
   });
 
@@ -1094,30 +1339,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Object Storage Routes
   // Upload URL endpoint
-  app.post("/api/objects/upload", isAuthenticated, async (req, res) => {
+  // Cloudinary upload routes
+  app.post("/api/upload/image", isAuthenticated, upload.single('image'), async (req, res) => {
     try {
-      console.log("Getting upload URL for object storage...");
-      
-      // Check if object storage is properly configured
-      if (!process.env.PRIVATE_OBJECT_DIR) {
-        console.log("Object storage not configured, returning error");
-        return res.status(503).json({ 
-          error: "File upload not available", 
-          message: "Object storage is not configured. Please contact administrator." 
-        });
+      if (!req.file) {
+        return res.status(400).json({ error: "No image file provided" });
       }
-      
-      const objectStorageService = new ObjectStorageService();
-      const uploadURL = await objectStorageService.getObjectEntityUploadURL();
-      console.log("Upload URL generated:", uploadURL);
-      const response = { uploadURL };
-      console.log("Sending response:", JSON.stringify(response));
-      res.json(response);
+
+      const { cloudinaryService } = await import('./cloudinaryService');
+      const imageUrl = await cloudinaryService.uploadImage(
+        req.file.buffer,
+        req.file.originalname,
+        'support-tickets'
+      );
+
+      res.json({ imageUrl });
     } catch (error) {
-      console.error("Error getting upload URL:", error);
-      res.status(503).json({ 
-        error: "File upload not available", 
-        message: "Object storage service is temporarily unavailable" 
+      console.error("Error uploading image:", error);
+      res.status(500).json({ 
+        error: "Failed to upload image",
+        message: error instanceof Error ? error.message : "Unknown error"
+      });
+    }
+  });
+
+  app.post("/api/upload/file", isAuthenticated, upload.single('file'), async (req, res) => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: "No file provided" });
+      }
+
+      const { cloudinaryService } = await import('./cloudinaryService');
+      const fileUrl = await cloudinaryService.uploadFile(
+        req.file.buffer,
+        req.file.originalname,
+        'account-requests'
+      );
+
+      res.json({ fileUrl });
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      res.status(500).json({ 
+        error: "Failed to upload file",
+        message: error instanceof Error ? error.message : "Unknown error"
       });
     }
   });
@@ -1600,7 +1864,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post("/api/support-tickets/:ticketId/respond", isAuthenticated, isAdmin, async (req: any, res) => {
     try {
       const { ticketId } = req.params;
-      const { response } = req.body;
+      const { response, imageUrls } = req.body;
       const user = req.user;
       
       // Check if ticket exists
@@ -1611,6 +1875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const responseData = insertSupportResponseSchema.parse({
         response,
+        imageUrls,
         ticketId,
         responderId: user.id,
         isInternal: false
@@ -1642,8 +1907,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(supportResponse);
     } catch (error) {
       console.error("Error creating support response:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create support response" });
       }
@@ -1742,8 +2007,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(response);
     } catch (error) {
       console.error("Error creating support response:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create support response" });
       }
@@ -1864,8 +2129,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(accountRequest);
     } catch (error) {
       console.error("Error creating account request:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to create account request" });
       }
@@ -1914,8 +2179,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedRequest);
     } catch (error) {
       console.error("Error updating account request:", error);
-      if (error.name === "ZodError") {
-        res.status(400).json({ message: "Invalid data", errors: error.issues });
+      if ((error as any).name === "ZodError") {
+        res.status(400).json({ message: "Invalid data", errors: (error as any).issues });
       } else {
         res.status(500).json({ message: "Failed to update account request" });
       }
@@ -2231,25 +2496,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (userId) {
             activeConnections.set(userId, ws);
             
-            // Add user to online users table
-            try {
-              await storage.addOnlineUser({
-                userId,
-                socketId: Math.random().toString(36).substring(7),
-                userAgent: req.headers['user-agent'] || null,
-                ipAddress: req.socket.remoteAddress || null,
-              });
-              
-              console.log(`User ${userId} connected to WebSocket`);
-              
-              // Notify admins about new online user
+            // Add user to online users table (optional - non-critical)
+            const onlineUser = await storage.addOnlineUser({
+              userId,
+              socketId: Math.random().toString(36).substring(7),
+              userAgent: req.headers['user-agent'] || null,
+              ipAddress: req.socket.remoteAddress || null,
+            });
+            
+            console.log(`User ${userId} connected to WebSocket`);
+            
+            // Notify admins about new online user (only if tracking succeeded)
+            if (onlineUser) {
               broadcastToAdmins({
                 type: 'user_online',
                 userId,
               });
-              
-            } catch (error) {
-              console.error('Error adding online user:', error);
             }
           }
         } else if (data.type === 'new_message') {
